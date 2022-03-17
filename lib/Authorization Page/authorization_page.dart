@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
@@ -23,6 +22,9 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
   FocusNode? focusNode;
 
   TextEditingController? textController;
+
+  bool? isDisabled = true;
+
 
   @override
   void initState() {
@@ -62,20 +64,20 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
 
   Widget authBody(){
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.purple,
-                Colors.blueAccent
+                Colors.purple[400]!,
+                Colors.blue[900 ]!
               ]
           )
       ),
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 40, top: 120, right: 79, bottom: focusNode!.hasFocus ? 200 : 350),
+            padding: EdgeInsets.only(left: 40, top: 120, right: 79, bottom: !isKeyboardClosed() ? 150 : 350),
             child: SizedBox(
               height: 95,
               width: 500,
@@ -98,7 +100,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(left: 40, right: 40),
+            padding: const EdgeInsets.only(left: 40, right: 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -110,12 +112,14 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     style: const TextStyle(color: Colors.white),
                     keyboardType: TextInputType.number,
                     cursorColor: Colors.white,
+                    textAlign: TextAlign.left,
                     decoration: InputDecoration(
                       hintText: ('(XXX) XXX-XX-XX'),
                       hintStyle: const TextStyle(color: Colors.grey),
                       prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
+                      alignLabelWithHint: true,
                       prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixIcon: focusNode!.hasFocus ? IconButton(onPressed: (){textController!.clear();}, icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5))) : null,
+                      suffixIcon: !isKeyboardClosed() ? SizedBox(child:IconButton(onPressed: (){textController!.clear(); setState(() {isDisabled = true;});}, icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5)))) : null,
                         suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                       focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white)
@@ -127,11 +131,22 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     onTap: () {
                       FocusScope.of(context).requestFocus(focusNode);
                     },
+                    onChanged: (value){
+                      if(value != ''){
+                        setState(() {
+                          isDisabled = false;
+                        });
+                      }else{
+                        setState(() {
+                          isDisabled = true;
+                        });
+                      }
+                    },
                   )
                 ],
               )
           ),
-          focusNode!.hasFocus ? Container() : Padding(
+          !isKeyboardClosed() ? Container() : Padding(
             padding: const EdgeInsets.only(top: 50),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -199,20 +214,21 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 40, bottom: focusNode!.hasFocus ? 10 : 30),
-            child: SizedBox(
-              width: 200,
-              height: 50,
-              child: FloatingActionButton.extended(
-                onPressed: null,
-                label: const Text('Готово'),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)
+            padding: EdgeInsets.only(top: 40, bottom: !isKeyboardClosed() ? 10 : 30),
+            child: Material(
+              borderRadius: BorderRadius.circular(11),
+              color: isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
+              child: InkWell(
+                onTap: isDisabled == true ? null : () => null,
+                child: SizedBox(
+                  width: 200,
+                  height: 50,
+                  child: Center(child: Text('Готово', style: TextStyle(color: isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
                 ),
               ),
             )
           ),
-          focusNode!.hasFocus ? Container() : const Padding(
+          !isKeyboardClosed() ? Container() : const Padding(
             padding: EdgeInsets.only(left: 35, right: 35),
             child: Text.rich(
                 TextSpan(
@@ -239,5 +255,9 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
         ],
       ),
     );
+  }
+
+  bool isKeyboardClosed(){
+    return MediaQuery.of(context).viewInsets.bottom == 0.0;
   }
 }
