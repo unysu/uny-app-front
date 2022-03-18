@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/Authorization%20Pages/phone_nmb_confirm_page.dart';
 
 class AuthorizationPage extends StatefulWidget{
   const AuthorizationPage({Key? key}) : super(key: key);
@@ -18,12 +19,12 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
   Image okImg = Image.asset('assets/ok.png');
   Image vkImg = Image.asset('assets/vk.png');
 
-
   FocusNode? focusNode;
 
   TextEditingController? textController;
 
   bool? isDisabled = true;
+  bool? validate = false;
 
 
   @override
@@ -70,7 +71,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               end: Alignment.bottomRight,
               colors: [
                 Colors.purple[400]!,
-                Colors.blue[900 ]!
+                Colors.blue[700]!
               ]
           )
       ),
@@ -84,7 +85,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('Привет! 👋', style: TextStyle(fontSize: 24, color: Colors.white)),
+                  Text('Привет! 👋', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
                   SizedBox(height: 6),
                   SizedBox(
                     width: 295,
@@ -105,7 +106,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Номер телефона', style: TextStyle(fontSize: 15, color: Colors.white)),
+                  Text('Номер телефона', style: TextStyle(fontSize: 15, color: validate == true ? Colors.red : Colors.white)),
                   TextFormField(
                     controller: textController,
                     focusNode: focusNode,
@@ -118,8 +119,24 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                       hintStyle: const TextStyle(color: Colors.grey),
                       prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
                       alignLabelWithHint: true,
+                      errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
+                      errorStyle: TextStyle(color: Colors.red, fontSize: 15),
                       prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixIcon: !isKeyboardClosed() ? SizedBox(child:IconButton(onPressed: (){textController!.clear(); setState(() {isDisabled = true;});}, icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5)))) : null,
+                      suffixIcon: !isKeyboardClosed() ? SizedBox(
+                          child:Container(
+                            height: 40,
+                            width: 40,
+                            child: IconButton(
+                                onPressed: (){
+                                  textController!.clear();
+                                  setState(() {
+                                    isDisabled = true;
+                                  });
+                                },
+                                icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5))
+                            ),
+                          )
+                      ) : null,
                         suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                       focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white)
@@ -132,13 +149,15 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                       FocusScope.of(context).requestFocus(focusNode);
                     },
                     onChanged: (value){
-                      if(value != ''){
+                      if(value.length != 10 || value == ''){
                         setState(() {
-                          isDisabled = false;
+                          validate = true;
+                          isDisabled = true;
                         });
                       }else{
                         setState(() {
-                          isDisabled = true;
+                          validate = false;
+                          isDisabled = false;
                         });
                       }
                     },
@@ -214,16 +233,16 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 40, bottom: !isKeyboardClosed() ? 10 : 30),
+            padding: EdgeInsets.only(top: !isKeyboardClosed() ? 80 : 40, bottom: !isKeyboardClosed() ? 10 : 30),
             child: Material(
               borderRadius: BorderRadius.circular(11),
-              color: isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
+              color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
               child: InkWell(
-                onTap: isDisabled == true ? null : () => null,
+                onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage()));},
                 child: SizedBox(
                   width: 200,
                   height: 50,
-                  child: Center(child: Text('Готово', style: TextStyle(color: isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
+                  child: Center(child: Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
                 ),
               ),
             )
@@ -257,6 +276,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
     );
   }
 
+  // Checking whether keyboard opened or closed
   bool isKeyboardClosed(){
     return MediaQuery.of(context).viewInsets.bottom == 0.0;
   }

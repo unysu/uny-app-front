@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:uny_app/Authorization%20Page/authorization_page.dart';
+import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 
 
 void main() {
