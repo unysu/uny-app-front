@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 
 
 void main() {
-  runApp(const MaterialApp(
+  runApp(MaterialApp(
     home: SplashScreenPage(),
   ));
 }
@@ -32,18 +33,29 @@ class _SplashScreenPageState extends State<SplashScreenPage>{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: SizedBox(
-            width: 150,
-            height: 150,
-            child: Image.asset('assets/logo.png')
-        ),
-      )
+    return MaterialApp(
+      builder: (context, widget){
+        return ResponsiveWrapper.builder(
+            Scaffold(
+                backgroundColor: Colors.white,
+                body: Center(
+                  child: SizedBox(
+                      width: 150,
+                      height: 150,
+                      child: Image.asset('assets/logo.png')
+                  ),
+                )
+            ),
+          minWidth: 480,
+          breakpoints: [
+            const ResponsiveBreakpoint.resize(480, name: MOBILE),
+          ],
+        );
+      }
     );
   }
 }
+
 
 
 

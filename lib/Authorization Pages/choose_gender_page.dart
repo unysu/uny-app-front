@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
@@ -10,36 +9,41 @@ class GenderPage extends StatefulWidget{
 
 class _GenderPageState extends State<GenderPage>{
 
+  late double mqHeight;
+  late double mqWidth;
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveWrapper.builder(
-      Scaffold(
-          resizeToAvoidBottomInset: false,
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            backgroundColor: Colors.transparent,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+        Scaffold(
+            resizeToAvoidBottomInset: false,
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
-          ),
-          body: GestureDetector(
-            child: mainBody(),
-            onTap: () {
-              FocusScope.of(context).requestFocus(FocusNode());
-            },
-          )
-      ),
+            body: GestureDetector(
+              child: mainBody(),
+              onTap: () {
+                FocusScope.of(context).requestFocus(FocusNode());
+              },
+            )
+        ),
       defaultScale: true,
-      breakpoints: const [
-          ResponsiveBreakpoint.resize(500, name: MOBILE),
-      ],
+      breakpoints: [
+        ResponsiveBreakpoint.resize(480, name: MOBILE)
+      ]
     );
   }
 
   Widget mainBody() {
+    mqHeight = MediaQuery.of(context).size.height;
+    mqWidth = MediaQuery.of(context).size.width;
     return Container(
       decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -53,141 +57,126 @@ class _GenderPageState extends State<GenderPage>{
       ),
       child: Column(
         children: [
-           Padding(
-                padding: EdgeInsets.only(left: 40, top: 130, right: 79, bottom: 130),
-                child: SizedBox(
-                  height: 95,
-                  width: 500,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Укажи свой пол ☺', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 6),
-                      SizedBox(
-                        width: 295,
-                        height: 56,
-                        child: Text(
-                          'Это нужно, чтобы мы могли правильно подобрать тебе единомышленника',
-                          maxLines: 3,
-                          style: TextStyle(fontSize: 17, color: Colors.grey),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-            ),
-          Container(
-            width: 500,
-            height: 500,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  width: 150,
-                  left: 60,
-                  bottom: 380,
-                  child:  Column(
-                    children: [
-                      Image.asset('assets/woman.png'),
-                      Text('Женский', style: TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                ),
-                Positioned(
-                    width: 150,
-                    height: 150,
-                    left: 170,
-                    top: 150,
-                    child: Image.asset('assets/logo_no_background.png')
-                ),
-                Positioned(
-                    width: 150,
-                    height: 130,
-                    left: 100,
-                    bottom: 0,
-                    child: Column(
-                      children: [
-                        GestureDetector(
-                          onTap: () => nextPage(),
-                          child: Image.asset('assets/another_gender.png'),
-                        ),
-                        Text('Другое', style: TextStyle(color: Colors.white))
-                      ],
+          Padding(
+              padding: EdgeInsets.only(top: mqHeight * 0.1, left: mqWidth * 0.1, right: mqWidth * 0.3, bottom: mqHeight * 0.1),
+              child: SizedBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Укажи свой пол ☺', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 6),
+                    SizedBox(
+                      width: mqWidth * 0.7,
+                      child: Text(
+                        'Это нужно, чтобы мы могли правильно подобрать тебе единомышленника',
+                        maxLines: 3,
+                        style: TextStyle(fontSize: 17, color: Colors.grey),
+                      ),
                     )
+                  ],
                 ),
-                Positioned(
-                    width: 150,
-                    height: 180,
-                    left: 300,
-                    bottom: 230,
-                    child: Column(
-                      children: [
-                        Image.asset('assets/man.png'),
-                        Text('Мужской', style: TextStyle(color: Colors.white))
-                      ],
+              )
+          ),
+          Container(
+            height: 500,
+            child: LayoutBuilder(
+              builder: (context, constraint){
+                double height = constraint.maxHeight;
+                double width = constraint.maxWidth;
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned (
+                      left: height / 6,
+                      bottom: width * 0.8,
+                      child:  Column(
+                        children: [
+                          Image.asset('assets/woman.png'),
+                          Text('Женский', style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
                     ),
-                ),
-                Positioned(
-                    width: 150,
-                    height: 180,
-                    left: 250,
-                    bottom: 20,
-                    child: Image.asset('assets/heart.png'),
-                ),
-                Positioned(
-                  width: 150,
-                  height: 180,
-                  left: 35,
-                  bottom: 160,
-                  child: Image.asset('assets/pc.png'),
-                ),
-                Positioned(
-                  width: 130,
-                  height: 180,
-                  bottom: 150,
-                  child: Image.asset('assets/money.png'),
-                ),
-                Positioned(
-                  width: 150,
-                  height: 180,
-                  left: 208,
-                  bottom: 270,
-                  child: Image.asset('assets/heart_1.png'),
-                ),
-                Positioned(
-                  width: 150,
-                  height: 180,
-                  left: 235,
-                  bottom: 350,
-                  child: Image.asset('assets/avatar.png'),
-                ),
-                Positioned(
-                  width: 150,
-                  height: 180,
-                  left: 138,
-                  bottom: 100,
-                  child: Image.asset('assets/dot.png'),
-                ),
-                Positioned(
-                  width: 150,
-                  height: 180,
-                  left: 138,
-                  bottom: 335,
-                  child: Image.asset('assets/dot.png'),
-                ),
-                Positioned(
-                  width: 150,
-                  height: 180,
-                  left: 10,
-                  bottom: 205,
-                  child: Image.asset('assets/dot.png'),
-                ),
-                Positioned(
-                  left: 60,
-                  child: Image.asset('assets/gender_page_lines.png'),
-                )
-              ],
-            ),
+                    Positioned(
+                      left: height / 2.7,
+                      bottom: width / 2.2,
+                      child: Image.asset('assets/logo_no_background.png'),
+                    ),
+                    Positioned(
+                        left: height / 4.2,
+                        bottom: width / 18,
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () => nextPage(),
+                              child: Image.asset('assets/another_gender.png'),
+                            ),
+                            Text('Другое', style: TextStyle(color: Colors.white))
+                          ],
+                        )
+                    ),
+                    Positioned(
+                        right: height / 10,
+                        bottom: width / 2,
+                        child: GestureDetector(
+                          excludeFromSemantics: false,
+                          onTap: () => nextPage(),
+                          child: Column(
+                            children: [
+                              Image.asset('assets/man.png'),
+                              Text('Мужской', style: TextStyle(color: Colors.white))
+                            ],
+                          ),
+                        )
+                    ),
+                    Positioned(
+                      right: height / 4,
+                      bottom: width / 5.7,
+                      child: Image.asset('assets/heart.png'),
+                    ),
+                    Positioned(
+                      left: height / 6.3,
+                      bottom: width * 0.5,
+                      child: Image.asset('assets/pc.png'),
+                    ),
+                    Positioned(
+                      left: height / 12,
+                      bottom: width / 2.2,
+                      child: Image.asset('assets/money.png'),
+                    ),
+                    Positioned(
+                      right: height / 2.9,
+                      bottom: width / 1.36,
+                      child: Image.asset('assets/heart_1.png'),
+                    ),
+                    Positioned(
+                      right: height / 3.5,
+                      bottom: width / 1.10,
+                      child: Image.asset('assets/avatar.png'),
+                    ),
+                    Positioned(
+                      right: height / 2.1,
+                      bottom: width / 1.152,
+                      child: Image.asset('assets/dot.png'),
+                    ),
+                    Positioned(
+                      right: height / 2.05,
+                      bottom: width / 2.5,
+                      child: Image.asset('assets/dot.png'),
+                    ),
+                    Positioned(
+                      left: height / 7,
+                      bottom: width / 1.57,
+                      child: Image.asset('assets/dot.png'),
+                    ),
+                    Positioned(
+                      left: height / 11,
+                      top: width / 22,
+                      child: Image.asset('assets/gender_page_lines.png'),
+                    )
+                  ],
+                );
+              },
+            )
           )
         ],
       ),

@@ -26,6 +26,8 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
   bool? isDisabled = true;
   bool? validate = false;
 
+  late double mqWidth;
+  late double mqHeight;
 
   @override
   void initState() {
@@ -47,23 +49,25 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
   Widget build(BuildContext context) {
     return ResponsiveWrapper.builder(
       Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: GestureDetector(
-          child: authBody(),
-          onTap: () {
-            FocusScope.of(context).requestFocus(FocusNode());
-            focusNode!.unfocus();
-          },
-        )
+          resizeToAvoidBottomInset: false,
+          body: GestureDetector(
+            child: authBody(),
+            onTap: () {
+              FocusScope.of(context).requestFocus(FocusNode());
+              focusNode!.unfocus();
+            },
+          )
       ),
       defaultScale: true,
-      breakpoints: const [
-        ResponsiveBreakpoint.resize(500, name: MOBILE),
+      breakpoints: [
+        const ResponsiveBreakpoint.resize(400, name: MOBILE),
       ],
     );
   }
 
   Widget authBody(){
+    mqWidth = MediaQuery.of(context).size.width;
+    mqHeight = MediaQuery.of(context).size.height;
     return Container(
       decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -77,31 +81,26 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
       ),
       child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(left: 40, top: 120, right: 79, bottom: !isKeyboardClosed() ? 150 : 350),
-            child: SizedBox(
-              height: 95,
-              width: 500,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Привет! 👋', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 6),
-                  SizedBox(
-                    width: 295,
-                    height: 56,
-                    child: Text(
-                      'Введи номер телефона, чтобы войти или зарегистрироваться, если ты новенький!',
-                      maxLines: 3,
-                      style: TextStyle(fontSize: 17, color: Colors.grey),
-                    ),
-                  )
-                ],
-              ),
+          Container(
+            padding: EdgeInsets.only(top: mqHeight * 0.1, left: mqWidth * 0.1, right: mqWidth * 0.3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Привет! 👋', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                SizedBox(height: 6),
+                SizedBox(
+                  width: mqWidth * 0.8,
+                  child: Text(
+                    'Введи номер телефона, чтобы войти или зарегистрироваться, если ты новенький!',
+                    maxLines: 3,
+                    style: TextStyle(fontSize: 17, color: Colors.grey),
+                  ),
+                )
+              ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 40, right: 40),
+          Container(
+              padding: EdgeInsets.only(top: mqHeight * 0.2, left: mqWidth * 0.1, right: mqWidth * 0.1),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -115,35 +114,35 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     cursorColor: Colors.white,
                     textAlign: TextAlign.left,
                     decoration: InputDecoration(
-                      hintText: ('(XXX) XXX-XX-XX'),
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
-                      alignLabelWithHint: true,
-                      errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
-                      errorStyle: TextStyle(color: Colors.red, fontSize: 15),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixIcon: !isKeyboardClosed() ? SizedBox(
-                          child:Container(
-                            height: 40,
-                            width: 40,
-                            child: IconButton(
-                                onPressed: (){
-                                  textController!.clear();
-                                  setState(() {
-                                    isDisabled = true;
-                                  });
-                                },
-                                icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5))
-                            ),
-                          )
-                      ) : null,
+                        hintText: ('(XXX) XXX-XX-XX'),
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
+                        alignLabelWithHint: true,
+                        errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
+                        errorStyle: TextStyle(color: Colors.red, fontSize: 15),
+                        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                        suffixIcon: !isKeyboardClosed() ? SizedBox(
+                            child:Container(
+                              height: 40,
+                              width: 40,
+                              child: IconButton(
+                                  onPressed: (){
+                                    textController!.clear();
+                                    setState(() {
+                                      isDisabled = true;
+                                    });
+                                  },
+                                  icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5))
+                              ),
+                            )
+                        ) : null,
                         suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)
-                      ),
-                      enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey)
-                      )
+                        focusedBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white)
+                        ),
+                        enabledBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey)
+                        )
                     ),
                     onTap: () {
                       FocusScope.of(context).requestFocus(focusNode);
@@ -179,7 +178,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: mqWidth / 50),
                 ClipOval(
                   child: Material(
                     color: Colors.white.withOpacity(0.1), // Button color
@@ -189,7 +188,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: mqWidth / 50),
                 ClipOval(
                   child: Material(
                     color: Colors.white.withOpacity(0.1), // Button color
@@ -199,7 +198,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: mqWidth / 50),
                 ClipOval(
                   child: Material(
                     color: Colors.white.withOpacity(0.1), // Button color
@@ -209,7 +208,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: mqWidth / 50),
                 ClipOval(
                   child: Material(
                     color: Colors.white.withOpacity(0.1), // Button color
@@ -219,7 +218,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: mqWidth / 50),
                 ClipOval(
                   child: Material(
                     color: Colors.white.withOpacity(0.1), // Button color
@@ -233,41 +232,40 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: !isKeyboardClosed() ? 80 : 40, bottom: !isKeyboardClosed() ? 10 : 30),
-            child: Material(
-              borderRadius: BorderRadius.circular(11),
-              color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
-              child: InkWell(
-                onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage()));},
-                child: SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: Center(child: Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
+              padding: EdgeInsets.only(top: mqHeight * 0.05, left: mqWidth * 0.3, right: mqWidth * 0.3),
+              child: Material(
+                borderRadius: BorderRadius.circular(11),
+                color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
+                child: InkWell(
+                  onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage()));},
+                  child: SizedBox(
+                    height: mqHeight * 0.06,
+                    child: Center(child: Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
+                  ),
                 ),
-              ),
-            )
+              )
           ),
-          !isKeyboardClosed() ? Container() : const Padding(
-            padding: EdgeInsets.only(left: 35, right: 35),
+          Container(
+            padding: EdgeInsets.only(top: mqHeight * 0.15, right: mqWidth * 0.1, left: mqWidth * 0.1),
             child: Text.rich(
-                TextSpan(
-                    text: 'Нажимая "Готово", вы подтверждаете ',
-                    style: TextStyle(color: Colors.white),
-                    children: [
-                      TextSpan(
-                          text: 'согласие с условиями использования UnyApp ',
-                          style: TextStyle(color: Colors.lightBlue)
-                      ),
-                      TextSpan(
-                          text: 'и ',
-                          style: TextStyle(color: Colors.white)
-                      ),
-                      TextSpan(
-                          text: 'политикой о данных пользователей',
-                          style: TextStyle(color: Colors.lightBlue),
-                      )
-                    ]
-                ),
+              TextSpan(
+                  text: 'Нажимая "Готово", вы подтверждаете ',
+                  style: TextStyle(color: Colors.white),
+                  children: [
+                    TextSpan(
+                        text: 'согласие с условиями использования UnyApp ',
+                        style: TextStyle(color: Colors.lightBlue)
+                    ),
+                    TextSpan(
+                        text: 'и ',
+                        style: TextStyle(color: Colors.white)
+                    ),
+                    TextSpan(
+                      text: 'политикой о данных пользователей',
+                      style: TextStyle(color: Colors.lightBlue),
+                    )
+                  ]
+              ),
               textAlign: TextAlign.center,
             ),
           )

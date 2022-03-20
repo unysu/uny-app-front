@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -9,6 +10,8 @@ class AuthorizationInfoPage extends StatefulWidget{
 }
 
 class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
+
+  FocusNode? locationFieldFocusNode;
 
   TextEditingController nameTextController = TextEditingController();
   TextEditingController secondNameTextController = TextEditingController();
@@ -22,6 +25,15 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
   DateTime _date = DateTime.now();
 
+  late double mqHeight;
+  late double mqWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    locationFieldFocusNode = FocusNode();
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -30,34 +42,43 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
     secondNameTextController.dispose();
     dateOfBirthTextController.dispose();
     locationTextController.dispose();
+
+    locationFieldFocusNode!.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveWrapper.builder(
-      Scaffold(
-          resizeToAvoidBottomInset: false,
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            backgroundColor: Colors.transparent,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        mqHeight = constraints.maxHeight;
+        mqWidth = constraints.maxWidth;
+        return ResponsiveWrapper.builder(
+            Scaffold(
+                resizeToAvoidBottomInset: false,
+                extendBodyBehindAppBar: true,
+                appBar: AppBar(
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  backgroundColor: Colors.transparent,
+                  leading: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                body: GestureDetector(
+                  child: mainBody(),
+                  onTap: () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    locationFieldFocusNode!.unfocus();
+                  },
+                )
             ),
-          ),
-          body: GestureDetector(
-            child: mainBody(),
-            onTap: () {
-              FocusScope.of(context).requestFocus(FocusNode());
-            },
-          )
-      ),
-      defaultScale: true,
-      breakpoints: const [
-        ResponsiveBreakpoint.resize(500, name: MOBILE),
-      ],
+            defaultScale: true,
+            breakpoints: [
+              const ResponsiveBreakpoint.resize(480, name: 'MOBILE')
+            ]
+        );
+      }
     );
   }
 
@@ -76,18 +97,14 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
       child: Column(
         children: [
           Padding(
-              padding: EdgeInsets.only(left: 40, right: 79, top: !isKeyboardClosed() ? 100 : 130),
+              padding: EdgeInsets.only(top: locationFieldFocusNode!.hasFocus ? mqHeight / 500 : mqHeight / 8, left: mqWidth * 0.1, right: mqWidth * 0.4),
               child: SizedBox(
-                height: 95,
-                width: 500,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text('Как тебя зовут? 😇', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
                     SizedBox(height: 6),
                     SizedBox(
-                      width: 295,
-                      height: 56,
                       child: Text(
                         'Укажи свои имя, возраст',
                         maxLines: 3,
@@ -98,12 +115,12 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 ),
               )
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 20, right: 200),
+          Container(
+            padding: EdgeInsets.only(top: mqHeight / 15, left: mqWidth * 0.1, right: mqWidth * 0.5),
             child: Text('Основные данные', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 38, right: 38, top: 12),
+          Container(
+            padding: EdgeInsets.only(top: mqWidth / 16, left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
               controller: nameTextController,
               cursorColor: Colors.white,
@@ -130,8 +147,9 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               },
             ),
           ),
+          SizedBox(height: mqHeight * 0.01),
           Padding(
-            padding: EdgeInsets.only(left: 38, right: 38, top: 12),
+            padding: EdgeInsets.only(left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
               controller: secondNameTextController,
               cursorColor: Colors.white,
@@ -158,8 +176,9 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               },
             ),
           ),
+          SizedBox(height: mqHeight * 0.01),
           Padding(
-            padding: EdgeInsets.only(left: 38, right: 38, top: 12),
+            padding: EdgeInsets.only(left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
               controller: dateOfBirthTextController,
               cursorColor: Colors.white,
@@ -207,13 +226,14 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               ],
             ),
           ) : Container(),
-          Padding(
-            padding: EdgeInsets.only(top: 30, left: 38, right: 211),
+          Container(
+            padding: EdgeInsets.only(top: mqHeight * 0.04, left: mqWidth * 0.1, right: mqWidth * 0.5),
             child: Text('Местоположение', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 38, right: 38, top: 15),
+          Container(
+            padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
+              focusNode: locationFieldFocusNode,
               controller: locationTextController,
               cursorColor: Colors.white,
               style: TextStyle(color: Colors.white),
@@ -238,10 +258,13 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   isLocationFieldEmpty = false;
                 });
               },
+              onTap: (){
+                FocusScope.of(context).requestFocus(locationFieldFocusNode);
+              },
             ),
           ),
-          Padding(
-              padding: EdgeInsets.only(top: 250),
+          Container(
+              padding: EdgeInsets.only(top: mqHeight * 0.1),
               child: Material(
                 borderRadius: BorderRadius.circular(11),
                 color: Colors.white,
@@ -290,38 +313,76 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
   // Showing date picker depends on platform
   void showDatePicker(){
-    if(UniversalPlatform.isIOS){
-       showCupertinoModalPopup(
-         context: context,
-         builder: (context){
-           return Align(
-             alignment: Alignment.bottomCenter,
-             child: ClipRRect(
-               borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-               child: Container(
-                 color: Colors.white,
-                 height: 350,
-                 child: Column(
-                   children: [
-                     CupertinoDatePicker(
-                       dateOrder: DatePickerDateOrder.dmy,
-                       initialDateTime: _date,
-                       mode: CupertinoDatePickerMode.date,
-                       onDateTimeChanged: (dateTime){
-                         setState(() {
-                           _date = dateTime;
-                         });
-                       },
-                     ),
-
-                   ],
-                 )
-               ),
-             ),
-           );
-         }
-       );
-    }
+      showCupertinoModalPopup(
+          context: context,
+          builder: (context){
+            return Material(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              child: Container(
+                  height: (mqWidth / 2) * 1.9,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(width: mqWidth / 8),
+                            Text('Дата рождения', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                            Container(
+                              child: IconButton(
+                                icon: Icon(
+                                  CupertinoIcons.clear_thick_circled,
+                                  color: Colors.grey.withOpacity(0.5)),
+                                onPressed: (){
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 200,
+                        width: 500,
+                        child: CupertinoDatePicker(
+                          dateOrder: DatePickerDateOrder.dmy,
+                          initialDateTime: _date,
+                          mode: CupertinoDatePickerMode.date,
+                          onDateTimeChanged: (dateTime){
+                            setState(() {
+                              _date = dateTime;
+                            });
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: 500,
+                        padding: EdgeInsets.only(left: 24, right: 24, top: 20),
+                        child: FloatingActionButton.extended(
+                          onPressed: (){
+                            var formatter = DateFormat('dd/MM/yyyy');
+                            var date = formatter.format(_date);
+                            dateOfBirthTextController.value = dateOfBirthTextController.value.copyWith(text: date);
+                            Navigator.pop(context);
+                          },
+                          label: Text('Готово', style: TextStyle(fontSize: 17, color: Colors.white)),
+                          backgroundColor: Color.fromRGBO(145, 10, 251, 5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(11))
+                          ),
+                        ),
+                      )
+                    ],
+                  )
+              ),
+            );
+          }
+      );
   }
 
   // Checking whether keyboard opened or closed
