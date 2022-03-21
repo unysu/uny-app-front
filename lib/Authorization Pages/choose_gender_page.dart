@@ -50,15 +50,15 @@ class _GenderPageState extends State<GenderPage>{
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.purple[400]!,
-                Colors.blue[700]!
+                Color.fromRGBO(165, 21, 215, 5),
+                Color.fromRGBO(38, 78, 215, 5)
               ]
           )
       ),
       child: Column(
         children: [
           Padding(
-              padding: EdgeInsets.only(top: mqHeight * 0.1, left: mqWidth * 0.1, right: mqWidth * 0.3, bottom: mqHeight * 0.1),
+              padding: EdgeInsets.only(top: mqHeight / 7, left: mqWidth * 0.1, right: mqWidth * 0.3, bottom: mqHeight * 0.1),
               child: SizedBox(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

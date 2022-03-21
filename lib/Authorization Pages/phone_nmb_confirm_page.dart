@@ -69,8 +69,8 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.purple[400]!,
-                Colors.blue[700]!
+                Color.fromRGBO(165, 21, 215, 5),
+                Color.fromRGBO(38, 78, 215, 5)
               ]
           )
       ),
@@ -170,7 +170,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
               )
           ),
           Padding(
-            padding: EdgeInsets.only(top: mqHeight * 0.2),
+            padding: EdgeInsets.only(top: mqHeight / 3.3),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/Photo%20Video%20Upload%20Pages/upload_photo_page.dart';
 
 class AuthorizationInfoPage extends StatefulWidget{
   @override
@@ -89,15 +90,15 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.purple[400]!,
-                Colors.blue[700]!
+                Color.fromRGBO(165, 21, 215, 5),
+                Color.fromRGBO(38, 78, 215, 5)
               ]
           )
       ),
       child: Column(
         children: [
           Padding(
-              padding: EdgeInsets.only(top: locationFieldFocusNode!.hasFocus ? mqHeight / 500 : mqHeight / 8, left: mqWidth * 0.1, right: mqWidth * 0.4),
+              padding: EdgeInsets.only(top: locationFieldFocusNode!.hasFocus ? mqHeight / 500 : mqHeight / 7, left: mqWidth * 0.1, right: mqWidth * 0.4),
               child: SizedBox(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +270,13 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 borderRadius: BorderRadius.circular(11),
                 color: Colors.white,
                 child: InkWell(
-                  onTap: () => validate(),
+                  onTap: (){
+                    validate();
+
+                    if(!isNameFieldEmpty! && !isSecondNameFieldEmpty! && !isDateOfBirthFieldEmpty! && !isLocationFieldEmpty!){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => UploadPhotoPage()));
+                    }
+                  },
                   child: SizedBox(
                     width: 200,
                     height: 50,
@@ -365,9 +372,14 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                         padding: EdgeInsets.only(left: 24, right: 24, top: 20),
                         child: FloatingActionButton.extended(
                           onPressed: (){
+                            setState(() {
+                              isDateOfBirthFieldEmpty = false;
+                            });
+
                             var formatter = DateFormat('dd/MM/yyyy');
                             var date = formatter.format(_date);
                             dateOfBirthTextController.value = dateOfBirthTextController.value.copyWith(text: date);
+
                             Navigator.pop(context);
                           },
                           label: Text('Готово', style: TextStyle(fontSize: 17, color: Colors.white)),

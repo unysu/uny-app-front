@@ -74,22 +74,22 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.purple[400]!,
-                Colors.blue[700]!
+                Color.fromRGBO(165, 21, 215, 5),
+                Color.fromRGBO(38, 78, 215, 5)
               ]
           )
       ),
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.1, left: mqWidth * 0.1, right: mqWidth * 0.3),
+            padding: EdgeInsets.only(top: mqHeight * 0.1, left: mqWidth * 0.1, right: mqWidth * 0.2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Привет! 👋', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
                 SizedBox(height: 6),
                 SizedBox(
-                  width: mqWidth * 0.8,
+                  width: mqWidth * 0.9,
                   child: Text(
                     'Введи номер телефона, чтобы войти или зарегистрироваться, если ты новенький!',
                     maxLines: 3,
@@ -246,7 +246,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               )
           ),
           Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.15, right: mqWidth * 0.1, left: mqWidth * 0.1),
+            padding: EdgeInsets.only(top: mqHeight * 0.13, right: mqWidth * 0.1, left: mqWidth * 0.1),
             child: Text.rich(
               TextSpan(
                   text: 'Нажимая "Готово", вы подтверждаете ',
