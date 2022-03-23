@@ -76,7 +76,8 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             ),
             defaultScale: true,
             breakpoints: [
-              const ResponsiveBreakpoint.resize(480, name: 'MOBILE')
+              const ResponsiveBreakpoint.resize(480, name: MOBILE),
+              const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
             ]
         );
       }
@@ -97,22 +98,21 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
       ),
       child: Column(
         children: [
-          Padding(
+          AnimatedPadding(
+            curve: Curves.decelerate,
+              duration: Duration(milliseconds: 300),
               padding: EdgeInsets.only(top: locationFieldFocusNode!.hasFocus ? mqHeight / 500 : mqHeight / 7, left: mqWidth * 0.1, right: mqWidth * 0.4),
-              child: SizedBox(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Как тебя зовут? 😇', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 6),
-                    SizedBox(
-                      child: Text(
-                        'Укажи свои имя, возраст',
-                        maxLines: 3,
-                        style: TextStyle(fontSize: 17, color: Colors.grey),
-                      ),
-                    )
-                  ],
+              child: AnimatedContainer(
+                curve: Curves.easeOutExpo,
+                duration: Duration(milliseconds: 150),
+                height: 60,
+                width: 250,
+                child: AnimatedSwitcher(
+                  duration: Duration(milliseconds: 150),
+                  child: animateWidget(),
+                  transitionBuilder: (widget, transition){
+                    return ScaleTransition(scale: transition, child: widget);
+                  },
                 ),
               )
           ),
@@ -265,7 +265,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             ),
           ),
           Container(
-              padding: EdgeInsets.only(top: mqHeight * 0.1),
+              padding: EdgeInsets.only(top: mqHeight * 0.03),
               child: Material(
                 borderRadius: BorderRadius.circular(11),
                 color: Colors.white,
@@ -316,6 +316,23 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
         isLocationFieldEmpty = true;
       });
     }
+  }
+
+  Widget animateWidget(){
+    return locationFieldFocusNode!.hasFocus ? Container() : Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text('Как тебя зовут? 😇', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+        SizedBox(height: 6),
+        SizedBox(
+          child: Text(
+            'Укажи свои имя, возраст',
+            maxLines: 3,
+            style: TextStyle(fontSize: 17, color: Colors.grey),
+          ),
+        )
+      ],
+    );
   }
 
   // Showing date picker depends on platform

@@ -61,6 +61,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
       defaultScale: true,
       breakpoints: [
         const ResponsiveBreakpoint.resize(400, name: MOBILE),
+        const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
       ],
     );
   }
@@ -100,7 +101,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
             ),
           ),
           Container(
-              padding: EdgeInsets.only(top: mqHeight * 0.2, left: mqWidth * 0.1, right: mqWidth * 0.1),
+              padding: EdgeInsets.only(top: mqHeight / 5, left: mqWidth * 0.1, right: mqWidth * 0.1, bottom: mqHeight / 80),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -121,7 +122,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                         errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
                         errorStyle: TextStyle(color: Colors.red, fontSize: 15),
                         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                        suffixIcon: !isKeyboardClosed() ? SizedBox(
+                        suffixIcon: focusNode!.hasFocus ? SizedBox(
                             child:Container(
                               height: 40,
                               width: 40,
@@ -164,75 +165,17 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                 ],
               )
           ),
-          !isKeyboardClosed() ? Container() : Padding(
-            padding: const EdgeInsets.only(top: 50),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ClipOval(
-                  child: Material(
-                    color: Colors.white.withOpacity(0.1), // Button color
-                    child: InkWell(// Splash color
-                      onTap: () {},
-                      child: SizedBox(width: 50, height: 50, child: googleImg),
-                    ),
-                  ),
-                ),
-                SizedBox(width: mqWidth / 50),
-                ClipOval(
-                  child: Material(
-                    color: Colors.white.withOpacity(0.1), // Button color
-                    child: InkWell(// Splash color
-                      onTap: () {},
-                      child: SizedBox(width: 50, height: 50, child: mailruImg),
-                    ),
-                  ),
-                ),
-                SizedBox(width: mqWidth / 50),
-                ClipOval(
-                  child: Material(
-                    color: Colors.white.withOpacity(0.1), // Button color
-                    child: InkWell(// Splash color
-                      onTap: () {},
-                      child: SizedBox(width: 50, height: 50, child: yandexImg),
-                    ),
-                  ),
-                ),
-                SizedBox(width: mqWidth / 50),
-                ClipOval(
-                  child: Material(
-                    color: Colors.white.withOpacity(0.1), // Button color
-                    child: InkWell(// Splash color
-                      onTap: () {},
-                      child: SizedBox(width: 50, height: 50, child: vkImg),
-                    ),
-                  ),
-                ),
-                SizedBox(width: mqWidth / 50),
-                ClipOval(
-                  child: Material(
-                    color: Colors.white.withOpacity(0.1), // Button color
-                    child: InkWell(// Splash color
-                      onTap: () {},
-                      child: SizedBox(width: 50, height: 50, child: fbImg),
-                    ),
-                  ),
-                ),
-                SizedBox(width: mqWidth / 50),
-                ClipOval(
-                  child: Material(
-                    color: Colors.white.withOpacity(0.1), // Button color
-                    child: InkWell(// Splash color
-                      onTap: () {},
-                      child: SizedBox(width: 50, height: 50, child: okImg),
-                    ),
-                  ),
-                )
-              ],
-            ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: _socialAccountsWidget(),
+            transitionBuilder: (child, animation){
+              return ScaleTransition(child: child, scale: animation);
+            },
           ),
-          Padding(
-              padding: EdgeInsets.only(top: mqHeight * 0.05, left: mqWidth * 0.3, right: mqWidth * 0.3),
+          AnimatedContainer(
+            duration: Duration(milliseconds: 250),
+              curve: Curves.easeIn,
+              padding: EdgeInsets.only(top: mqHeight / 20, left: mqWidth * 0.3, right: mqWidth * 0.3, bottom: mqHeight / 30),
               child: Material(
                 borderRadius: BorderRadius.circular(11),
                 color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
@@ -274,8 +217,75 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
     );
   }
 
-  // Checking whether keyboard opened or closed
-  bool isKeyboardClosed(){
-    return MediaQuery.of(context).viewInsets.bottom == 0.0;
+
+
+  Widget _socialAccountsWidget(){
+    return focusNode!.hasFocus ? Container(): Padding(
+      padding: EdgeInsets.only(top: mqHeight / 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ClipOval(
+            child: Material(
+              color: Colors.white.withOpacity(0.1), // Button color
+              child: InkWell(// Splash color
+                onTap: () {},
+                child: SizedBox(width: 50, height: 50, child: googleImg),
+              ),
+            ),
+          ),
+          SizedBox(width: mqWidth / 50),
+          ClipOval(
+            child: Material(
+              color: Colors.white.withOpacity(0.1), // Button color
+              child: InkWell(// Splash color
+                onTap: () {},
+                child: SizedBox(width: 50, height: 50, child: mailruImg),
+              ),
+            ),
+          ),
+          SizedBox(width: mqWidth / 50),
+          ClipOval(
+            child: Material(
+              color: Colors.white.withOpacity(0.1), // Button color
+              child: InkWell(// Splash color
+                onTap: () {},
+                child: SizedBox(width: 50, height: 50, child: yandexImg),
+              ),
+            ),
+          ),
+          SizedBox(width: mqWidth / 50),
+          ClipOval(
+            child: Material(
+              color: Colors.white.withOpacity(0.1), // Button color
+              child: InkWell(// Splash color
+                onTap: () {},
+                child: SizedBox(width: 50, height: 50, child: vkImg),
+              ),
+            ),
+          ),
+          SizedBox(width: mqWidth / 50),
+          ClipOval(
+            child: Material(
+              color: Colors.white.withOpacity(0.1), // Button color
+              child: InkWell(// Splash color
+                onTap: () {},
+                child: SizedBox(width: 50, height: 50, child: fbImg),
+              ),
+            ),
+          ),
+          SizedBox(width: mqWidth / 50),
+          ClipOval(
+            child: Material(
+              color: Colors.white.withOpacity(0.1), // Button color
+              child: InkWell(// Splash color
+                onTap: () {},
+                child: SizedBox(width: 50, height: 50, child: okImg),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 }

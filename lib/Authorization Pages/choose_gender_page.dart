@@ -36,7 +36,8 @@ class _GenderPageState extends State<GenderPage>{
         ),
       defaultScale: true,
       breakpoints: [
-        ResponsiveBreakpoint.resize(480, name: MOBILE)
+        const ResponsiveBreakpoint.resize(480, name: MOBILE),
+        const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
       ]
     );
   }
