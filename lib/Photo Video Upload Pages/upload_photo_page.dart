@@ -181,11 +181,15 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
           }),
           onReorder: (oldIndex, newIndex) {
             Map<int, String?>? imagesMap = imagesList.asMap();
-            if(imagesMap.containsKey(oldIndex) && imagesMap.containsKey(newIndex)){
-              setState(() {
-                final element = imagesList.removeAt(oldIndex);
-                imagesList.insert(newIndex, element);
-              });
+            if(oldIndex != 0){
+              if(newIndex != 0){
+                if(imagesMap.containsKey(oldIndex) && imagesMap.containsKey(newIndex)){
+                  setState(() {
+                    final element = imagesList.removeAt(oldIndex);
+                    imagesList.insert(newIndex, element);
+                  });
+                }
+              }
             }
           },
         ),

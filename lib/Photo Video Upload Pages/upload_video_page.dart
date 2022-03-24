@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
 
@@ -22,8 +23,8 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
   late double width;
 
   ImagePicker _picker = ImagePicker();
+  XFile? _video;
   Uint8List? _videoImageBytes;
-  String? _videoTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +86,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
         ),
         SizedBox(height: height / 30),
         Center(
-          child: Column(
+          child: Stack(
             children: [
               Container(
                 height: _videoImageBytes != null ? height / 2.5 : height / 3,
@@ -100,22 +101,34 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                     ) : null
                 ),
               ),
-              _videoTitle != null ? Text('$_videoTitle', style: TextStyle(fontSize: 17, color: Colors.grey)) : Text('')
+              _video != null ? Padding(
+                padding: EdgeInsets.only(top: height * 0.360, left: width * 0.420),
+                child: IconButton(
+                  alignment: Alignment.bottomRight,
+                  icon: Icon(CupertinoIcons.clear_thick_circled,
+                      color: Colors.white, size: 40),
+                  onPressed: () {
+                    setState(() {
+                      _video = null;
+                      _videoImageBytes = null;
+                    });
+                  },
+                ),
+              ) : Container()
             ],
           )
         ),
-        SizedBox(height: height / 15),
+        SizedBox(height: height / 20),
         Padding(
           padding: EdgeInsets.only(left: width / 15, right: width / 15),
           child: InkWell(
             onTap: () async {
-              XFile? _video = await _picker.pickVideo(source: ImageSource.gallery);
+              _video = await _picker.pickVideo(source: ImageSource.gallery);
               VideoPlayerController videoController = VideoPlayerController.file(File(_video!.path));
               await videoController.initialize();
               if(videoController.value.duration.inSeconds <= 15){
-                _videoTitle = videoController.value.caption.text;
                 _videoImageBytes = await VideoThumbnail.thumbnailData(
-                  video: _video.path,
+                  video: _video!.path,
                   imageFormat: ImageFormat.PNG,
                 );
                 setState((){});
@@ -194,7 +207,12 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
         ),
         SizedBox(height: height / 50),
         TextButton(
-          onPressed: () => null,
+          onPressed: (){
+            Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => InterestsPage())
+            );
+          },
           child: Text('Пропустить', style: TextStyle(fontSize: 17, color: Colors.grey)),
         ),
         SizedBox(height: height / 50),
@@ -204,6 +222,12 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
             borderRadius: BorderRadius.circular(11),
             color: Color.fromRGBO(145, 10, 251, 5),
             child: InkWell(
+              onTap: (){
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => InterestsPage())
+                );
+              },
               child: Container(
                 height: height / 15,
                 child: Center(child: Text('Далее', style: TextStyle(

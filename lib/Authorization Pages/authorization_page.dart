@@ -175,7 +175,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
           AnimatedContainer(
             duration: Duration(milliseconds: 250),
               curve: Curves.easeIn,
-              padding: EdgeInsets.only(top: mqHeight / 20, left: mqWidth * 0.3, right: mqWidth * 0.3, bottom: mqHeight / 30),
+              padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.3, right: mqWidth * 0.3, bottom: mqHeight / 30),
               child: Material(
                 borderRadius: BorderRadius.circular(11),
                 color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
@@ -189,7 +189,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               )
           ),
           Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.13, right: mqWidth * 0.1, left: mqWidth * 0.1),
+            padding: EdgeInsets.only(top: mqHeight * 0.15, right: mqWidth * 0.1, left: mqWidth * 0.1),
             child: Text.rich(
               TextSpan(
                   text: 'Нажимая "Готово", вы подтверждаете ',
@@ -221,7 +221,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
 
   Widget _socialAccountsWidget(){
     return focusNode!.hasFocus ? Container(): Padding(
-      padding: EdgeInsets.only(top: mqHeight / 20),
+      padding: EdgeInsets.only(top: mqHeight / 30),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

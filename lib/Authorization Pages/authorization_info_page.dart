@@ -265,7 +265,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             ),
           ),
           Container(
-              padding: EdgeInsets.only(top: mqHeight * 0.03),
+              padding: EdgeInsets.only(top: mqHeight * 0.02),
               child: Material(
                 borderRadius: BorderRadius.circular(11),
                 color: Colors.white,

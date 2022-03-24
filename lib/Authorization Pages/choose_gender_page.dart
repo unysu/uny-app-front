@@ -90,12 +90,15 @@ class _GenderPageState extends State<GenderPage>{
                     Positioned (
                       left: height / 6,
                       bottom: width * 0.8,
-                      child:  Column(
-                        children: [
-                          Image.asset('assets/woman.png'),
-                          Text('Женский', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
+                      child:  GestureDetector(
+                        onTap: () => nextPage(),
+                        child: Column(
+                          children: [
+                            Image.asset('assets/woman.png'),
+                            Text('Женский', style: TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                      )
                     ),
                     Positioned(
                       left: height / 2.7,

@@ -76,9 +76,10 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
           )
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.15, left: mqWidth * 0.1, right: mqWidth * 0.1),
+            padding: EdgeInsets.only(top: mqHeight * 0.10, left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -149,7 +150,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
             ),
           ),
           Container(
-              padding: EdgeInsets.only(top: mqHeight * 0.1),
+              padding: EdgeInsets.only(top: mqHeight / 30),
               child: Material(
                 borderRadius: BorderRadius.circular(11),
                 color: isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
@@ -171,7 +172,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
               )
           ),
           Padding(
-            padding: EdgeInsets.only(top: mqHeight / 3.3),
+            padding: EdgeInsets.only(top: mqHeight / 4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
