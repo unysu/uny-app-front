@@ -243,14 +243,14 @@ class _InterestsPageState extends State<InterestsPage>{
                   topLeft: Radius.circular(10),
                   bottomLeft: Radius.circular(10),
                 ),
-                // gradient: LinearGradient(
-                //   begin: Alignment.centerLeft,
-                //   end: Alignment.centerRight,
-                //   colors: [
-                //     Colors.deepPurpleAccent,
-                //     Colors.blue
-                //   ]
-                // )
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.deepPurpleAccent,
+                    Colors.blue
+                  ]
+                )
               ),
             )
           ],
