@@ -13,6 +13,7 @@ class _InterestsPageState extends State<InterestsPage>{
   late double height;
   late double width;
 
+
   bool _isSearching = false;
 
   bool _isFamilyEnabled = true;
@@ -257,8 +258,7 @@ class _InterestsPageState extends State<InterestsPage>{
         ),
         SizedBox(height: height / 25),
         Center(
-          child: Text(
-              'Выберите минимум один интерес для продолжения',
+          child: Text('Выберите минимум один интерес для продолжения',
             style: TextStyle(fontSize: 15, color: Colors.grey.withOpacity(0.7)),
           ),
         ),
