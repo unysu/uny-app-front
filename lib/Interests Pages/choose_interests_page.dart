@@ -248,7 +248,7 @@ class _InterestsPageState extends State<InterestsPage>{
                   end: Alignment.centerRight,
                   colors: [
                     Colors.deepPurpleAccent,
-                    Colors.blue
+                    Colors.green
                   ]
                 )
               ),
