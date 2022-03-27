@@ -1,6 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:random_color/random_color.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/Interests%20Model/career_interests_model.dart';
+import 'package:uny_app/Interests%20Model/family_interests_model.dart';
+import 'package:uny_app/Interests%20Model/general_interests_model.dart';
+import 'package:uny_app/Interests%20Model/sport_interests_model.dart';
+import 'package:uny_app/Interests%20Model/travelling_interests_model.dart';
 
 class InterestsPage extends StatefulWidget{
 
@@ -9,6 +16,14 @@ class InterestsPage extends StatefulWidget{
 }
 
 class _InterestsPageState extends State<InterestsPage>{
+
+  RandomColor _randomColor = RandomColor();
+
+  late FamilyInterests familyInterests;
+  late CareerInterests careerInterests;
+  late SportInterests sportInterests;
+  late TravelingInterests travelingInterests;
+  late GeneralInterests generalInterests;
 
   late double height;
   late double width;
@@ -23,6 +38,25 @@ class _InterestsPageState extends State<InterestsPage>{
   bool _isGeneralEnabled = false;
 
 
+  List<String> _selectedFamilyInterests = [];
+  List<String> _selectedCareerInterests = [];
+  List<String> _selectedSportInterests = [];
+  List<String> _selectedTravelingInterests = [];
+  List<String> _selectedGeneralInterests = [];
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    familyInterests = FamilyInterests.init();
+    careerInterests = CareerInterests.init();
+    sportInterests = SportInterests.init();
+    travelingInterests = TravelingInterests.init();
+    generalInterests = GeneralInterests.init();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -31,11 +65,13 @@ class _InterestsPageState extends State<InterestsPage>{
         width = constraints.maxWidth;
         return ResponsiveWrapper.builder(
             Scaffold(
+              resizeToAvoidBottomInset: false,
               extendBodyBehindAppBar: true,
               appBar: AppBar(
                 elevation: 0,
                 automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent,
+                systemOverlayStyle: SystemUiOverlayStyle.dark,
                 leading: IconButton(
                   icon: Icon(Icons.arrow_back, color: Colors.grey),
                   onPressed: () => Navigator.pop(context),
@@ -100,10 +136,10 @@ class _InterestsPageState extends State<InterestsPage>{
   }
 
   Widget mainBody(){
-    return Column(
+    return Wrap(
       children: [
         Container(
-          padding: EdgeInsets.only(top: height / 7, left: width / 20),
+          padding: EdgeInsets.only(top: height / 7, left: width / 20, bottom: height / 30),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -114,7 +150,7 @@ class _InterestsPageState extends State<InterestsPage>{
                     Container(
                       height: 35,
                       width: 35,
-                      child: Image.asset('assets/unlocked.png'),
+                      child: Icon(Icons.lock_open, color: Colors.white),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.green,
@@ -249,14 +285,22 @@ class _InterestsPageState extends State<InterestsPage>{
                   end: Alignment.centerRight,
                   colors: [
                     Colors.deepPurpleAccent,
-                    Colors.green
+                    Colors.blueAccent
                   ]
                 )
               ),
             )
           ],
         ),
-        SizedBox(height: height / 25),
+        familyInterestsGridView(),
+      ],
+    );
+  }
+
+  Widget familyInterestsGridView(){
+    return Column(
+      children: [
+        SizedBox(height: height / 20),
         Center(
           child: Text('Выберите минимум один интерес для продолжения',
             style: TextStyle(fontSize: 15, color: Colors.grey.withOpacity(0.7)),
@@ -266,8 +310,134 @@ class _InterestsPageState extends State<InterestsPage>{
         Divider(
           thickness: 1,
           color: Colors.grey.withOpacity(0.5),
+        ),
+        SizedBox(
+          height: height / 1.4,
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                    padding: EdgeInsets.only(left: 10),
+                    width: width * 2,
+                    child: Wrap(
+                        spacing: 6.0,
+                        runSpacing: 6.0,
+                        direction: Axis.horizontal,
+                        children: List.generate(familyInterests.getFamilyInterests().length, (index){
+                          Color _colors = _randomColor.randomColor(
+                              colorHue: ColorHue.custom(Range(120, 130)),
+                              colorSaturation: ColorSaturation.highSaturation
+                          );
+                          return Material(
+                            child: InkWell(
+                              onTap: () => print('Awesome Flutter'),
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                              child: Chip(
+                                padding: EdgeInsets.all(10),
+                                backgroundColor: _colors,
+                                shadowColor: Colors.grey,
+                                label: Text(
+                                  familyInterests.getFamilyInterests()[index],
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          );
+                        })
+                    ),
+                  )
+              ),
+            ),
+          )
         )
       ],
     );
   }
+
+  Widget sportInterestsGridView(){
+    return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          padding: EdgeInsets.only(left: 10),
+          width: width * 2,
+          child: Wrap(
+              spacing: 6.0,
+              runSpacing: 6.0,
+              verticalDirection: VerticalDirection.down,
+              direction: Axis.horizontal,
+              children: List.generate(careerInterests.getCareerInterests().length, (index){
+                Color _colors = _randomColor.randomColor(
+                    colorHue: ColorHue.custom(Range(200, 210)),
+                    colorSaturation: ColorSaturation.highSaturation
+                );
+                return InkWell(
+                  onTap: () => null,
+                  splashColor: Colors.grey,
+                  hoverColor: Colors.grey,
+                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                  child: Chip(
+                    padding: EdgeInsets.all(10),
+                    backgroundColor: _colors,
+                    shadowColor: Colors.grey,
+                    label: Text(
+                      careerInterests.getCareerInterests()[index],
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
+              })
+          ),
+        )
+    );
+  }
+
+  Widget travelingInterestsGridView(){
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: GridView.count(
+          crossAxisCount: 7,
+          crossAxisSpacing: 4.0,
+          mainAxisSpacing: 8.0,
+          children: List.generate(travelingInterests.getTravellingInterests().length, (index){
+            return Container(
+              height: 17,
+              child: Center(
+                child: Text(
+                  travelingInterests.getTravellingInterests()[index],
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            );
+          })
+      ),
+    );
+  }
+
+  Widget generalInterestsGridView(){
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: GridView.count(
+          crossAxisCount: 7,
+          crossAxisSpacing: 4.0,
+          mainAxisSpacing: 8.0,
+          children: List.generate(generalInterests.getGeneralInterests().length, (index){
+            return Container(
+              height: 17,
+              child: Center(
+                child: Text(
+                  generalInterests.getGeneralInterests()[index],
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            );
+          })
+      ),
+    );
+  }
+
+
+
 }

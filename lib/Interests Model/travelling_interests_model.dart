@@ -1,11 +1,11 @@
 class TravelingInterests{
-  TravelingInterests? instance;
 
-  TravelingInterests? init() {
-    if(instance != null){
-      return instance;
+  static TravelingInterests? _instance;
+  static TravelingInterests init() {
+    if(_instance != null){
+      return _instance!;
     }else{
-      return instance = TravelingInterests();
+      return _instance = TravelingInterests();
     }
   }
 

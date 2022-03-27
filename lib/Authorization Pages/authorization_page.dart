@@ -81,9 +81,10 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
           )
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.1, left: mqWidth * 0.1, right: mqWidth * 0.2),
+            padding: EdgeInsets.only(top: mqHeight * 0.04, left: mqWidth * 0.1, right: mqWidth * 0.2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -101,92 +102,98 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
             ),
           ),
           Container(
-              padding: EdgeInsets.only(top: mqHeight / 5, left: mqWidth * 0.1, right: mqWidth * 0.1, bottom: mqHeight / 80),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Номер телефона', style: TextStyle(fontSize: 15, color: validate == true ? Colors.red : Colors.white)),
-                  TextFormField(
-                    controller: textController,
-                    focusNode: focusNode,
-                    style: const TextStyle(color: Colors.white),
-                    keyboardType: TextInputType.number,
-                    cursorColor: Colors.white,
-                    textAlign: TextAlign.left,
-                    decoration: InputDecoration(
-                        hintText: ('(XXX) XXX-XX-XX'),
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
-                        alignLabelWithHint: true,
-                        errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
-                        errorStyle: TextStyle(color: Colors.red, fontSize: 15),
-                        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                        suffixIcon: focusNode!.hasFocus ? SizedBox(
-                            child:Container(
-                              height: 40,
-                              width: 40,
-                              child: IconButton(
-                                  onPressed: (){
-                                    textController!.clear();
-                                    setState(() {
-                                      isDisabled = true;
-                                    });
-                                  },
-                                  icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5))
+            child: Column(
+              children: [
+                Container(
+                    padding: EdgeInsets.only(top: mqHeight / 5, left: mqWidth * 0.1, right: mqWidth * 0.1, bottom: mqHeight / 80),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Номер телефона', style: TextStyle(fontSize: 15, color: validate == true ? Colors.red : Colors.white)),
+                        TextFormField(
+                          controller: textController,
+                          focusNode: focusNode,
+                          style: const TextStyle(color: Colors.white),
+                          keyboardType: TextInputType.number,
+                          cursorColor: Colors.white,
+                          textAlign: TextAlign.left,
+                          decoration: InputDecoration(
+                              hintText: ('(XXX) XXX-XX-XX'),
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
+                              alignLabelWithHint: true,
+                              errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
+                              errorStyle: TextStyle(color: Colors.red, fontSize: 15),
+                              prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                              suffixIcon: focusNode!.hasFocus ? SizedBox(
+                                  child:Container(
+                                    height: 40,
+                                    width: 40,
+                                    child: IconButton(
+                                        onPressed: (){
+                                          textController!.clear();
+                                          setState(() {
+                                            isDisabled = true;
+                                          });
+                                        },
+                                        icon: Icon(CupertinoIcons.clear_thick_circled, color: Colors.white.withOpacity(0.5))
+                                    ),
+                                  )
+                              ) : null,
+                              suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                              focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white)
                               ),
-                            )
-                        ) : null,
-                        suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                        focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white)
-                        ),
-                        enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey)
+                              enabledBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey)
+                              )
+                          ),
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(focusNode);
+                          },
+                          onChanged: (value){
+                            if(value.length != 10 || value == ''){
+                              setState(() {
+                                validate = true;
+                                isDisabled = true;
+                              });
+                            }else{
+                              setState(() {
+                                validate = false;
+                                isDisabled = false;
+                              });
+                            }
+                          },
                         )
-                    ),
-                    onTap: () {
-                      FocusScope.of(context).requestFocus(focusNode);
-                    },
-                    onChanged: (value){
-                      if(value.length != 10 || value == ''){
-                        setState(() {
-                          validate = true;
-                          isDisabled = true;
-                        });
-                      }else{
-                        setState(() {
-                          validate = false;
-                          isDisabled = false;
-                        });
-                      }
-                    },
-                  )
-                ],
-              )
-          ),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: _socialAccountsWidget(),
-            transitionBuilder: (child, animation){
-              return ScaleTransition(child: child, scale: animation);
-            },
-          ),
-          AnimatedContainer(
-            duration: Duration(milliseconds: 250),
-              curve: Curves.easeIn,
-              padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.3, right: mqWidth * 0.3, bottom: mqHeight / 30),
-              child: Material(
-                borderRadius: BorderRadius.circular(11),
-                color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
-                child: InkWell(
-                  onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage()));},
-                  child: SizedBox(
-                    height: mqHeight * 0.06,
-                    child: Center(child: Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
-                  ),
+                      ],
+                    )
                 ),
-              )
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: _socialAccountsWidget(),
+                  transitionBuilder: (child, animation){
+                    return ScaleTransition(child: child, scale: animation);
+                  },
+                ),
+                AnimatedContainer(
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.easeIn,
+                    padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.3, right: mqWidth * 0.3, bottom: mqHeight / 30),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(11),
+                      color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
+                      child: InkWell(
+                        onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage()));},
+                        child: SizedBox(
+                          height: mqHeight * 0.06,
+                          child: Center(child: Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
+                        ),
+                      ),
+                    )
+                ),
+              ],
+            ),
           ),
           Container(
             padding: EdgeInsets.only(top: mqHeight * 0.15, right: mqWidth * 0.1, left: mqWidth * 0.1),

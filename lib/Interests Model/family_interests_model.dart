@@ -1,12 +1,12 @@
 class FamilyInterests {
 
-  FamilyInterests? instance;
+  static FamilyInterests? _instance;
 
-  FamilyInterests? init() {
-    if(instance != null){
-      return instance;
+  static FamilyInterests init() {
+    if(_instance != null){
+      return _instance!;
     }else{
-      return instance = FamilyInterests();
+      return _instance = FamilyInterests();
     }
   }
 

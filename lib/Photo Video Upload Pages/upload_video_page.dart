@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -38,6 +39,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                 appBar: AppBar(
                   elevation: 0,
                   automaticallyImplyLeading: false,
+                  systemOverlayStyle: SystemUiOverlayStyle.dark,
                   backgroundColor: Colors.transparent,
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.grey),

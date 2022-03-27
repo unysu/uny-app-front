@@ -1,12 +1,12 @@
 class SportInterests{
 
-  SportInterests? instance;
+  static SportInterests? _instance;
 
-  SportInterests? init() {
-    if(instance != null){
-      return instance;
+  static SportInterests init() {
+    if(_instance != null){
+      return _instance!;
     }else{
-      return instance = SportInterests();
+      return _instance = SportInterests();
     }
   }
 

@@ -1,12 +1,12 @@
 class GeneralInterests{
 
-  GeneralInterests? instance;
+  static GeneralInterests? _instance;
 
-  GeneralInterests? init() {
-    if(instance != null){
-      return instance;
+  static GeneralInterests init() {
+    if(_instance != null){
+      return _instance!;
     }else{
-      return instance = GeneralInterests();
+      return _instance = GeneralInterests();
     }
   }
 

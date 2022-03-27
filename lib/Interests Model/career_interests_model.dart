@@ -1,12 +1,12 @@
 class CareerInterests {
 
-  CareerInterests? instance;
+  static CareerInterests? _instance;
 
-  CareerInterests? init() {
-    if(instance != null){
-      return instance;
+  static CareerInterests init() {
+    if(_instance != null){
+      return _instance!;
     }else{
-      return instance = CareerInterests();
+      return _instance = CareerInterests();
     }
   }
 

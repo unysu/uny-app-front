@@ -48,6 +48,7 @@ dependencies:
   reorderable_grid_view: ^2.2.2
   video_thumbnail: ^0.4.6
   video_player: ^2.3.0
+  random_color: ^1.0.6-nullsafety
 
 
 dev_dependencies:
