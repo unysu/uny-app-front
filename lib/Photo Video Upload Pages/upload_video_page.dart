@@ -86,12 +86,12 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
             ],
           ),
         ),
-        SizedBox(height: height / 30),
+        SizedBox(height: height / 200),
         Center(
           child: Stack(
             children: [
               Container(
-                height: _videoImageBytes != null ? height / 2.5 : height / 3,
+                height: _videoImageBytes != null ? height / 2.5 : height / 2,
                 width: _videoImageBytes != null ? width / 2 : width,
                 child: _videoImageBytes == null ? Image(image: AssetImage('assets/upload_video_page_icon.png')) : null,
                 decoration: BoxDecoration(
