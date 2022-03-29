@@ -258,6 +258,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 setState(() {
                   isLocationFieldEmpty = false;
                 });
+                FocusScope.of(context).requestFocus(locationFieldFocusNode);
               },
               onTap: (){
                 FocusScope.of(context).requestFocus(locationFieldFocusNode);
