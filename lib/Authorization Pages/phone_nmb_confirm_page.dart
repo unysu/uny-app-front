@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_verification_code/flutter_verification_code.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/choose_gender_page.dart';
@@ -39,6 +40,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
             appBar: AppBar(
               elevation: 0,
               automaticallyImplyLeading: false,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
               backgroundColor: Colors.transparent,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back),

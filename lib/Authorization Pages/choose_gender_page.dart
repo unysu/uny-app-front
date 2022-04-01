@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
 
@@ -21,6 +22,7 @@ class _GenderPageState extends State<GenderPage>{
             appBar: AppBar(
               elevation: 0,
               automaticallyImplyLeading: false,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
               backgroundColor: Colors.transparent,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back),

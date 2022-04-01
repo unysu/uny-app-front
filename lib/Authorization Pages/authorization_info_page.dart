@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -60,6 +61,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 appBar: AppBar(
                   elevation: 0,
                   automaticallyImplyLeading: false,
+                  systemOverlayStyle: SystemUiOverlayStyle.light,
                   backgroundColor: Colors.transparent,
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back),

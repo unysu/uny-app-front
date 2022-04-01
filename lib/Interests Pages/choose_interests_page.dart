@@ -9,6 +9,7 @@ import 'package:uny_app/Interests%20Model/family_interests_model.dart';
 import 'package:uny_app/Interests%20Model/general_interests_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests_model.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests_model.dart';
+import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 
 class InterestsPage extends StatefulWidget {
   @override
@@ -1269,7 +1270,12 @@ class _InterestsPageState extends State<InterestsPage> {
                     ))),
             InkWell(
               onTap: _selectedGeneralInterests.length != 0 ? (){
-
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserProfilePage(),
+                  )
+                );
               } : null,
               child: Container(
                 height: 50,
