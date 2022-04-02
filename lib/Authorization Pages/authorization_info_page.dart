@@ -15,10 +15,10 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
   FocusNode? locationFieldFocusNode;
 
-  TextEditingController nameTextController = TextEditingController();
-  TextEditingController secondNameTextController = TextEditingController();
-  TextEditingController dateOfBirthTextController = TextEditingController();
-  TextEditingController locationTextController = TextEditingController();
+  TextEditingController? nameTextController;
+  TextEditingController? secondNameTextController;
+  TextEditingController? dateOfBirthTextController;
+  TextEditingController? locationTextController;
 
   bool? isNameFieldEmpty = false;
   bool? isSecondNameFieldEmpty = false;
@@ -33,6 +33,13 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   @override
   void initState() {
     super.initState();
+
+    nameTextController = TextEditingController();
+    secondNameTextController = TextEditingController();
+    dateOfBirthTextController = TextEditingController();
+    locationTextController = TextEditingController();
+
+
     locationFieldFocusNode = FocusNode();
   }
 
@@ -40,10 +47,10 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   void dispose() {
     super.dispose();
 
-    nameTextController.dispose();
-    secondNameTextController.dispose();
-    dateOfBirthTextController.dispose();
-    locationTextController.dispose();
+    nameTextController!.dispose();
+    secondNameTextController!.dispose();
+    dateOfBirthTextController!.dispose();
+    locationTextController!.dispose();
 
     locationFieldFocusNode!.dispose();
   }
@@ -79,7 +86,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             defaultScale: true,
             breakpoints: [
               const ResponsiveBreakpoint.resize(480, name: MOBILE),
-              const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
+              const ResponsiveBreakpoint.resize(720, name: MOBILE)
             ]
         );
       }
@@ -236,8 +243,8 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
           Container(
             padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
-              focusNode: locationFieldFocusNode,
               controller: locationTextController,
+              focusNode: locationFieldFocusNode,
               cursorColor: Colors.white,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
@@ -260,7 +267,6 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 setState(() {
                   isLocationFieldEmpty = false;
                 });
-                FocusScope.of(context).requestFocus(locationFieldFocusNode);
               },
               onTap: (){
                 FocusScope.of(context).requestFocus(locationFieldFocusNode);
@@ -296,25 +302,25 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
   // Validate whether fields are empty or not
   void validate(){
-    if(nameTextController.text.isEmpty){
+    if(nameTextController!.text.isEmpty){
       setState(() {
         isNameFieldEmpty = true;
       });
     }
 
-    if(secondNameTextController.text.isEmpty){
+    if(secondNameTextController!.text.isEmpty){
       setState(() {
         isSecondNameFieldEmpty = true;
       });
     }
 
-    if(dateOfBirthTextController.text.isEmpty){
+    if(dateOfBirthTextController!.text.isEmpty){
       setState(() {
         isDateOfBirthFieldEmpty = true;
       });
     }
 
-    if(locationTextController.text.isEmpty){
+    if(locationTextController!.text.isEmpty){
       setState(() {
         isLocationFieldEmpty = true;
       });
@@ -398,7 +404,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
                             var formatter = DateFormat('dd/MM/yyyy');
                             var date = formatter.format(_date);
-                            dateOfBirthTextController.value = dateOfBirthTextController.value.copyWith(text: date);
+                            dateOfBirthTextController!.value = dateOfBirthTextController!.value.copyWith(text: date);
 
                             Navigator.pop(context);
                           },

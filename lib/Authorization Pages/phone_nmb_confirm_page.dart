@@ -57,7 +57,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
       defaultScale: true,
       breakpoints: [
         const ResponsiveBreakpoint.resize(400, name: MOBILE),
-        const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
+        const ResponsiveBreakpoint.resize(720, name: MOBILE)
       ]
     );
   }

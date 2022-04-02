@@ -54,7 +54,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
               defaultScale: true,
               breakpoints: [
                 const ResponsiveBreakpoint.resize(480, name: MOBILE),
-                const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
+                const ResponsiveBreakpoint.resize(720, name: MOBILE)
               ]
           );
         }
@@ -397,7 +397,6 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
     }
   }
 
-
   void _cropImage(String? filePath) async {
     File? croppedFile = await ImageCropper().cropImage(
         sourcePath: filePath!,
@@ -428,7 +427,6 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
       imagesList.add(croppedFile!.path);
     });
   }
-
 
   void showAlertDialog() {
     if (UniversalPlatform.isIOS) {

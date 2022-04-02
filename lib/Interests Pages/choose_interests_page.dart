@@ -403,7 +403,7 @@ class _InterestsPageState extends State<InterestsPage> {
             defaultScale: true,
             breakpoints: [
               const ResponsiveBreakpoint.resize(480, name: MOBILE),
-              const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
+              const ResponsiveBreakpoint.resize(720, name: MOBILE)
             ]);
       },
     );
@@ -593,15 +593,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 ],
               ),
             )),
-        AnimatedSwitcher(
-          duration: Duration(seconds: 1),
-          transitionBuilder: (child, animation){
-            return SlideTransition(
-              position: Tween<Offset>(begin: Offset(1.2, 0), end: Offset(0, 0))
-                  .animate(animation),
-              child: child,
-            );
-          },
+        Container(
           child: _isCareerEnabled
               ? careerInterestsGridView()
               : _isSportEnabled
@@ -739,7 +731,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _familyFilteredList.length != 0 ? SizedBox(
-            height: height / 1.4,
+            height: height,
             child: SafeArea (
               top: false,
               child: SingleChildScrollView (
@@ -891,7 +883,6 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _careerFilteredList.length != 0 ? SizedBox(
-            height: height / 1.4,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1045,7 +1036,6 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _sportFilteredList.length != 0 ? SizedBox(
-            height: height / 1.4,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1199,7 +1189,6 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _travelingFilteredList.length != 0 ? SizedBox(
-            height: height / 1.4,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1270,7 +1259,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     ))),
             InkWell(
               onTap: _selectedGeneralInterests.length != 0 ? (){
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => UserProfilePage(),
@@ -1353,7 +1342,6 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _generalFilteredList.length != 0 ? SizedBox(
-            height: height / 1.4,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1395,7 +1383,7 @@ class _InterestsPageState extends State<InterestsPage> {
       borderRadius: BorderRadius.only(
           topLeft: Radius.circular(35), topRight: Radius.circular(35)),
       child: Container(
-        padding: EdgeInsets.only(top: 15),
+        padding: EdgeInsets.only(top: height / 60),
         height: height / 3,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1433,7 +1421,7 @@ class _InterestsPageState extends State<InterestsPage> {
             ),
             SizedBox(height: 32),
             Container(
-              padding: EdgeInsets.only(top: height / 20),
+              padding: EdgeInsets.only(top: height / 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -1522,7 +1510,7 @@ class _InterestsPageState extends State<InterestsPage> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 250),
         padding: EdgeInsets.only(top: 10),
-        height: addNewInterestFieldFocusNode!.hasFocus ? height / 1.3 : height / 2,
+        height: addNewInterestFieldFocusNode!.hasFocus ? height / 1.3 : height / 1.8,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -1547,7 +1535,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 ],
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: height / 50),
             Container(
               padding: EdgeInsets.only(left: 15, right: 20),
               child: Text(
@@ -1557,7 +1545,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 style: TextStyle(fontSize: 17, color: Colors.grey),
               ),
             ),
-            SizedBox(height: 32),
+            SizedBox(height: height / 20),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 30),
               child: Column(
@@ -1593,14 +1581,14 @@ class _InterestsPageState extends State<InterestsPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: width / 60, vertical: height / 50),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     alignment: Alignment.center,
-                    width: 180,
-                    height: 48,
+                    width: width / 3,
+                    height: height / 14,
                     child: Material(
                       borderRadius: BorderRadius.circular(11),
                       color: Colors.white,
@@ -1609,7 +1597,6 @@ class _InterestsPageState extends State<InterestsPage> {
                           Navigator.pop(context);
                         },
                         child: Container(
-                          height: height * 0.10,
                           child: Center(
                               child: Text('Отмена',
                                   style: TextStyle(
@@ -1624,8 +1611,8 @@ class _InterestsPageState extends State<InterestsPage> {
                   SizedBox(width: 12),
                   Container(
                       alignment: Alignment.center,
-                      width: 180,
-                      height: 48,
+                      width: width / 3,
+                      height: height / 14,
                       child: Material(
                         borderRadius: BorderRadius.circular(11),
                         color: Color.fromRGBO(145, 10, 251, 5),
@@ -1635,7 +1622,6 @@ class _InterestsPageState extends State<InterestsPage> {
                             addNewInterest(newInterestFieldTextController!.text);
                           },
                           child: Container(
-                            height: height * 0.10,
                             child: Center(
                                 child: Text('Отправить',
                                     style: TextStyle(
@@ -1647,7 +1633,7 @@ class _InterestsPageState extends State<InterestsPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              padding: EdgeInsets.symmetric(vertical: height / 1000, horizontal: 20),
               child: Text.rich(
                 TextSpan(
                   text: 'Нажимая "Отправить", вы подтверждаете согласие с ',

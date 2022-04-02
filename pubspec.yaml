@@ -49,6 +49,7 @@ dependencies:
   video_thumbnail: ^0.4.6
   video_player: ^2.3.0
   random_color: ^1.0.6-nullsafety
+  extended_masked_text: ^2.3.1
 
 
 dev_dependencies:

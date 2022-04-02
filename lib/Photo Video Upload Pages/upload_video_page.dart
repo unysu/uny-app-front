@@ -51,7 +51,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
               defaultScale: true,
               breakpoints: [
                 const ResponsiveBreakpoint.resize(480, name: MOBILE),
-                const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
+                const ResponsiveBreakpoint.resize(720, name: MOBILE)
               ]
           );
         }
@@ -76,7 +76,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
               SizedBox(height: 6),
               SizedBox(
                 width: width,
-                height: height / 13,
+                height: height / 11,
                 child: Text(
                   'Так ты попадешь в рекомендации и с большей вероятностью найдешь новые знакомства',
                   maxLines: 3,
@@ -87,13 +87,16 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
           ),
         ),
         SizedBox(height: height / 200),
-        Center(
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: width / 4),
           child: Stack(
             children: [
               Container(
                 height: _videoImageBytes != null ? height / 2.5 : height / 2,
                 width: _videoImageBytes != null ? width / 2 : width,
-                child: _videoImageBytes == null ? Image(image: AssetImage('assets/upload_video_page_icon.png')) : null,
+                child: _videoImageBytes == null ? Image(
+                  image: AssetImage('assets/upload_video_page_icon.png'),
+                ) : null,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(
                         Radius.circular(10)),
@@ -118,9 +121,9 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                 ),
               ) : Container()
             ],
-          )
+          ),
         ),
-        SizedBox(height: height / 20),
+        SizedBox(height: height / 25),
         Padding(
           padding: EdgeInsets.only(left: width / 15, right: width / 15),
           child: InkWell(

@@ -1,3 +1,4 @@
+import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +23,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
 
   FocusNode? focusNode;
 
-  TextEditingController? textController;
+  MaskedTextController? textController;
 
   bool? isDisabled = true;
   bool? validate = false;
@@ -35,7 +36,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
     super.initState();
 
     focusNode = FocusNode();
-    textController = TextEditingController();
+    textController = MaskedTextController(mask: '(000) 000-00-00');
   }
 
   @override
@@ -69,7 +70,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
       defaultScale: true,
       breakpoints: [
         const ResponsiveBreakpoint.resize(400, name: MOBILE),
-        const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
+        const ResponsiveBreakpoint.resize(720, name: MOBILE)
       ],
     );
   }
@@ -160,8 +161,8 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                           onTap: () {
                             FocusScope.of(context).requestFocus(focusNode);
                           },
-                          onChanged: (value){
-                            if(value.length != 10 || value == ''){
+                          onChanged: (value) {
+                            if(value.length != 15 || value == ''){
                               setState(() {
                                 validate = true;
                                 isDisabled = true;
