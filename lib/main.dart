@@ -46,9 +46,11 @@ class _SplashScreenPageState extends State<SplashScreenPage>{
                   ),
                 )
             ),
-          minWidth: 480,
+          maxWidth: 1200,
+          minWidth: 450,
+          defaultScale: true,
           breakpoints: [
-            const ResponsiveBreakpoint.resize(480, name: MOBILE),
+            const ResponsiveBreakpoint.resize(200, name: MOBILE),
             const ResponsiveBreakpoint.autoScale(720, name: MOBILE)
           ],
         );

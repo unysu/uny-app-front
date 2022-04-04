@@ -16,7 +16,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
   late double height;
   late double width;
 
-  int _bottomNavBarIndex = 0;
+  int _bottomNavBarIndex = 1;
   int _symbolsLeft = 650;
 
   TextEditingController? bioTextController;
@@ -69,112 +69,114 @@ class _UserProfilePageState extends State<UserProfilePage>{
              ),
              bottomNavigationBar: Container(
                height: height / 8.5,
-               child: LayoutBuilder(
-                 builder: (context, constraints) {
-                  return BottomNavigationBar(
-                    type: BottomNavigationBarType.fixed,
-                    elevation: 20,
-                    selectedItemColor: Color.fromRGBO(145, 10, 251, 5),
-                    selectedLabelStyle: TextStyle(color: Color.fromRGBO(145, 10, 251, 5)),
-                    unselectedItemColor: Colors.grey,
-                    iconSize: 8,
-                    selectedFontSize: 10,
-                    unselectedFontSize: 9,
-                    currentIndex: _bottomNavBarIndex,
-                    items: [
-                      BottomNavigationBarItem(
-                          label: 'Чаты',
-                          icon: Stack(
-                            children: [
-                              Image.asset('assets/chats.png',
-                                  color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 30, width: 30),
-                          Positioned(
-                            left: constraints.maxWidth / 30,
-                            bottom: constraints.maxHeight / 10,
-                            child:  Container(
-                              padding: EdgeInsets.all(1),
-                              decoration:  BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              constraints: BoxConstraints(
-                                minWidth: 15,
-                                minHeight: 15,
-                              ),
-                              child: Text(
-                                '3',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          )
-                            ],
-                          )
-                      ),
-                      BottomNavigationBarItem(
-                          label: 'Профиль',
-                          icon: Image.asset('assets/profile.png',
-                            color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
-                              height: 30, width: 30
-                          )
-                      ),
-                      BottomNavigationBarItem(
-                          label: '',
-                          icon: Container(
-                            height: 44.3,
-                            width: 44.3,
-                            padding: EdgeInsets.only(left: 2, top: 2),
-                            child: Center(
-                              child: Image.asset('assets/nav_bar_logo.png'),
-                            ),
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.green,
-                                      Colors.blue,
-                                      Colors.purple[300]!,
-                                      Colors.orange
-                                    ]
-                                )
-                            ),
-                          )
-                      ),
-                      BottomNavigationBarItem(
-                          label: 'Видеопоиск',
-                          icon: Image.asset('assets/video_search.png',
-                            color: _bottomNavBarIndex == 3 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
-                              height: 30, width: 30
-                          )
-                      ),
-                      BottomNavigationBarItem(
-                          label: 'Ещё',
-                          icon:  Image.asset('assets/btm_nav_bar_icon_5.png',
-                            color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
-                              height: 30, width: 30
-                          )
-                      )
-                    ],
-                    onTap: (index){
-                      setState(() {
-                        _bottomNavBarIndex = index;
-                      });
-                    },
-                  );
+               child: BottomNavigationBar(
+                 type: BottomNavigationBarType.fixed,
+                 elevation: 20,
+                 selectedItemColor: Color.fromRGBO(145, 10, 251, 5),
+                 selectedLabelStyle: TextStyle(color: Color.fromRGBO(145, 10, 251, 5)),
+                 unselectedItemColor: Colors.grey,
+                 iconSize: 8,
+                 selectedFontSize: 10,
+                 unselectedFontSize: 9,
+                 currentIndex: _bottomNavBarIndex,
+                 items: [
+                   BottomNavigationBarItem(
+                       label: 'Чаты',
+                       icon: LayoutBuilder(
+                         builder: (context, constraints) {
+                           return Stack(
+                             children: [
+                               Image.asset('assets/chats.png',
+                                   color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 30, width: 30),
+                               Positioned(
+                                 left: 15,
+                                 bottom: 15,
+                                 child:  Container(
+                                   padding: EdgeInsets.all(1),
+                                   decoration:  BoxDecoration(
+                                     color: Colors.red,
+                                     borderRadius: BorderRadius.circular(6),
+                                   ),
+                                   constraints: BoxConstraints(
+                                     minWidth: 15,
+                                     minHeight: 15,
+                                   ),
+                                   child: Text(
+                                     '3',
+                                     style: TextStyle(
+                                       color: Colors.white,
+                                       fontSize: 10,
+                                     ),
+                                     textAlign: TextAlign.center,
+                                   ),
+                                 ),
+                               )
+                             ],
+                           );
+                         },
+                       )
+                   ),
+                   BottomNavigationBarItem(
+                       label: 'Профиль',
+                       icon: Image.asset('assets/profile.png',
+                           color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
+                           height: 30, width: 30
+                       )
+                   ),
+                   BottomNavigationBarItem(
+                       label: '',
+                       icon: Container(
+                         height: 44.3,
+                         width: 44.3,
+                         padding: EdgeInsets.only(left: 2, top: 2),
+                         child: Center(
+                           child: Image.asset('assets/nav_bar_logo.png'),
+                         ),
+                         decoration: BoxDecoration(
+                             shape: BoxShape.circle,
+                             gradient: LinearGradient(
+                                 begin: Alignment.topLeft,
+                                 end: Alignment.bottomRight,
+                                 colors: [
+                                   Colors.green,
+                                   Colors.blue,
+                                   Colors.purple[300]!,
+                                   Colors.orange
+                                 ]
+                             )
+                         ),
+                       )
+                   ),
+                   BottomNavigationBarItem(
+                       label: 'Видеопоиск',
+                       icon: Image.asset('assets/video_search.png',
+                           color: _bottomNavBarIndex == 3 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
+                           height: 30, width: 30
+                       )
+                   ),
+                   BottomNavigationBarItem(
+                       label: 'Ещё',
+                       icon:  Image.asset('assets/btm_nav_bar_icon_5.png',
+                           color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
+                           height: 30, width: 30
+                       )
+                   )
+                 ],
+                 onTap: (index){
+                   setState(() {
+                     _bottomNavBarIndex = index;
+                   });
                  },
                )
              )
            ),
-           defaultScale: true,
-           breakpoints: [
-             const ResponsiveBreakpoint.resize(480, name: MOBILE),
-             const ResponsiveBreakpoint.resize(720, name: MOBILE)
-           ]
+         maxWidth: 800,
+         minWidth: 450,
+         defaultScale: true,
+         breakpoints: [
+           ResponsiveBreakpoint.resize(450, name: MOBILE),
+           ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+         ],
        );
       },
     );
@@ -311,7 +313,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                  ),
                  Positioned(
                      top: constraints.maxHeight / 1.5,
-                     right: constraints.maxWidth / 20,
+                     right: constraints.maxWidth / 40,
                      child: InkWell(
                        onTap: () => null,
                        child: Row(

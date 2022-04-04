@@ -191,7 +191,6 @@ class _InterestsPageState extends State<InterestsPage> {
           borderRadius:
           BorderRadius.all(Radius.circular(30)),
           child: Chip(
-            elevation: 5.0,
             visualDensity: VisualDensity.comfortable,
             padding: EdgeInsets.all(10),
             backgroundColor: _familyInterestsColor[index],
@@ -219,7 +218,6 @@ class _InterestsPageState extends State<InterestsPage> {
               borderRadius:
               BorderRadius.all(Radius.circular(30)),
               child: Chip(
-                elevation: 5.0,
                 visualDensity: VisualDensity.comfortable,
                 padding: EdgeInsets.all(10),
                 backgroundColor: _careerInterestsColor[index],
@@ -247,7 +245,6 @@ class _InterestsPageState extends State<InterestsPage> {
               borderRadius:
               BorderRadius.all(Radius.circular(30)),
               child: Chip(
-                elevation: 5.0,
                 visualDensity: VisualDensity.comfortable,
                 padding: EdgeInsets.all(10),
                 backgroundColor: _sportInterestsColor[index],
@@ -275,7 +272,6 @@ class _InterestsPageState extends State<InterestsPage> {
               borderRadius:
               BorderRadius.all(Radius.circular(30)),
               child: Chip(
-                elevation: 5.0,
                 visualDensity: VisualDensity.comfortable,
                 padding: EdgeInsets.all(10),
                 backgroundColor: _travelingInterestsColor[index],
@@ -303,7 +299,6 @@ class _InterestsPageState extends State<InterestsPage> {
               borderRadius:
               BorderRadius.all(Radius.circular(30)),
               child: Chip(
-                elevation: 5.0,
                 visualDensity: VisualDensity.comfortable,
                 padding: EdgeInsets.all(10),
                 backgroundColor: _generalInterestsColor[index],
@@ -400,11 +395,13 @@ class _InterestsPageState extends State<InterestsPage> {
               ),
               body: mainBody(),
             ),
-            defaultScale: true,
-            breakpoints: [
-              const ResponsiveBreakpoint.resize(480, name: MOBILE),
-              const ResponsiveBreakpoint.resize(720, name: MOBILE)
-            ]);
+          maxWidth: 800,
+          minWidth: 450,
+          defaultScale: true,
+          breakpoints: [
+            ResponsiveBreakpoint.resize(450, name: MOBILE),
+            ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+          ],);
       },
     );
   }
@@ -700,7 +697,6 @@ class _InterestsPageState extends State<InterestsPage> {
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                           child: Chip(
                             labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                            elevation: 3.0,
                             visualDensity: VisualDensity.comfortable,
                             padding: EdgeInsets.all(10),
                             backgroundColor: _familyInterestsColor[index],
@@ -754,6 +750,8 @@ class _InterestsPageState extends State<InterestsPage> {
                     vertical:  height / 5,
                     horizontal: width / 10),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
@@ -852,7 +850,6 @@ class _InterestsPageState extends State<InterestsPage> {
                     borderRadius: BorderRadius.all(Radius.circular(30)),
                     child: Chip(
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      elevation: 3.0,
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
                       backgroundColor: _careerInterestsColor[index],
@@ -883,6 +880,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _careerFilteredList.length != 0 ? SizedBox(
+            height: height,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -905,6 +903,8 @@ class _InterestsPageState extends State<InterestsPage> {
                 vertical:  height / 5,
                 horizontal: width / 10),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
@@ -1005,7 +1005,6 @@ class _InterestsPageState extends State<InterestsPage> {
                     borderRadius: BorderRadius.all(Radius.circular(30)),
                     child: Chip(
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      elevation: 3.0,
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
                       backgroundColor: _sportInterestsColor[index],
@@ -1036,6 +1035,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _sportFilteredList.length != 0 ? SizedBox(
+          height: height,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1058,6 +1058,8 @@ class _InterestsPageState extends State<InterestsPage> {
                 vertical:  height / 5,
                 horizontal: width / 10),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
@@ -1158,7 +1160,6 @@ class _InterestsPageState extends State<InterestsPage> {
                     borderRadius: BorderRadius.all(Radius.circular(30)),
                     child: Chip(
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      elevation: 3.0,
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
                       backgroundColor: _travelingInterestsColor[index],
@@ -1189,6 +1190,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _travelingFilteredList.length != 0 ? SizedBox(
+          height: height,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1211,6 +1213,8 @@ class _InterestsPageState extends State<InterestsPage> {
                 vertical:  height / 5,
                 horizontal: width / 10),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
@@ -1311,7 +1315,6 @@ class _InterestsPageState extends State<InterestsPage> {
                     borderRadius: BorderRadius.all(Radius.circular(30)),
                     child: Chip(
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      elevation: 3.0,
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
                       backgroundColor: _generalInterestsColor[index],
@@ -1342,6 +1345,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _generalFilteredList.length != 0 ? SizedBox(
+          height: height,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1364,6 +1368,8 @@ class _InterestsPageState extends State<InterestsPage> {
                 vertical:  height / 5,
                 horizontal: width / 10),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
@@ -1383,8 +1389,8 @@ class _InterestsPageState extends State<InterestsPage> {
       borderRadius: BorderRadius.only(
           topLeft: Radius.circular(35), topRight: Radius.circular(35)),
       child: Container(
-        padding: EdgeInsets.only(top: height / 60),
-        height: height / 3,
+        padding: EdgeInsets.only(top: height / 80),
+        height: height * 0.34,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -1419,7 +1425,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 style: TextStyle(fontSize: 17, color: Colors.grey),
               ),
             ),
-            SizedBox(height: 32),
+            SizedBox(height: height * 0.01),
             Container(
               padding: EdgeInsets.only(top: height / 16),
               child: Row(
@@ -1509,8 +1515,8 @@ class _InterestsPageState extends State<InterestsPage> {
       borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 250),
-        padding: EdgeInsets.only(top: 10),
-        height: addNewInterestFieldFocusNode!.hasFocus ? height / 1.3 : height / 1.8,
+        padding: EdgeInsets.only(top: 15),
+        height: addNewInterestFieldFocusNode!.hasFocus ? height / 1.3 : height / 2,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -1545,7 +1551,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 style: TextStyle(fontSize: 17, color: Colors.grey),
               ),
             ),
-            SizedBox(height: height / 20),
+            SizedBox(height: height / 30),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 30),
               child: Column(
@@ -1581,14 +1587,14 @@ class _InterestsPageState extends State<InterestsPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: width / 60, vertical: height / 50),
+              padding: EdgeInsets.symmetric(vertical: height / 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     alignment: Alignment.center,
                     width: width / 3,
-                    height: height / 14,
+                    height: height / 20,
                     child: Material(
                       borderRadius: BorderRadius.circular(11),
                       color: Colors.white,
@@ -1612,7 +1618,7 @@ class _InterestsPageState extends State<InterestsPage> {
                   Container(
                       alignment: Alignment.center,
                       width: width / 3,
-                      height: height / 14,
+                      height: height / 20,
                       child: Material(
                         borderRadius: BorderRadius.circular(11),
                         color: Color.fromRGBO(145, 10, 251, 5),
@@ -1633,7 +1639,7 @@ class _InterestsPageState extends State<InterestsPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(vertical: height / 1000, horizontal: 20),
+              padding: EdgeInsets.symmetric(vertical: height / 100, horizontal: 20),
               child: Text.rich(
                 TextSpan(
                   text: 'Нажимая "Отправить", вы подтверждаете согласие с ',

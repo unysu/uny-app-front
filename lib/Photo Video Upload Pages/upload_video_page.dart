@@ -48,11 +48,13 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                 ),
                 body: mainBody(),
               ),
-              defaultScale: true,
-              breakpoints: [
-                const ResponsiveBreakpoint.resize(480, name: MOBILE),
-                const ResponsiveBreakpoint.resize(720, name: MOBILE)
-              ]
+            maxWidth: 800,
+            minWidth: 450,
+            defaultScale: true,
+            breakpoints: [
+              ResponsiveBreakpoint.resize(450, name: MOBILE),
+              ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+            ],
           );
         }
     );
@@ -63,8 +65,8 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.only(
-              top: height / 8, left: width / 10, right: width / 5),
+          height: height * 0.3,
+          padding: EdgeInsets.only(top: height / 8, left: width / 10, right: width / 5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -86,44 +88,51 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
             ],
           ),
         ),
-        SizedBox(height: height / 200),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: width / 4),
-          child: Stack(
-            children: [
-              Container(
-                height: _videoImageBytes != null ? height / 2.5 : height / 2,
-                width: _videoImageBytes != null ? width / 2 : width,
-                child: _videoImageBytes == null ? Image(
-                  image: AssetImage('assets/upload_video_page_icon.png'),
-                ) : null,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(10)),
-                    image: _videoImageBytes != null ? DecorationImage(
-                        fit: BoxFit.cover,
-                        image: MemoryImage(_videoImageBytes!)
-                    ) : null
-                ),
-              ),
-              _video != null ? Padding(
-                padding: EdgeInsets.only(top: height * 0.360, left: width * 0.420),
-                child: IconButton(
-                  alignment: Alignment.bottomRight,
-                  icon: Icon(CupertinoIcons.clear_thick_circled,
-                      color: Colors.white, size: 40),
-                  onPressed: () {
-                    setState(() {
-                      _video = null;
-                      _videoImageBytes = null;
-                    });
-                  },
-                ),
-              ) : Container()
-            ],
-          ),
+        SizedBox(height: height * 0.01),
+        Container(
+          height: _videoImageBytes != null ?  300 : height * 0.4,
+          width: _videoImageBytes != null ? width / 2 : width * 0.9,
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: LayoutBuilder(
+            builder: (context, constraints){
+              double dHeight = constraints.maxHeight;
+              double dWidth = constraints.maxWidth;
+              return Stack(
+                children: [
+                  Container(
+                    child: _videoImageBytes == null ? Image(
+                      image: AssetImage('assets/upload_video_page_icon.png'),
+                    ) : null,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(
+                            Radius.circular(10)),
+                        image: _videoImageBytes != null ? DecorationImage(
+                            fit: BoxFit.cover,
+                            image: MemoryImage(_videoImageBytes!)
+                        ) : null
+                    ),
+                  ),
+                  _video != null ? Positioned(
+                      top: dHeight / 1.13,
+                      left: dWidth / 1.26,
+                      child: IconButton(
+                      alignment: Alignment.bottomRight,
+                      icon: Icon(CupertinoIcons.clear_thick_circled,
+                          color: Colors.white, size: 35),
+                      onPressed: () {
+                        setState(() {
+                          _video = null;
+                          _videoImageBytes = null;
+                        });
+                      },
+                    ),
+                  ) : Container()
+                ],
+              );
+            },
+          )
         ),
-        SizedBox(height: height / 25),
+        SizedBox(height: height * 0.03),
         Padding(
           padding: EdgeInsets.only(left: width / 15, right: width / 15),
           child: InkWell(
@@ -165,10 +174,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                       builder: (context) {
                         return AlertDialog(
                           title: Text('Ошибка загрузки'),
-                          content: Center(
-                            child: Text(
-                                'Длительность видео должен быть не более 15 сек'),
-                          ),
+                          content: Text('Длительность видео должен быть не более 15 сек'),
                           actions: [
                             FloatingActionButton.extended(
                               label: Text('Закрыть'),

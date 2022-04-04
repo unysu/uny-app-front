@@ -54,11 +54,13 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
               },
             )
         ),
+      maxWidth: 800,
+      minWidth: 450,
       defaultScale: true,
       breakpoints: [
-        const ResponsiveBreakpoint.resize(400, name: MOBILE),
-        const ResponsiveBreakpoint.resize(720, name: MOBILE)
-      ]
+        ResponsiveBreakpoint.resize(450, name: MOBILE),
+        ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+      ],
     );
   }
 

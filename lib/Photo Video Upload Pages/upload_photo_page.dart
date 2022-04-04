@@ -1,6 +1,4 @@
 import 'dart:io';
-
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,20 +47,26 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                body: mainBody(),
+                body: SingleChildScrollView(
+                  child: mainBody(),
+                )
               ),
-              defaultScale: true,
-              breakpoints: [
-                const ResponsiveBreakpoint.resize(480, name: MOBILE),
-                const ResponsiveBreakpoint.resize(720, name: MOBILE)
-              ]
+            maxWidth: 800,
+            minWidth: 450,
+            defaultScale: true,
+            breakpoints: [
+              ResponsiveBreakpoint.resize(450, name: MOBILE),
+              ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+            ],
           );
         }
     );
   }
 
   Widget mainBody() {
-    return Column(
+    return Wrap(
+      alignment: WrapAlignment.center,
+      direction: Axis.horizontal,
       children: [
         Container(
           padding: EdgeInsets.only(
@@ -90,12 +94,12 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
         ),
         ReorderableGridView.count(
           padding: EdgeInsets.only(top: height / 50, left: width / 20, right: width / 20, bottom: height / 50),
-          childAspectRatio: (width / 3) / (height / 4),
+          childAspectRatio: 20 / 33,
           crossAxisSpacing: width / 50,
           mainAxisSpacing: height / 80,
           crossAxisCount: 3,
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: ScrollPhysics(),
           children: List.generate(9, (index) {
             return GestureDetector(
               key: ValueKey(index),
@@ -161,13 +165,13 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                         )
                             : null,
                       ),
-                      imagesList.asMap().containsKey(index) ? Padding(
-                        padding: EdgeInsets.only(
-                            top: dHeight * 0.815, left: dWidth * 0.730),
+                      imagesList.asMap().containsKey(index) ? Positioned(
+                        top: dHeight / 1.2,
+                        left: dWidth / 1.4,
                         child: IconButton(
-                          alignment: Alignment.bottomRight,
+                          alignment: Alignment.center,
                           icon: Icon(CupertinoIcons.clear_thick_circled,
-                              color: Colors.white, size: 40),
+                              color: Colors.white, size: dWidth / 4),
                           onPressed: () {
                             setState(() {
                               imagesList.removeAt(index);
@@ -196,6 +200,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
           },
         ),
         Container(
+            padding: EdgeInsets.only(bottom: width * 0.01),
             alignment: Alignment.center,
             width: 230,
             height: 48,
@@ -212,7 +217,6 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   );
                 },
                 child: Container(
-                  height: height * 0.10,
                   child: Center(child: Text('Далее', style: TextStyle(
                       color: imagesList.asMap().isEmpty ? Colors.white : Colors
                           .white.withOpacity(0.9), fontSize: 17))),
@@ -401,15 +405,16 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
     File? croppedFile = await ImageCropper().cropImage(
         sourcePath: filePath!,
         androidUiSettings: AndroidUiSettings(
-            toolbarTitle: 'Загрузить фото',
-            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false,
-            hideBottomControls: true,
+          toolbarTitle: 'Загрузить фото',
+          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+          hideBottomControls: true,
         ),
         iosUiSettings: IOSUiSettings(
           title: 'Загрузить фото',
+          showCancelConfirmationDialog: true,
           cancelButtonTitle: 'Закрыть',
           doneButtonTitle: 'Сохранить',
           rotateButtonsHidden: true,
@@ -479,5 +484,4 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
       );
     }
   }
-
 }

@@ -76,6 +76,13 @@ class _AllVideosPageState extends State<AllVideosPage> {
                ),
              body: mainBody(),
            ),
+           maxWidth: 800,
+           minWidth: 450,
+           defaultScale: true,
+           breakpoints: [
+             ResponsiveBreakpoint.resize(450, name: MOBILE),
+             ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+           ],
          );
       },
     );

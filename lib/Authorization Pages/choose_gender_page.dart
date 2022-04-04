@@ -36,11 +36,13 @@ class _GenderPageState extends State<GenderPage>{
               },
             )
         ),
+      maxWidth: 800,
+      minWidth: 450,
       defaultScale: true,
       breakpoints: [
-        const ResponsiveBreakpoint.resize(480, name: MOBILE),
-        const ResponsiveBreakpoint.resize(720, name: MOBILE)
-      ]
+        ResponsiveBreakpoint.resize(450, name: MOBILE),
+        ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+      ],
     );
   }
 
@@ -81,108 +83,108 @@ class _GenderPageState extends State<GenderPage>{
               )
           ),
           Container(
-            height: 500,
-            child: LayoutBuilder(
-              builder: (context, constraint){
-                double height = constraint.maxHeight;
-                double width = constraint.maxWidth;
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned (
-                      left: height / 6,
-                      bottom: width * 0.8,
-                      child:  GestureDetector(
-                        onTap: () => nextPage(),
-                        child: Column(
-                          children: [
-                            Image.asset('assets/woman.png'),
-                            Text('Женский', style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      )
-                    ),
-                    Positioned(
-                      left: height / 2.7,
-                      bottom: width / 2.2,
-                      child: Image.asset('assets/logo_no_background.png'),
-                    ),
-                    Positioned(
-                        left: height / 4.2,
-                        bottom: width / 18,
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () => nextPage(),
-                              child: Image.asset('assets/another_gender.png'),
+              height: 500,
+              child: LayoutBuilder(
+                builder: (context, constraint){
+                  double height = constraint.maxHeight;
+                  double width = constraint.maxWidth;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned (
+                          left: height / 6,
+                          bottom: width * 0.8,
+                          child:  GestureDetector(
+                            onTap: () => nextPage(),
+                            child: Column(
+                              children: [
+                                Image.asset('assets/woman.png'),
+                                Text('Женский', style: TextStyle(color: Colors.white)),
+                              ],
                             ),
-                            Text('Другое', style: TextStyle(color: Colors.white))
-                          ],
-                        )
-                    ),
-                    Positioned(
-                        right: height / 10,
-                        bottom: width / 2,
-                        child: GestureDetector(
-                          excludeFromSemantics: false,
-                          onTap: () => nextPage(),
+                          )
+                      ),
+                      Positioned(
+                        left: height / 2.7,
+                        bottom: width / 2.2,
+                        child: Image.asset('assets/logo_no_background.png'),
+                      ),
+                      Positioned(
+                          left: height / 4.2,
+                          bottom: width / 18,
                           child: Column(
                             children: [
-                              Image.asset('assets/man.png'),
-                              Text('Мужской', style: TextStyle(color: Colors.white))
+                              GestureDetector(
+                                onTap: () => nextPage(),
+                                child: Image.asset('assets/another_gender.png'),
+                              ),
+                              Text('Другое', style: TextStyle(color: Colors.white))
                             ],
-                          ),
-                        )
-                    ),
-                    Positioned(
-                      right: height / 4,
-                      bottom: width / 5.7,
-                      child: Image.asset('assets/heart.png'),
-                    ),
-                    Positioned(
-                      left: height / 6.3,
-                      bottom: width * 0.5,
-                      child: Image.asset('assets/pc.png'),
-                    ),
-                    Positioned(
-                      left: height / 12,
-                      bottom: width / 2.2,
-                      child: Image.asset('assets/money.png'),
-                    ),
-                    Positioned(
-                      right: height / 2.9,
-                      bottom: width / 1.36,
-                      child: Image.asset('assets/heart_1.png'),
-                    ),
-                    Positioned(
-                      right: height / 3.5,
-                      bottom: width / 1.10,
-                      child: Image.asset('assets/avatar.png'),
-                    ),
-                    Positioned(
-                      right: height / 2.1,
-                      bottom: width / 1.152,
-                      child: Image.asset('assets/dot.png'),
-                    ),
-                    Positioned(
-                      right: height / 2.05,
-                      bottom: width / 2.5,
-                      child: Image.asset('assets/dot.png'),
-                    ),
-                    Positioned(
-                      left: height / 7,
-                      bottom: width / 1.57,
-                      child: Image.asset('assets/dot.png'),
-                    ),
-                    Positioned(
-                      left: height / 11,
-                      top: width / 22,
-                      child: Image.asset('assets/gender_page_lines.png'),
-                    )
-                  ],
-                );
-              },
-            )
+                          )
+                      ),
+                      Positioned(
+                          right: height / 10,
+                          bottom: width / 2,
+                          child: GestureDetector(
+                            excludeFromSemantics: false,
+                            onTap: () => nextPage(),
+                            child: Column(
+                              children: [
+                                Image.asset('assets/man.png'),
+                                Text('Мужской', style: TextStyle(color: Colors.white))
+                              ],
+                            ),
+                          )
+                      ),
+                      Positioned(
+                        right: height / 4,
+                        bottom: width / 5.7,
+                        child: Image.asset('assets/heart.png'),
+                      ),
+                      Positioned(
+                        left: height / 6.3,
+                        bottom: width * 0.5,
+                        child: Image.asset('assets/pc.png'),
+                      ),
+                      Positioned(
+                        left: height / 12,
+                        bottom: width / 2.2,
+                        child: Image.asset('assets/money.png'),
+                      ),
+                      Positioned(
+                        right: height / 2.9,
+                        bottom: width / 1.36,
+                        child: Image.asset('assets/heart_1.png'),
+                      ),
+                      Positioned(
+                        right: height / 3.5,
+                        bottom: width / 1.10,
+                        child: Image.asset('assets/avatar.png'),
+                      ),
+                      Positioned(
+                        right: height / 2.1,
+                        bottom: width / 1.152,
+                        child: Image.asset('assets/dot.png'),
+                      ),
+                      Positioned(
+                        right: height / 2.05,
+                        bottom: width / 2.5,
+                        child: Image.asset('assets/dot.png'),
+                      ),
+                      Positioned(
+                        left: height / 7,
+                        bottom: width / 1.57,
+                        child: Image.asset('assets/dot.png'),
+                      ),
+                      Positioned(
+                        left: height / 11,
+                        top: width / 22,
+                        child: Image.asset('assets/gender_page_lines.png'),
+                      )
+                    ],
+                  );
+                },
+              )
           )
         ],
       ),
