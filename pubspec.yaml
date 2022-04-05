@@ -39,17 +39,18 @@ dependencies:
   flutter_verification_code: ^1.1.2+1
   universal_platform: ^1.0.0+1
   intl: ^0.17.0
-  dotted_border: ^2.0.0+2
   permission_handler: ^9.2.0
   photo_manager: ^2.0.4
   image_picker: ^0.8.4+11
   image_cropper: ^1.5.0
-  flutter_draggable_gridview: ^0.0.3
   reorderable_grid_view: ^2.2.2
   video_thumbnail: ^0.4.6
   video_player: ^2.3.0
   random_color: ^1.0.6-nullsafety
   extended_masked_text: ^2.3.1
+  carousel_slider: ^4.0.0
+  modal_bottom_sheet: ^2.0.1
+  fluttertoast: ^8.0.9
 
 
 dev_dependencies:

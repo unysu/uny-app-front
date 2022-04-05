@@ -1,9 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
+import 'package:uny_app/User%20Profile%20Page/other_users_page.dart';
+import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 
 class UserProfilePage extends StatefulWidget{
 
@@ -126,8 +130,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                    BottomNavigationBarItem(
                        label: '',
                        icon: Container(
-                         height: 44.3,
-                         width: 44.3,
+                         height: 51,
+                         width: 50,
                          padding: EdgeInsets.only(left: 2, top: 2),
                          child: Center(
                            child: Image.asset('assets/nav_bar_logo.png'),
@@ -207,14 +211,47 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 padding: EdgeInsets.only(left: width / 20, top: height / 20),
                 child: Row(
                   children: [
-                    Container(
-                      height: 80,
-                      width: 80,
-                      child: Image.asset('assets/sample_pic.png', fit: BoxFit.cover),
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white
-                      ),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Container(
+                            height: constraints.maxHeight * 0.55,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white
+                            ),
+                            child: Stack(
+                              children: [
+                                Image.asset('assets/sample_pic.png', fit: BoxFit.cover),
+                                Positioned(
+                                  top: constraints.maxHeight * 0.35,
+                                  left: constraints.maxHeight * 0.38,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => ProfilePhotosPage()
+                                          )
+                                      );
+                                    },
+                                    child: Container(
+                                      height: constraints.maxHeight * 0.2,
+                                      child: Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                          size: constraints.maxHeight / 6
+                                      ),
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.blue,
+                                      ),
+                                    ),
+                                  )
+                                )
+                              ],
+                            )
+                        );
+                      },
                     ),
                     SizedBox(width: 10),
                     Column(
@@ -224,7 +261,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         Row(
                           children: [
                             Text('Мой профиль', style: TextStyle(color: Colors.white, fontSize: 17)),
-                            SizedBox(width: width / 2.5),
+                            SizedBox(width: width / 2.45),
                             IconButton(
                               icon: Icon(Icons.settings, color: Colors.white),
                               onPressed: () => null,
@@ -250,7 +287,14 @@ class _UserProfilePageState extends State<UserProfilePage>{
             children: [
               Text('Мои интересы', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
               InkWell(
-                onTap: () => null,
+                onTap: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => OtherUsersPage()
+                    )
+                  );
+                },
                 child: Text('Редактировать', style: TextStyle(fontSize: 17, color: Color.fromRGBO(145, 10, 251, 5))),
               )
             ],
@@ -457,12 +501,27 @@ class _UserProfilePageState extends State<UserProfilePage>{
                           }else{
                             return Column(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                                  child: Container(
+                                InkWell(
+                                  onTap: (){
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AllPhotosPage()
+                                      )
+                                    );
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                    child: Container(
                                       height: 100,
                                       width: 100,
-                                      color: Colors.purple
+                                      decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: AssetImage('assets/sample_user_pic.png'),
+                                            fit: BoxFit.cover,
+                                          )
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 SizedBox(height: 10),

@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_draggable_gridview/flutter_draggable_gridview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
@@ -39,6 +37,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
                  systemOverlayStyle: SystemUiOverlayStyle.dark,
                  backgroundColor: Colors.transparent,
                  centerTitle: false,
+                 titleSpacing: 1,
                  title: !_isEditing
                      ? Text('Мои видео', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black))
                      : InkWell(
@@ -47,7 +46,16 @@ class _AllVideosPageState extends State<AllVideosPage> {
                          _isEditing = false;
                        });
                      },
-                     child: Text('Отмена', style: TextStyle(fontSize: 17, color: Colors.grey))),
+                     child: Padding(
+                       padding: EdgeInsets.only(left: 10),
+                       child:  FittedBox(
+                         child: InkWell(
+                           onTap: () => Navigator.pop(context),
+                           child: Text('Отмена', style: TextStyle(fontSize: 17, color: Colors.grey)),
+                         ),
+                       ),
+                     ),
+                 ),
                  leading: !_isEditing ? IconButton(
                    icon: Icon(Icons.arrow_back, color: Colors.grey),
                    onPressed: () => Navigator.pop(context),
@@ -93,11 +101,11 @@ class _AllVideosPageState extends State<AllVideosPage> {
     return Column(
       children: [
         Container(
-          height: height / 1.3,
+          height: height / 1.2,
           child: ReorderableGridView.count(
             padding: EdgeInsets.only(top: height / 50, left: width / 20, right: width / 20, bottom: height / 50),
-            childAspectRatio: (width / 3) / (height / 4),
-            crossAxisSpacing: width / 50,
+            childAspectRatio: 20 / 33,
+            crossAxisSpacing: width / 40,
             mainAxisSpacing: height / 80,
             crossAxisCount: 3,
             shrinkWrap: true,
@@ -109,22 +117,21 @@ class _AllVideosPageState extends State<AllVideosPage> {
                   double dWidth = constraints.maxWidth;
                   return Stack(
                     children: [
-                      Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.4),
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            border: Border.all(
-                                color: Colors.transparent
+                      ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(11)),
+                        child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.4),
                             ),
-                          ),
-                          child: Center(child: Text('Your image here'))
+                            child: Center(child: Text('Your image here'))
+                        ),
                       ),
-                      _isEditing ? Padding(
-                        padding: EdgeInsets.only(
-                            top: dHeight * 0.820, left: dWidth * 0.740),
+                      _isEditing ? Positioned(
+                        top: dHeight / 1.2,
+                        left: dWidth / 1.4,
                         child: IconButton(
                           icon: Icon(CupertinoIcons.clear_thick_circled,
-                              color: Colors.white, size: 30),
+                              color: Colors.white, size: 35),
                           onPressed: () {
                             setState(() {
 
@@ -141,13 +148,14 @@ class _AllVideosPageState extends State<AllVideosPage> {
           )
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: InkWell(
             onTap: () => showBottomSheet(),
             child: ClipRRect(
               borderRadius: BorderRadius.all(Radius.circular(15)),
               child: Container(
-                height: height / 15,
+                  width: 400,
+                  height: 48,
                 color: Color.fromRGBO(145, 10, 251, 5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -294,10 +302,10 @@ class _AllVideosPageState extends State<AllVideosPage> {
             context: context,
             builder: (context) {
               return CupertinoAlertDialog(
-                title: Text('Нет фото'),
+                title: Text('Нет видео'),
                 content: Center(
                   child: Text(
-                      'У вас нет фотографий'),
+                      'У вас нет видео'),
                 ),
                 actions: [
                   CupertinoDialogAction(
@@ -318,8 +326,8 @@ class _AllVideosPageState extends State<AllVideosPage> {
             });
 
         AlertDialog dialog = AlertDialog(
-            title: const Text('Нет фото'),
-            content: const Text('У вас нет фотографий'),
+            title: const Text('Нет видео'),
+            content: const Text('У вас нет видео'),
             actions: [_closeButton]);
 
         showDialog(
