@@ -98,10 +98,9 @@ class _AllVideosPageState extends State<AllVideosPage> {
 
 
   Widget mainBody() {
-    return Column(
+    return ListView(
       children: [
         Container(
-          height: height / 1.2,
           child: ReorderableGridView.count(
             padding: EdgeInsets.only(top: height / 50, left: width / 20, right: width / 20, bottom: height / 50),
             childAspectRatio: 20 / 33,
@@ -109,6 +108,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
             mainAxisSpacing: height / 80,
             crossAxisCount: 3,
             shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
             children: List.generate(20, (index) {
               return LayoutBuilder(
                 key: ValueKey(index),
@@ -123,7 +123,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
                             decoration: BoxDecoration(
                               color: Colors.grey.withOpacity(0.4),
                             ),
-                            child: Center(child: Text('Your image here'))
+                            child: Center(child: Text('Video'))
                         ),
                       ),
                       _isEditing ? Positioned(
@@ -155,7 +155,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
               borderRadius: BorderRadius.all(Radius.circular(15)),
               child: Container(
                   width: 400,
-                  height: 48,
+                  height: 50,
                 color: Color.fromRGBO(145, 10, 251, 5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

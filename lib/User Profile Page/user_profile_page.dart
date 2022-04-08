@@ -63,7 +63,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                color: Color.fromRGBO(145, 10, 251, 5),
                child: SingleChildScrollView(
                  scrollDirection: Axis.vertical,
-                 physics: PageScrollPhysics(),
+                 physics: BouncingScrollPhysics(),
                  child: mainBody(),
                ),
                strokeWidth: 1,

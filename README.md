@@ -1,6 +1,6 @@
 # uny_app
 
-UnyApp Flutter Project
+Uny App
 
 ## Getting Started
 

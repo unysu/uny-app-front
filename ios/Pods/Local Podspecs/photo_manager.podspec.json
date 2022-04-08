@@ -1,0 +1,46 @@
+{
+  "name": "photo_manager",
+  "version": "2.0.0",
+  "summary": "Photo management APIs for Flutter.",
+  "description": "A Flutter plugin that provides assets abstraction management APIs.",
+  "homepage": "https://github.com/fluttercandies/flutter_photo_manager",
+  "license": {
+    "file": "../LICENSE"
+  },
+  "authors": {
+    "CaiJingLong": "cjl_spy@163.com"
+  },
+  "source": {
+    "path": "."
+  },
+  "source_files": "Classes/**/*",
+  "public_header_files": [
+    "Classes/**/*.h",
+    "Classes/**/**/*.h"
+  ],
+  "osx": {
+    "dependencies": {
+      "FlutterMacOS": [
+
+      ]
+    },
+    "frameworks": "PhotosUI"
+  },
+  "ios": {
+    "dependencies": {
+      "Flutter": [
+
+      ]
+    },
+    "frameworks": "PhotosUI"
+  },
+  "platforms": {
+    "ios": "9.0",
+    "osx": "10.15"
+  },
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES"
+  },
+  "swift_versions": "5.0",
+  "swift_version": "5.0"
+}

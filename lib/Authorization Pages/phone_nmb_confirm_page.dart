@@ -83,7 +83,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.10, left: mqWidth * 0.1, right: mqWidth * 0.1),
+            padding: EdgeInsets.only(top: mqHeight * 0.04, left: mqWidth * 0.1, right: mqWidth * 0.2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

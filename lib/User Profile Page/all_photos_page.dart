@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/App%20Bar%20/sliding_app_bar.dart';
 
 class AllPhotosPage extends StatefulWidget {
 
@@ -10,10 +11,25 @@ class AllPhotosPage extends StatefulWidget {
   _AllPhotosPageState createState() => _AllPhotosPageState();
 }
 
-class _AllPhotosPageState extends State<AllPhotosPage> {
+class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProviderStateMixin{
 
   late double height;
   late double width;
+
+  late final AnimationController _controller;
+
+  bool _showAppBar = true;
+  int _currentPic = 1;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 400),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,48 +39,60 @@ class _AllPhotosPageState extends State<AllPhotosPage> {
         width = constraints.maxWidth;
         return ResponsiveWrapper.builder(
           Scaffold(
-            body: mainBody(),
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              backgroundColor: Color.fromRGBO(44, 44, 49, 10),
-              title: Text('Фотография', style: TextStyle(color: Colors.white)),
-              centerTitle: true,
-              actions: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                  child: IconButton(
-                    icon: Icon(Icons.more_horiz),
-                    onPressed: (){
-                      if(UniversalPlatform.isIOS){
-                        showCupertinoModalPopup(
-                          context: context,
-                          builder: (context){
-                            return showPicOptions();
+            extendBodyBehindAppBar: true,
+            body: GestureDetector(
+              child: mainBody(),
+              onTap: (){
+                setState(() {
+                  _showAppBar = !_showAppBar;
+                });
+              },
+            ),
+            appBar: SlidingAppBar(
+              controller: _controller,
+              visible: _showAppBar,
+              child: AppBar(
+                automaticallyImplyLeading: false,
+                backgroundColor: Color.fromRGBO(44, 44, 49, 10),
+                title: Text('Фотография', style: TextStyle(color: Colors.white)),
+                centerTitle: true,
+                actions: [
+                  Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                      child: IconButton(
+                        icon: Icon(Icons.more_horiz),
+                        onPressed: (){
+                          if(UniversalPlatform.isIOS){
+                            showCupertinoModalPopup(
+                                context: context,
+                                builder: (context){
+                                  return showPicOptions();
+                                }
+                            );
+                          }else if(UniversalPlatform.isAndroid){
+                            showModalBottomSheet(
+                                context: context,
+                                builder: (context){
+                                  return showPicOptions();
+                                }
+                            );
                           }
-                        );
-                      }else if(UniversalPlatform.isAndroid){
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context){
-                            return showPicOptions();
-                          }
-                        );
-                      }
-                    },
+                        },
+                      )
                   )
-                )
-              ],
-              leading: Padding(
-                padding: EdgeInsets.only(left: 10),
-                child:  FittedBox(
-                  child: InkWell(
-                    onTap: () => Navigator.pop(context),
-                    child: Text('Закрыть', style: TextStyle(fontSize: 20)),
+                ],
+                leading: Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child:  FittedBox(
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      child: Text('Закрыть', style: TextStyle(fontSize: 20)),
+                    ),
                   ),
                 ),
+                leadingWidth: width / 5,
               ),
-              leadingWidth: width / 5,
-            ),
+            )
           ),
           maxWidth: 800,
           minWidth: 450,
@@ -81,29 +109,61 @@ class _AllPhotosPageState extends State<AllPhotosPage> {
   Widget mainBody(){
     return Container(
       color: Colors.black,
-      child: Wrap(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          SizedBox(height: height * 0.1),
           CarouselSlider(
             options: CarouselOptions(
-              height: height,
-              enlargeCenterPage: true,
-              scrollPhysics: PageScrollPhysics(),
-              viewportFraction: 1,
-              scrollDirection: Axis.horizontal,
+                height: height / 1.5,
+                enlargeCenterPage: true,
+                scrollPhysics: PageScrollPhysics(),
+                viewportFraction: 1,
+                pageSnapping: true,
+                scrollDirection: Axis.horizontal,
+                onPageChanged: (index, reason){
+                  setState(() {
+                    _currentPic = index + 1;
+                  });
+                }
             ),
-            items: List.generate(10, (index){
+            items: List.generate(10, (index) {
               return Container(
                 decoration: BoxDecoration(
                     image: DecorationImage(
-                        image: AssetImage('assets/sample_user_pic.png'),
+                      image: AssetImage('assets/sample_user_pic.png'),
                       fit: BoxFit.cover,
                     )
                 ),
               );
             }),
           ),
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 400),
+            transitionBuilder: (child, transition){
+              return SlideTransition(
+                position: Tween<Offset>(begin: Offset.zero, end: Offset(0, 2)).animate(
+                  CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn),
+                ),
+                child: child,
+              );
+            },
+            child: _showAppBar ? Container(
+                padding: EdgeInsets.only(top: 40),
+                child: Column(
+                  children: [
+                    Text('${_currentPic} из 10', style: TextStyle(fontSize: 17, color: Colors.white)),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: indicators(10, _currentPic),
+                    ),
+                  ],
+                )
+            ) : null,
+          )
         ],
-      )
+      ),
     );
   }
 
@@ -161,5 +221,18 @@ class _AllPhotosPageState extends State<AllPhotosPage> {
         ),
       ),
     );
+  }
+
+  List<Widget> indicators(imagesLength,currentIndex) {
+    return List<Widget>.generate(imagesLength, (index) {
+      return Container(
+        margin: EdgeInsets.all(3),
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+            color: currentIndex - 1 == index ? Colors.white : Colors.grey,
+            shape: BoxShape.circle),
+      );
+    });
   }
 }
