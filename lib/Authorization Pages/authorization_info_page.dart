@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/Photo%20Video%20Upload%20Pages/upload_photo_page.dart';
 
 class AuthorizationInfoPage extends StatefulWidget{

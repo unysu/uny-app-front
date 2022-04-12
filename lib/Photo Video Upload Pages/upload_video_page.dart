@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -26,6 +27,9 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
   ImagePicker _picker = ImagePicker();
   XFile? _video;
   Uint8List? _videoImageBytes;
+
+  final String _mainImageAsset = 'assets/upload_video_page_icon.svg';
+  final String _newMediaImageAsset = 'assets/new_media.svg';
 
   @override
   Widget build(BuildContext context) {
@@ -100,9 +104,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
               return Stack(
                 children: [
                   Container(
-                    child: _videoImageBytes == null ? Image(
-                      image: AssetImage('assets/upload_video_page_icon.png'),
-                    ) : null,
+                    child: _videoImageBytes == null ? SvgPicture.asset(_mainImageAsset) : null,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(
                             Radius.circular(10)),
@@ -194,7 +196,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image(image: AssetImage('assets/new_media.png')),
+                      SvgPicture.asset(_newMediaImageAsset),
                       SizedBox(width: 5),
                       Text('Загрузить из медиатеки', style: TextStyle(
                           color: Colors.black, fontSize: 17))

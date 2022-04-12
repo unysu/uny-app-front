@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_verification_code/flutter_verification_code.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/choose_gender_page.dart';
@@ -24,6 +25,8 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
 
   late double mqHeight;
   late double mqWidth;
+  
+  final String _assistanceImage = 'assets/assistance.svg';
 
   @override
   void initState() {
@@ -182,7 +185,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  child: Image.asset('assets/assistance.png'),
+                  child: SvgPicture.asset(_assistanceImage)
                 ),
                 const SizedBox(width: 8.33),
                 Text.rich(

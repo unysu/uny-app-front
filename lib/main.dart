@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
+import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 
 
 void main() {
@@ -19,14 +21,16 @@ class SplashScreenPage extends StatefulWidget{
 
 class _SplashScreenPageState extends State<SplashScreenPage>{
 
+  final String _logoAssetName = 'assets/main_logo.svg';
+
  @override
   void initState() {
     super.initState();
 
-    Timer(const Duration(milliseconds: 500),
+    Timer(const Duration(milliseconds: 300),
         () => Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const AuthorizationPage())
+          MaterialPageRoute(builder: (context) =>  UserProfilePage())
         )
      );
   }
@@ -42,7 +46,7 @@ class _SplashScreenPageState extends State<SplashScreenPage>{
                   child: SizedBox(
                       width: 150,
                       height: 150,
-                      child: Image.asset('assets/logo.png')
+                      child: SvgPicture.asset(_logoAssetName)
                   ),
                 )
             ),

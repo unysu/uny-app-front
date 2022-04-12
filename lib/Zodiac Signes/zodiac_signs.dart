@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ZodiacSigns {
 
@@ -9,13 +10,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/bliznetsi.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.lightBlue,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/bliznetsi.png'),
-                  scale: 2,
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -31,13 +31,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/deva.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.lightGreen,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/deva.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -52,13 +51,13 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/kozerog.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.green,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/kozerog.png'),
-                  scale: 2
-              )
+
           ),
         ),
         SizedBox(width: 5),
@@ -73,13 +72,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/lev.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.orange,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/lev.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -94,13 +92,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/oven.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.yellow,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/oven.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -115,13 +112,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/rak.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.purpleAccent,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/rak.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -136,13 +132,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/ribi.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.pinkAccent,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/ribi.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -157,13 +152,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/scorpion.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.purpleAccent[100],
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/scorpion.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -178,13 +172,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/strelets.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.red,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/strelets.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -199,13 +192,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/telec.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.green[400],
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/telec.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -220,13 +212,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/vesi.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.blueAccent[400],
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/vesi.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),
@@ -241,13 +232,12 @@ class ZodiacSigns {
         Container(
           height: 20,
           width: 20,
+          child: Center(
+            child: SvgPicture.asset('assets/vodolei.svg'),
+          ),
           decoration: BoxDecoration(
               color: Colors.purple,
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: AssetImage('assets/vodolei.png'),
-                  scale: 2
-              )
           ),
         ),
         SizedBox(width: 5),

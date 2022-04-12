@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
@@ -14,6 +15,8 @@ class AllVideosPage extends StatefulWidget{
 }
 
 class _AllVideosPageState extends State<AllVideosPage> {
+
+  final String _newMediaAsset = 'assets/new_media.svg';
 
   bool _isEditing = false;
 
@@ -160,7 +163,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image(image: AssetImage('assets/new_media.png'), color: Colors.white),
+                      SvgPicture.asset(_newMediaAsset, color: Colors.white),
                       SizedBox(width: 5),
                       Text('Загрузить новое видео', style: TextStyle(
                           color: Colors.white, fontSize: 17))

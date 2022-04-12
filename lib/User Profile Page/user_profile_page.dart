@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
@@ -9,13 +9,21 @@ import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/other_users_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 
+import '../Settings Page/settings_page.dart';
+
 class UserProfilePage extends StatefulWidget{
 
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage>{
+class _UserProfilePageState extends State<UserProfilePage> {
+  
+  final String _mainButtonAsset = 'assets/bnm_main_icon.svg';
+  final String _chatButtonAsset = 'assets/chat_icon.svg';
+  final String _profileButtonAsset = 'assets/user_profile_icon.svg';
+  final String _videoSearchButtonAsset = 'assets/video_search_icon.svg';
+  final String _optionsButtonAsset = 'assets/options_icon.svg';
 
   late double height;
   late double width;
@@ -59,7 +67,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                systemOverlayStyle: SystemUiOverlayStyle.light,
                backgroundColor: Colors.transparent,
              ),
-             body: RefreshIndicator(
+             body: _bottomNavBarIndex == 1 ? RefreshIndicator(
                color: Color.fromRGBO(145, 10, 251, 5),
                child: SingleChildScrollView(
                  scrollDirection: Axis.vertical,
@@ -70,7 +78,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                onRefresh: () {
                  return Future.delayed(Duration(milliseconds: 1000));
                },
-             ),
+             ) : _bottomNavBarIndex == 4 ? SettingsPage() : null,
              bottomNavigationBar: Container(
                height: height / 8.5,
                child: BottomNavigationBar(
@@ -90,10 +98,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
                          builder: (context, constraints) {
                            return Stack(
                              children: [
-                               Image.asset('assets/chats.png',
-                                   color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 30, width: 30),
+                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 30, width: 30),
                                Positioned(
-                                 left: 15,
+                                 left: constraints.maxWidth / 2,
                                  bottom: 15,
                                  child:  Container(
                                    padding: EdgeInsets.all(1),
@@ -122,48 +129,19 @@ class _UserProfilePageState extends State<UserProfilePage>{
                    ),
                    BottomNavigationBarItem(
                        label: 'Профиль',
-                       icon: Image.asset('assets/profile.png',
-                           color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
-                           height: 30, width: 30
-                       )
+                       icon: SvgPicture.asset(_profileButtonAsset, color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
                    ),
                    BottomNavigationBarItem(
                        label: '',
-                       icon: Container(
-                         height: 51,
-                         width: 50,
-                         padding: EdgeInsets.only(left: 2, top: 2),
-                         child: Center(
-                           child: Image.asset('assets/nav_bar_logo.png'),
-                         ),
-                         decoration: BoxDecoration(
-                             shape: BoxShape.circle,
-                             gradient: LinearGradient(
-                                 begin: Alignment.topLeft,
-                                 end: Alignment.bottomRight,
-                                 colors: [
-                                   Colors.green,
-                                   Colors.blue,
-                                   Colors.purple[300]!,
-                                   Colors.orange
-                                 ]
-                             )
-                         ),
-                       )
+                       icon: SvgPicture.asset(_mainButtonAsset),
                    ),
                    BottomNavigationBarItem(
                        label: 'Видеопоиск',
-                       icon: Image.asset('assets/video_search.png',
-                           color: _bottomNavBarIndex == 3 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
-                           height: 30, width: 30
-                       )
+                       icon: SvgPicture.asset(_videoSearchButtonAsset, color: _bottomNavBarIndex == 3 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
                    ),
                    BottomNavigationBarItem(
                        label: 'Ещё',
-                       icon:  Image.asset('assets/btm_nav_bar_icon_5.png',
-                           color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
-                           height: 30, width: 30
-                       )
+                       icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
                    )
                  ],
                  onTap: (index){
@@ -207,7 +185,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     ]
                 )
               ),
-              child: Container(
+              child: Container (
                 padding: EdgeInsets.only(left: width / 20, top: height / 20),
                 child: Row(
                   children: [
@@ -262,9 +240,17 @@ class _UserProfilePageState extends State<UserProfilePage>{
                           children: [
                             Text('Мой профиль', style: TextStyle(color: Colors.white, fontSize: 17)),
                             SizedBox(width: width / 2.45),
-                            IconButton(
-                              icon: Icon(Icons.settings, color: Colors.white),
-                              onPressed: () => null,
+                            InkWell(
+                              child: IconButton(
+                                icon: Icon(Icons.settings, color: Colors.white),
+                                constraints: BoxConstraints(
+                                    maxHeight: 10,
+                                    maxWidth: 10
+                                ),
+                                onPressed: () {
+                                  print('fffff');
+                                },
+                              ),
                             )
                           ],
                         ),

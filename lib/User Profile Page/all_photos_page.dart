@@ -223,8 +223,8 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
     );
   }
 
-  List<Widget> indicators(imagesLength,currentIndex) {
-    return List<Widget>.generate(imagesLength, (index) {
+  List<Widget> indicators(imagesLength, currentIndex) {
+    return List.generate(imagesLength, (index) {
       return Container(
         margin: EdgeInsets.all(3),
         width: 8,

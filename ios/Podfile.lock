@@ -6,7 +6,7 @@ PODS:
   - image_cropper (0.0.4):
     - Flutter
     - TOCropViewController (~> 2.6.1)
-  - image_picker_ios (0.0.1):
+  - image_picker (0.0.1):
     - Flutter
   - libwebp (1.2.1):
     - libwebp/demux (= 1.2.1)
@@ -17,7 +17,7 @@ PODS:
   - libwebp/mux (1.2.1):
     - libwebp/demux
   - libwebp/webp (1.2.1)
-  - permission_handler_apple (9.0.4):
+  - permission_handler_apple (9.0.2):
     - Flutter
   - photo_manager (2.0.0):
     - Flutter
@@ -34,7 +34,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
   - image_cropper (from `.symlinks/plugins/image_cropper/ios`)
-  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
@@ -53,8 +53,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/fluttertoast/ios"
   image_cropper:
     :path: ".symlinks/plugins/image_cropper/ios"
-  image_picker_ios:
-    :path: ".symlinks/plugins/image_picker_ios/ios"
+  image_picker:
+    :path: ".symlinks/plugins/image_picker/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   photo_manager:
@@ -66,17 +66,17 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
-  fluttertoast: 16fbe6039d06a763f3533670197d01fc73459037
+  fluttertoast: 6122fa75143e992b1d3470f61000f591a798cc58
   image_cropper: 60c2789d1f1a78c873235d4319ca0c34a69f2d98
-  image_picker_ios: b786a5dcf033a8336a657191401bfdf12017dabb
+  image_picker: 541dcbb3b9cf32d87eacbd957845d8651d6c62c3
   libwebp: 98a37e597e40bfdb4c911fc98f2c53d0b12d05fc
-  permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
+  permission_handler_apple: d21b38e1a4b2e041c63af9568f9165e114e507a6
   photo_manager: 4f6810b7dfc4feb03b461ac1a70dacf91fba7604
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
   video_player_avfoundation: e489aac24ef5cf7af82702979ed16f2a5ef84cff
   video_thumbnail: c4e2a3c539e247d4de13cd545344fd2d26ffafd1
 
-PODFILE CHECKSUM: d2ed9327d89772a64d8d9586d1f7f7022d6e4ce3
+PODFILE CHECKSUM: 0d293c14672ef013a7cf2cc52ca2748c0e565fe4
 
 COCOAPODS: 1.11.2

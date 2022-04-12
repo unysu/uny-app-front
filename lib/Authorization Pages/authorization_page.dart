@@ -2,6 +2,7 @@ import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/phone_nmb_confirm_page.dart';
 
@@ -14,12 +15,12 @@ class AuthorizationPage extends StatefulWidget{
 
 class _AuthorizationPageState extends State<AuthorizationPage>{
 
-  Image googleImg = Image.asset('assets/google.png');
-  Image fbImg = Image.asset('assets/fb.png');
-  Image mailruImg = Image.asset('assets/mailru.png');
-  Image yandexImg = Image.asset('assets/yandex.png');
-  Image okImg = Image.asset('assets/ok.png');
-  Image vkImg = Image.asset('assets/vk.png');
+  final String _googleImg = 'assets/google_auth.svg';
+  final String _mailruImg = 'assets/mail_auth.svg';
+  final String _yandexImg = 'assets/yandex_auth.svg';
+  final String _vkImg = 'assets/vk_auth.svg';
+  final String _fbImg = 'assets/fb_auth.svg';
+  final String _okImg = 'assets/ok_auth.svg';
 
   FocusNode? focusNode;
 
@@ -249,7 +250,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               color: Colors.white.withOpacity(0.1), // Button color
               child: InkWell(// Splash color
                 onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: googleImg),
+                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_googleImg)),
               ),
             ),
           ),
@@ -259,7 +260,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               color: Colors.white.withOpacity(0.1), // Button color
               child: InkWell(// Splash color
                 onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: mailruImg),
+                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_mailruImg)),
               ),
             ),
           ),
@@ -269,7 +270,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               color: Colors.white.withOpacity(0.1), // Button color
               child: InkWell(// Splash color
                 onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: yandexImg),
+                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_yandexImg)),
               ),
             ),
           ),
@@ -279,7 +280,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               color: Colors.white.withOpacity(0.1), // Button color
               child: InkWell(// Splash color
                 onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: vkImg),
+                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_vkImg)),
               ),
             ),
           ),
@@ -289,7 +290,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               color: Colors.white.withOpacity(0.1), // Button color
               child: InkWell(// Splash color
                 onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: fbImg),
+                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_fbImg)),
               ),
             ),
           ),
@@ -299,7 +300,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               color: Colors.white.withOpacity(0.1), // Button color
               child: InkWell(// Splash color
                 onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: okImg),
+                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_okImg)),
               ),
             ),
           )

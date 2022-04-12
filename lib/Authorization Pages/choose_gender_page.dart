@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
 
@@ -13,6 +14,18 @@ class _GenderPageState extends State<GenderPage>{
   late double mqHeight;
   late double mqWidth;
 
+  final String _genderPageLinesAsset = 'assets/gender_page_lines.svg';
+  final String _dotAsset = 'assets/dot.svg';
+  final String _avatarAsset = 'assets/avatar.svg';
+  final String _heartAsset = 'assets/heart.svg';
+  final String _heart1Asset = 'assets/heart_1.svg';
+  final String _pcAsset = 'assets/pc.svg';
+  final String _moneyAsset = 'assets/money.svg';
+  final String _womanAsset = 'assets/woman.png';
+  final String _manAsset = 'assets/man.png';
+  final String _anotherGenderAsset = 'assets/another_gender.png';
+  final String _logoAsset = 'assets/logo_no_background.png';
+  
   @override
   Widget build(BuildContext context) {
     return ResponsiveWrapper.builder(
@@ -98,7 +111,7 @@ class _GenderPageState extends State<GenderPage>{
                             onTap: () => nextPage(),
                             child: Column(
                               children: [
-                                Image.asset('assets/woman.png'),
+                                Image.asset(_womanAsset),
                                 Text('Женский', style: TextStyle(color: Colors.white)),
                               ],
                             ),
@@ -107,7 +120,7 @@ class _GenderPageState extends State<GenderPage>{
                       Positioned(
                         left: height / 2.7,
                         bottom: width / 2.2,
-                        child: Image.asset('assets/logo_no_background.png'),
+                        child: Image.asset(_logoAsset)
                       ),
                       Positioned(
                           left: height / 4.2,
@@ -116,7 +129,7 @@ class _GenderPageState extends State<GenderPage>{
                             children: [
                               GestureDetector(
                                 onTap: () => nextPage(),
-                                child: Image.asset('assets/another_gender.png'),
+                                child: Image.asset(_anotherGenderAsset)
                               ),
                               Text('Другое', style: TextStyle(color: Colors.white))
                             ],
@@ -130,56 +143,56 @@ class _GenderPageState extends State<GenderPage>{
                             onTap: () => nextPage(),
                             child: Column(
                               children: [
-                                Image.asset('assets/man.png'),
+                                Image.asset(_manAsset),
                                 Text('Мужской', style: TextStyle(color: Colors.white))
                               ],
                             ),
                           )
                       ),
                       Positioned(
-                        right: height / 4,
-                        bottom: width / 5.7,
-                        child: Image.asset('assets/heart.png'),
+                        right: height / 3.9,
+                        bottom: width / 5.6,
+                        child: SvgPicture.asset(_heartAsset)
                       ),
                       Positioned(
                         left: height / 6.3,
                         bottom: width * 0.5,
-                        child: Image.asset('assets/pc.png'),
+                        child: SvgPicture.asset(_pcAsset)
                       ),
                       Positioned(
                         left: height / 12,
                         bottom: width / 2.2,
-                        child: Image.asset('assets/money.png'),
+                        child: SvgPicture.asset(_moneyAsset)
                       ),
                       Positioned(
                         right: height / 2.9,
                         bottom: width / 1.36,
-                        child: Image.asset('assets/heart_1.png'),
+                        child: SvgPicture.asset(_heart1Asset)
                       ),
                       Positioned(
-                        right: height / 3.5,
-                        bottom: width / 1.10,
-                        child: Image.asset('assets/avatar.png'),
+                        right: height / 3.45,
+                        bottom: width / 1.09,
+                        child: SvgPicture.asset(_avatarAsset)
                       ),
                       Positioned(
                         right: height / 2.1,
                         bottom: width / 1.152,
-                        child: Image.asset('assets/dot.png'),
+                        child: SvgPicture.asset(_dotAsset)
                       ),
                       Positioned(
                         right: height / 2.05,
                         bottom: width / 2.5,
-                        child: Image.asset('assets/dot.png'),
+                        child: SvgPicture.asset(_dotAsset)
                       ),
                       Positioned(
                         left: height / 7,
                         bottom: width / 1.57,
-                        child: Image.asset('assets/dot.png'),
+                        child: SvgPicture.asset(_dotAsset)
                       ),
                       Positioned(
                         left: height / 11,
                         top: width / 22,
-                        child: Image.asset('assets/gender_page_lines.png'),
+                        child: SvgPicture.asset(_genderPageLinesAsset)
                       )
                     ],
                   );
