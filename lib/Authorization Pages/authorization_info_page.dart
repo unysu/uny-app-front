@@ -135,6 +135,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             child: TextFormField(
               controller: nameTextController,
               cursorColor: Colors.white,
+              textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Имя',
@@ -164,6 +165,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             child: TextFormField(
               controller: secondNameTextController,
               cursorColor: Colors.white,
+              textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Фамилия',
@@ -193,6 +195,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             child: TextFormField(
               controller: dateOfBirthTextController,
               cursorColor: Colors.white,
+              textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Дата рождения',
@@ -247,6 +250,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               controller: locationTextController,
               focusNode: locationFieldFocusNode,
               cursorColor: Colors.white,
+              textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Название города',
@@ -403,7 +407,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                               isDateOfBirthFieldEmpty = false;
                             });
 
-                            var formatter = DateFormat('dd/MM/yyyy');
+                            var formatter = DateFormat('dd.MM.yyyy');
                             var date = formatter.format(_date);
                             dateOfBirthTextController!.value = dateOfBirthTextController!.value.copyWith(text: date);
 

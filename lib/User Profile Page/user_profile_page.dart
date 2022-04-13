@@ -1,3 +1,4 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final String _videoSearchButtonAsset = 'assets/video_search_icon.svg';
   final String _optionsButtonAsset = 'assets/options_icon.svg';
 
+  PageController? _pageController;
+
   late double height;
   late double width;
 
@@ -42,6 +45,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     bioTextFocusNode = FocusNode();
     bioTextController = TextEditingController();
+
+    _pageController = PageController();
   }
 
   @override
@@ -50,6 +55,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     bioTextFocusNode!.dispose();
     bioTextController!.dispose();
+
+    _pageController!.dispose();
   }
 
   @override
@@ -58,29 +65,29 @@ class _UserProfilePageState extends State<UserProfilePage> {
       builder: (context, constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-       return ResponsiveWrapper.builder(
+       return ResponsiveWrapper.builder (
            Scaffold(
              extendBodyBehindAppBar: true,
              appBar: AppBar(
                elevation: 0,
                automaticallyImplyLeading: false,
-               systemOverlayStyle: SystemUiOverlayStyle.light,
+               systemOverlayStyle: _bottomNavBarIndex == 1 ?
+               SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : null,
                backgroundColor: Colors.transparent,
              ),
-             body: _bottomNavBarIndex == 1 ? RefreshIndicator(
-               color: Color.fromRGBO(145, 10, 251, 5),
-               child: SingleChildScrollView(
-                 scrollDirection: Axis.vertical,
-                 physics: BouncingScrollPhysics(),
-                 child: mainBody(),
-               ),
-               strokeWidth: 1,
-               onRefresh: () {
-                 return Future.delayed(Duration(milliseconds: 1000));
-               },
-             ) : _bottomNavBarIndex == 4 ? SettingsPage() : null,
+             body: PageView(
+               physics: NeverScrollableScrollPhysics(),
+               controller: _pageController,
+               children: [
+                 Container(),
+                 mainBody(),
+                 Container(),
+                 Container(),
+                 SettingsPage(),
+               ],
+             ),
              bottomNavigationBar: Container(
-               height: height / 8.5,
+               height: height / 10,
                child: BottomNavigationBar(
                  type: BottomNavigationBarType.fixed,
                  elevation: 20,
@@ -98,10 +105,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                          builder: (context, constraints) {
                            return Stack(
                              children: [
-                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 30, width: 30),
+                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 20, width: 20),
                                Positioned(
-                                 left: constraints.maxWidth / 2,
-                                 bottom: 15,
+                           left: constraints.maxWidth / 2.2,
+                                 bottom: 5,
                                  child:  Container(
                                    padding: EdgeInsets.all(1),
                                    decoration:  BoxDecoration(
@@ -144,10 +151,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                        icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
                    )
                  ],
-                 onTap: (index){
+                 onTap: (index) {
                    setState(() {
                      _bottomNavBarIndex = index;
                    });
+                   _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
                  },
                )
              )
@@ -165,140 +173,136 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget mainBody() {
-    return Column(
-      children: [
-        Align(
-          child: ClipRRect(
-            borderRadius: BorderRadius.only(
-              bottomRight: Radius.circular(20),
-              bottomLeft: Radius.circular(20)
-            ),
-            child: Container(
-              height: height / 4.8,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color.fromRGBO(165, 21, 215, 5),
-                      Color.fromRGBO(38, 78, 215, 5)
-                    ]
-                )
-              ),
-              child: Container (
-                padding: EdgeInsets.only(left: width / 20, top: height / 20),
-                child: Row(
-                  children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Container(
-                            height: constraints.maxHeight * 0.55,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white
-                            ),
-                            child: Stack(
-                              children: [
-                                Image.asset('assets/sample_pic.png', fit: BoxFit.cover),
-                                Positioned(
-                                  top: constraints.maxHeight * 0.35,
-                                  left: constraints.maxHeight * 0.38,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => ProfilePhotosPage()
-                                          )
-                                      );
-                                    },
-                                    child: Container(
-                                      height: constraints.maxHeight * 0.2,
-                                      child: Icon(
-                                          Icons.add,
-                                          color: Colors.white,
-                                          size: constraints.maxHeight / 6
-                                      ),
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.blue,
-                                      ),
-                                    ),
-                                  )
-                                )
-                              ],
-                            )
-                        );
-                      },
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          Align(
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                    bottomRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20)
+                ),
+                child: Container(
+                    height: height / 4.8,
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color.fromRGBO(165, 21, 215, 5),
+                              Color.fromRGBO(38, 78, 215, 5)
+                            ]
+                        )
                     ),
-                    SizedBox(width: 10),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text('Мой профиль', style: TextStyle(color: Colors.white, fontSize: 17)),
-                            SizedBox(width: width / 2.45),
-                            InkWell(
-                              child: IconButton(
-                                icon: Icon(Icons.settings, color: Colors.white),
-                                constraints: BoxConstraints(
-                                    maxHeight: 10,
-                                    maxWidth: 10
-                                ),
-                                onPressed: () {
-                                  print('fffff');
-                                },
+                    child: Container (
+                      padding: EdgeInsets.only(left: width / 20, top: height / 20),
+                      child: Row(
+                        children: [
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Container(
+                                  height: constraints.maxHeight * 0.55,
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      Image.asset('assets/sample_pic.png', fit: BoxFit.cover),
+                                      Positioned(
+                                          top: constraints.maxHeight * 0.35,
+                                          left: constraints.maxHeight * 0.38,
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) => ProfilePhotosPage()
+                                                  )
+                                              );
+                                            },
+                                            child: Container(
+                                              height: constraints.maxHeight * 0.2,
+                                              child: Icon(
+                                                  Icons.add,
+                                                  color: Colors.white,
+                                                  size: constraints.maxHeight / 6
+                                              ),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.blue,
+                                              ),
+                                            ),
+                                          )
+                                      )
+                                    ],
+                                  )
+                              );
+                            },
+                          ),
+                          SizedBox(width: 10),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('Мой профиль', style: TextStyle(color: Colors.white, fontSize: 17)),
+                                  SizedBox(width: width / 2.45),
+                                  IconButton(
+                                    icon: Icon(Icons.settings, color: Colors.white),
+                                    onPressed: () {
+                                      print('fffff');
+                                    },
+                                  ),
+                                ],
                               ),
-                            )
-                          ],
-                        ),
-                        Text('Кристина З. 23 🇷🇺', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 3),
-                        Text('Менеджер-логист в логистической к...', style: TextStyle(fontSize: 15, color: Colors.grey))
-                      ],
+                              Text('Кристина З. 23 🇷🇺', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 3),
+                              Text('Менеджер-логист в логистической к...', style: TextStyle(fontSize: 15, color: Colors.grey))
+                            ],
+                          )
+                        ],
+                      ),
                     )
-                  ],
                 ),
               )
-            ),
-          )
-        ),
-        SizedBox(height: height / 25),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Мои интересы', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
-              InkWell(
-                onTap: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => OtherUsersPage()
-                    )
-                  );
-                },
-                child: Text('Редактировать', style: TextStyle(fontSize: 17, color: Color.fromRGBO(145, 10, 251, 5))),
-              )
-            ],
           ),
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          height: 100,
-        ),
-        Divider(
-          height: 1,
-          color: Colors.grey,
-        ),
-        SizedBox(height: 15),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          SizedBox(height: height / 25),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Мои интересы', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                InkWell(
+                  onTap: (){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => OtherUsersPage()
+                        )
+                    );
+                  },
+                  child: Text('Редактировать', style: TextStyle(fontSize: 17, color: Color.fromRGBO(145, 10, 251, 5))),
+                )
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            height: 100,
+          ),
+          Divider(
+            height: 1,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 15),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('О себе', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
                 Container(
@@ -323,207 +327,208 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                 )
               ],
+            ),
           ),
-        ),
-        SizedBox(height: 15),
-        Container(
-          height: height / 12,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-             return Stack(
-               children: [
-                 Container(
-                     padding: EdgeInsets.symmetric(horizontal: width / 15),
-                     child: Text(
-                       'В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных',
-                       style: TextStyle(fontSize: 15, color: Colors.black),
-                       overflow: TextOverflow.fade,
-                       maxLines: 4,
-                     )
-                 ),
-                 Positioned(
-                     top: constraints.maxHeight / 1.5,
-                     right: constraints.maxWidth / 40,
-                     child: InkWell(
-                       onTap: () => null,
-                       child: Row(
-                         children: [
-                           Text('Ещё', style: TextStyle(fontSize: 15, color: Color.fromRGBO(145, 10, 251, 5))),
-                           Icon(Icons.arrow_drop_down, color: Color.fromRGBO(145, 10, 251, 5))
-                         ],
-                       ),
-                     )
-                 )
-               ],
-             );
-            },
-          ),
-        ),
-        SizedBox(height: 25),
-        Divider(
-          thickness: 8,
-          color: Colors.grey.withOpacity(0.1),
-        ),
-        SizedBox(height: 15),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Мои видео', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-              InkWell(
-                onTap: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AllVideosPage())
-                  );
-                },
-                child: Text('Все', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5), fontSize: 17)),
-              )
-            ],
-          ),
-        ),
-        SizedBox(height: 10),
-        Container(
-          padding: EdgeInsets.only(left: 20),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(10, (index) {
-                if(index == 0){
-                  return Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                        child: Container(
-                          height: height / 5,
-                          width: width / 4.5,
-                          color: Colors.grey.withOpacity(0.3),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+          SizedBox(height: 15),
+          Container(
+            height: height / 12,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    Container(
+                        padding: EdgeInsets.symmetric(horizontal: width / 15),
+                        child: Text(
+                          'В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных',
+                          style: TextStyle(fontSize: 15, color: Colors.black),
+                          overflow: TextOverflow.fade,
+                          maxLines: 4,
+                        )
+                    ),
+                    Positioned(
+                        top: constraints.maxHeight / 1.5,
+                        right: constraints.maxWidth / 40,
+                        child: InkWell(
+                          onTap: () => null,
+                          child: Row(
                             children: [
-                              Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
-                              SizedBox(height: 3),
-                              Text('Загрузить видео',
-                                  style: TextStyle(fontSize: 15, color: Colors.grey),
-                                  textAlign: TextAlign.center,
-                              )
+                              Text('Ещё', style: TextStyle(fontSize: 15, color: Color.fromRGBO(145, 10, 251, 5))),
+                              Icon(Icons.arrow_drop_down, color: Color.fromRGBO(145, 10, 251, 5))
                             ],
                           ),
-                        ),
-                      ),
-                      SizedBox(width: 10)
-                    ],
-                  );
-                }else{
-                  return Row(
-                    children: [
-                      InkWell(
-                        onTap: () => null,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                          child: Container(
-                            height: height / 5,
-                            width: width / 4.5,
-                            color: Colors.purple,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10)
-                    ],
-                  );
-                }
-              }),
+                        )
+                    )
+                  ],
+                );
+              },
             ),
-          )
-        ),
-        SizedBox(height: 20),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Фото', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
-              Container()
-            ],
           ),
-        ),
-        SizedBox(height: 10),
-        Container(
-          padding: EdgeInsets.only(left: 20),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          SizedBox(height: 25),
+          Divider(
+            thickness: 8,
+            color: Colors.grey.withOpacity(0.1),
+          ),
+          SizedBox(height: 15),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-                children: List.generate(10, (rowIndex){
-                  return Row(
-                    children: [
-                      Column(
-                        children: List.generate(2, (columnIndex){
-                          if(rowIndex == 0 && columnIndex == 0){
-                            return Column(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                                  child: Container(
-                                      height: 100,
-                                      width: 100,
-                                      color: Colors.grey.withOpacity(0.3),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
-                                          SizedBox(height: 3),
-                                          Text('Загрузить фото',
-                                            style: TextStyle(fontSize: 15, color: Colors.grey),
-                                            textAlign: TextAlign.center,
-                                          )
-                                        ],
-                                      ),
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                              ],
-                            );
-                          }else{
-                            return Column(
-                              children: [
-                                InkWell(
-                                  onTap: (){
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AllPhotosPage()
-                                      )
-                                    );
-                                  },
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                    child: Container(
-                                      height: 100,
-                                      width: 100,
-                                      decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: AssetImage('assets/sample_user_pic.png'),
-                                            fit: BoxFit.cover,
-                                          )
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Мои видео', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                InkWell(
+                  onTap: (){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AllVideosPage())
+                    );
+                  },
+                  child: Text('Все', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5), fontSize: 17)),
+                )
+              ],
+            ),
+          ),
+          SizedBox(height: 10),
+          Container(
+              padding: EdgeInsets.only(left: 20),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(10, (index) {
+                    if(index == 0){
+                      return Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            child: Container(
+                              height: height / 5,
+                              width: width / 4.5,
+                              color: Colors.grey.withOpacity(0.3),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                  SizedBox(height: 3),
+                                  Text('Загрузить видео',
+                                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                                    textAlign: TextAlign.center,
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10)
+                        ],
+                      );
+                    }else{
+                      return Row(
+                        children: [
+                          InkWell(
+                            onTap: () => null,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                              child: Container(
+                                height: height / 5,
+                                width: width / 4.5,
+                                color: Colors.purple,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10)
+                        ],
+                      );
+                    }
+                  }),
+                ),
+              )
+          ),
+          SizedBox(height: 20),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Фото', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                Container()
+              ],
+            ),
+          ),
+          SizedBox(height: 10),
+          Container(
+              padding: EdgeInsets.only(left: 20),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                    children: List.generate(10, (rowIndex){
+                      return Row(
+                        children: [
+                          Column(
+                            children: List.generate(2, (columnIndex){
+                              if(rowIndex == 0 && columnIndex == 0){
+                                return Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                                      child: Container(
+                                        height: 100,
+                                        width: 100,
+                                        color: Colors.grey.withOpacity(0.3),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                            SizedBox(height: 3),
+                                            Text('Загрузить фото',
+                                              style: TextStyle(fontSize: 15, color: Colors.grey),
+                                              textAlign: TextAlign.center,
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                              ],
-                            );
-                          }
-                        }),
-                      ),
-                      SizedBox(width: 10)
-                    ],
-                  );
-                })
-            ),
+                                    SizedBox(height: 10),
+                                  ],
+                                );
+                              }else{
+                                return Column(
+                                  children: [
+                                    InkWell(
+                                      onTap: (){
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => AllPhotosPage()
+                                            )
+                                        );
+                                      },
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                                        child: Container(
+                                          height: 100,
+                                          width: 100,
+                                          decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                image: AssetImage('assets/sample_user_pic.png'),
+                                                fit: BoxFit.cover,
+                                              )
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                  ],
+                                );
+                              }
+                            }),
+                          ),
+                          SizedBox(width: 10)
+                        ],
+                      );
+                    })
+                ),
+              )
           )
-        )
-      ],
+        ],
+      ),
     );
   }
 
@@ -710,3 +715,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 }
+
+
+// return _bottomNavBarIndex == 1 ? RefreshIndicator(
+// color: Color.fromRGBO(145, 10, 251, 5),
+// child: SingleChildScrollView(
+// scrollDirection: Axis.vertical,
+// physics: BouncingScrollPhysics(),
+// child: mainBody(),
+// ),
+// strokeWidth: 1,
+// onRefresh: () {
+// return Future.delayed(Duration(milliseconds: 1000));
+// },
+// ) : _bottomNavBarIndex == 4 ? SettingsPage() : null,

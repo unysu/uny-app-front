@@ -159,7 +159,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                             ),
                           ),
                           SizedBox(width: 10),
-                          ZodiacSigns.getScorpionSign()
+                          ZodiacSigns.getLevSign()
                         ],
                       ),
                     ),

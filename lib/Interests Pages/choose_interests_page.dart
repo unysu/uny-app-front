@@ -1263,11 +1263,10 @@ class _InterestsPageState extends State<InterestsPage> {
                     ))),
             InkWell(
               onTap: _selectedGeneralInterests.length != 0 ? (){
-                Navigator.push(
+                Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => UserProfilePage(),
-                  )
+                  MaterialPageRoute(builder: (context) => UserProfilePage()),
+                      (Route<dynamic> route) => false,
                 );
               } : null,
               child: Container(

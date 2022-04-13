@@ -138,6 +138,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
         Padding(
           padding: EdgeInsets.only(left: width / 15, right: width / 15),
           child: InkWell(
+            borderRadius: BorderRadius.circular(11),
             onTap: () async {
               _video = await _picker.pickVideo(source: ImageSource.gallery);
               VideoPlayerController videoController = VideoPlayerController.file(File(_video!.path));
