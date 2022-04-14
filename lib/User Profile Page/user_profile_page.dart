@@ -46,7 +46,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
     bioTextFocusNode = FocusNode();
     bioTextController = TextEditingController();
 
-    _pageController = PageController();
+    _pageController = PageController(
+      initialPage: _bottomNavBarIndex
+    );
   }
 
   @override

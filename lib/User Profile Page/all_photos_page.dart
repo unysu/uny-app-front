@@ -109,10 +109,9 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
   Widget mainBody(){
     return Container(
       color: Colors.black,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: ListView(
         children: [
-          SizedBox(height: height * 0.1),
+          SizedBox(height: 60),
           CarouselSlider(
             options: CarouselOptions(
                 height: height / 1.5,

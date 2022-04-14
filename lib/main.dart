@@ -20,8 +20,7 @@ class SplashScreenPage extends StatefulWidget{
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage>{
-
-  final String _logoAssetName = 'assets/main_logo.svg';
+  
 
  @override
   void initState() {
@@ -46,7 +45,7 @@ class _SplashScreenPageState extends State<SplashScreenPage>{
                   child: SizedBox(
                       width: 150,
                       height: 150,
-                      child: SvgPicture.asset(_logoAssetName)
+                      child: Image.asset('assets/splash_icon.png')
                   ),
                 )
             ),
