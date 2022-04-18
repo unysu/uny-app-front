@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
@@ -10,6 +14,7 @@ import 'package:uny_app/Settings%20Page/edit_profile_page.dart';
 import 'package:uny_app/Settings%20Page/notifications_settings_page.dart';
 import 'package:uny_app/Settings%20Page/privacy_settings_page.dart';
 import 'package:uny_app/Settings%20Page/support_settings_page.dart';
+import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 
 class SettingsPage extends StatefulWidget{
@@ -30,6 +35,10 @@ class _SettingsPageState extends State<SettingsPage>{
   final String _rearrangeAsset = 'assets/rearrange.svg';
   final String _newMediaImageAsset = 'assets/new_media.svg';
   final String _noPhotoPlaceholder = 'assets/removed_avatar_pic.svg';
+
+  final ImagePicker _picker = ImagePicker();
+
+  File? _image;
 
 
   @override
@@ -76,11 +85,16 @@ class _SettingsPageState extends State<SettingsPage>{
                 child: Container(
                   height: height / 5,
                   child: Center(
-                    child: SvgPicture.asset(_noPhotoPlaceholder, height: 50, width: 50),
+                    child: _image == null
+                    ? SvgPicture.asset(_noPhotoPlaceholder, height: 50, width: 50)
+                    : null
                   ),
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                    color: Colors.grey.withOpacity(0.2)
+                    color: Colors.grey.withOpacity(0.2),
+                    image: _image != null ? DecorationImage(
+                      image: FileImage(_image!)
+                    ) : null
                   ),
                 ),
                 onTap: (){
@@ -102,8 +116,8 @@ class _SettingsPageState extends State<SettingsPage>{
                 },
               ),
               Positioned(
-                  top: height / 6.5,
-                  left: width * 0.58,
+                  top: height / 6.3,
+                  left: width * 0.59,
                   child: InkWell(
                     onTap: () {
                       if(UniversalPlatform.isIOS){
@@ -239,6 +253,73 @@ class _SettingsPageState extends State<SettingsPage>{
     );
   }
 
+
+  Widget showPicOptions() {
+    return Material(
+      borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+      child: Container(
+        height: height * 0.35,
+        padding: EdgeInsets.only(top: 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.only(left: 10, right: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(width: width / 8),
+                  Text('Фото профиля', style:
+                  TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: Icon(CupertinoIcons.clear_thick_circled),
+                    color: Colors.grey.withOpacity(0.5),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                ],
+              ),
+            ),
+            ListTile(
+                title: Text('Удалить текущее фото'),
+                leading: Icon(CupertinoIcons.delete),
+                trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                onTap: () {
+
+                }
+            ),
+            ListTile(
+                title: Text('Изменить порядок фотографий'),
+                leading: SvgPicture.asset(_rearrangeAsset),
+                trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                onTap: (){
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ProfilePhotosPage()
+                      )
+                  );
+                }
+            ),
+            ListTile(
+              title: Text('Загрузить из медиатеки'),
+              leading: SvgPicture.asset(_newMediaImageAsset, color: Colors.grey),
+              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
+              onTap: () async {
+                XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                _cropImage(image!.path);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   void _showSignOutDialog() {
     if(UniversalPlatform.isIOS){
       showCupertinoModalPopup(
@@ -302,58 +383,36 @@ class _SettingsPageState extends State<SettingsPage>{
     }
   }
 
-  Widget showPicOptions(){
-    return Material(
-      borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
-      child: Container(
-        height: height * 0.35,
-        padding: EdgeInsets.only(top: 15),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(35), topRight: Radius.circular(35)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.only(left: 10, right: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(width: width / 8),
-                  Text('Фото профиля', style:
-                  TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: Icon(CupertinoIcons.clear_thick_circled),
-                    color: Colors.grey.withOpacity(0.5),
-                    onPressed: () => Navigator.pop(context),
-                  )
-                ],
-              ),
-            ),
-            ListTile(
-              title: Text('Удалить текущее фото'),
-              leading: Icon(CupertinoIcons.delete),
-              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
-              onTap: () {
 
-              }
-            ),
-            ListTile(
-              title: Text('Изменить порядок фотографий'),
-              leading: SvgPicture.asset(_rearrangeAsset),
-              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
-              onTap: () => null,
-            ),
-            ListTile(
-              title: Text('Загрузить из медиатеки'),
-              leading: SvgPicture.asset(_newMediaImageAsset, color: Colors.grey),
-              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
-              onTap: () => null,
-            ),
-          ],
+  void _cropImage(String? filePath) async {
+    File? croppedFile = await ImageCropper().cropImage(
+        sourcePath: filePath!,
+        androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Загрузить фото',
+          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+          hideBottomControls: true,
         ),
-      ),
+        iosUiSettings: IOSUiSettings(
+          title: 'Загрузить фото',
+          showCancelConfirmationDialog: true,
+          cancelButtonTitle: 'Закрыть',
+          doneButtonTitle: 'Сохранить',
+          rotateButtonsHidden: true,
+          aspectRatioPickerButtonHidden: true,
+          rotateClockwiseButtonHidden: true,
+          resetButtonHidden: true,
+          rectX: 100,
+          rectY: 100,
+          aspectRatioLockEnabled: false,
+        )
     );
+
+    Navigator.pop(context);
+    setState(() {
+      _image = croppedFile;
+    });
   }
 }

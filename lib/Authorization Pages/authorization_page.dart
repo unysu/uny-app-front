@@ -196,7 +196,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                       borderRadius: BorderRadius.circular(11),
                       color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
                       child: InkWell(
-                        onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage()));},
+                        onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage(phoneNumber: textController!.text)));},
                         child: SizedBox(
                           width: 200,
                           height: 50,

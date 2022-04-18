@@ -5,17 +5,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_verification_code/flutter_verification_code.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:uny_app/Settings%20Page/edit_profile_page.dart';
-import 'package:uny_app/Settings%20Page/settings_page.dart';
+
 
 class ConfirmNewPhoneNumberPage extends StatefulWidget {
 
+  String? phoneNumber;
+
+  ConfirmNewPhoneNumberPage({
+    required this.phoneNumber
+  });
+
   @override
-  _ConfirmNewPhoneNumberPageState createState() => _ConfirmNewPhoneNumberPageState();
+  _ConfirmNewPhoneNumberPageState createState() => _ConfirmNewPhoneNumberPageState(phoneNumber: phoneNumber);
 }
 
 
 class _ConfirmNewPhoneNumberPageState extends State<ConfirmNewPhoneNumberPage> {
+
+  String? phoneNumber;
+
+  _ConfirmNewPhoneNumberPageState({
+    required this.phoneNumber
+  });
 
   late double height;
   late double width;
@@ -95,7 +106,7 @@ class _ConfirmNewPhoneNumberPageState extends State<ConfirmNewPhoneNumberPage> {
                 SizedBox(
                   width: width * 0.8,
                   child: Text(
-                    'Мы отправили код на твой новый номер телефона +7 (928) 291-29-21',
+                    'Мы отправили код на твой новый номер телефона +7 $phoneNumber',
                     maxLines: 3,
                     style: TextStyle(fontSize: 17, color: Colors.grey),
                   ),

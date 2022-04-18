@@ -7,6 +7,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 
 class AllVideosPage extends StatefulWidget{
 
@@ -122,12 +123,20 @@ class _AllVideosPageState extends State<AllVideosPage> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.all(Radius.circular(11)),
-                        child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.4),
-                            ),
-                            child: Center(child: Text('Video'))
-                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => VideoPage())
+                            );
+                          },
+                          child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.4),
+                              ),
+                              child: Center(child: Text('Video'))
+                          ),
+                        )
                       ),
                       _isEditing ? Positioned(
                         top: dHeight / 1.2,

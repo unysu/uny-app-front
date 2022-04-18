@@ -133,7 +133,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: width / 20, vertical: height / 30),
       child: ListView(
-        physics: ClampingScrollPhysics(),
+        physics: BouncingScrollPhysics(),
         children: [
           Text('Основная информация', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
           Container(
@@ -622,7 +622,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             return CupertinoActionSheet(
               title: Text.rich(
                 TextSpan(
-                    text: ' Вы уверены, что хотите удалить аккаунт Uny? ',
+                    text: 'Вы уверены, что хотите удалить аккаунт Uny? ',
                     style: TextStyle(color: Colors.black, fontSize: 15),
                     children: [
                       TextSpan(
@@ -661,7 +661,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             return AlertDialog(
               title: Text.rich(
                 TextSpan(
-                    text: ' Вы уверены, что хотите удалить аккаунт Uny? ',
+                    text: 'Вы уверены, что хотите удалить аккаунт Uny? ',
                     style: TextStyle(color: Colors.black, fontSize: 15),
                     children: [
                       TextSpan(

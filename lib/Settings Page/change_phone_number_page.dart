@@ -186,7 +186,7 @@ class _ChangePhoneNumberPageState extends State<ChangePhoneNumberPage>{
                   onTap: isDisabled == false ? (){
                     Navigator.push(
                         context, 
-                        MaterialPageRoute(builder: (context) => ConfirmNewPhoneNumberPage())
+                        MaterialPageRoute(builder: (context) => ConfirmNewPhoneNumberPage(phoneNumber: _phoneNumberTextController!.text))
                     );
                   } : null,
                   child: Container(

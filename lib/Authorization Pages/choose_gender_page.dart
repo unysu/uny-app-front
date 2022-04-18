@@ -102,7 +102,7 @@ class _GenderPageState extends State<GenderPage>{
                   double height = constraint.maxHeight;
                   double width = constraint.maxWidth;
                   return Stack(
-                    clipBehavior: Clip.none,
+                    clipBehavior: Clip.antiAlias,
                     children: [
                       Positioned (
                           left: height / 6,

@@ -727,7 +727,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _familyFilteredList.length != 0 ? SizedBox(
-            height: height,
+            height: height / 1.35,
             child: SafeArea (
               top: false,
               child: SingleChildScrollView (
@@ -880,7 +880,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _careerFilteredList.length != 0 ? SizedBox(
-            height: height,
+            height: height / 1.35,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1035,7 +1035,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _sportFilteredList.length != 0 ? SizedBox(
-          height: height,
+            height: height / 1.35,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1190,7 +1190,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _travelingFilteredList.length != 0 ? SizedBox(
-          height: height,
+            height: height / 1.35,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(
@@ -1344,7 +1344,7 @@ class _InterestsPageState extends State<InterestsPage> {
           color: Colors.grey.withOpacity(0.5),
         ),
         _generalFilteredList.length != 0 ? SizedBox(
-          height: height,
+            height: height / 1.35,
             child: SafeArea(
               top: false,
               child: SingleChildScrollView(

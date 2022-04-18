@@ -9,11 +9,24 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/choose_gender_page.dart';
 
 class PhoneNumberConfirmationPage extends StatefulWidget{
+
+  String? phoneNumber;
+
+  PhoneNumberConfirmationPage({
+    required this.phoneNumber
+  });
+
   @override
-  _PhoneNumberConfirmationPageState createState() => _PhoneNumberConfirmationPageState();
+  _PhoneNumberConfirmationPageState createState() => _PhoneNumberConfirmationPageState(phoneNumber: phoneNumber);
 }
 
-class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPage>{
+class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPage> {
+
+  String? phoneNumber;
+
+  _PhoneNumberConfirmationPageState({
+    required this.phoneNumber
+  });
 
   int counter = 59;
 
@@ -95,7 +108,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                 SizedBox(
                   width: mqWidth * 0.8,
                   child: Text(
-                    'Мы отправили код на твой номер телефона +7 (928) 291-29-21',
+                    'Мы отправили код на твой номер телефона +7 $phoneNumber',
                     maxLines: 3,
                     style: TextStyle(fontSize: 17, color: Colors.grey),
                   ),

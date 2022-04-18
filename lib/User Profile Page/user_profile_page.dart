@@ -7,8 +7,11 @@ import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
+import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
 import 'package:uny_app/User%20Profile%20Page/other_users_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
+import 'package:uny_app/User%20Profile%20Page/video_page.dart';
+import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
 
 import '../Settings Page/settings_page.dart';
 
@@ -82,9 +85,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                controller: _pageController,
                children: [
                  Container(),
-                 mainBody(),
+                 RefreshIndicator(
+                   color: Color.fromRGBO(145, 10, 251, 5),
+                   child: SingleChildScrollView(
+                     scrollDirection: Axis.vertical,
+                     physics: BouncingScrollPhysics(),
+                     child: mainBody(),
+                   ),
+                   strokeWidth: 1,
+                   onRefresh: () {
+                     return Future.delayed(Duration(milliseconds: 1000));
+                   },
+                 ),
                  Container(),
-                 Container(),
+                 VideoSearchPage(),
                  SettingsPage(),
                ],
              ),
@@ -93,10 +107,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                child: BottomNavigationBar(
                  type: BottomNavigationBarType.fixed,
                  elevation: 20,
-                 selectedItemColor: Color.fromRGBO(145, 10, 251, 5),
-                 selectedLabelStyle: TextStyle(color: Color.fromRGBO(145, 10, 251, 5)),
+                 selectedItemColor: _bottomNavBarIndex == 3 ? Colors.white : Color.fromRGBO(145, 10, 251, 5),
                  unselectedItemColor: Colors.grey,
                  iconSize: 8,
+                 backgroundColor: _bottomNavBarIndex == 3 ? Colors.black87 : Colors.white,
                  selectedFontSize: 10,
                  unselectedFontSize: 9,
                  currentIndex: _bottomNavBarIndex,
@@ -146,7 +160,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                    ),
                    BottomNavigationBarItem(
                        label: 'Видеопоиск',
-                       icon: SvgPicture.asset(_videoSearchButtonAsset, color: _bottomNavBarIndex == 3 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
+                       icon: SvgPicture.asset(_videoSearchButtonAsset, color: _bottomNavBarIndex == 3 ? Colors.white : Colors.grey)
                    ),
                    BottomNavigationBarItem(
                        label: 'Ещё',
@@ -279,12 +293,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
               children: [
                 Text('Мои интересы', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => OtherUsersPage()
-                        )
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditInterestsPage()
+                      )
                     );
                   },
                   child: Text('Редактировать', style: TextStyle(fontSize: 17, color: Color.fromRGBO(145, 10, 251, 5))),
@@ -351,7 +365,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         top: constraints.maxHeight / 1.5,
                         right: constraints.maxWidth / 40,
                         child: InkWell(
-                          onTap: () => null,
+                          onTap: () => showFullBio(),
                           child: Row(
                             children: [
                               Text('Ещё', style: TextStyle(fontSize: 15, color: Color.fromRGBO(145, 10, 251, 5))),
@@ -425,7 +439,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       return Row(
                         children: [
                           InkWell(
-                            onTap: () => null,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => VideoPage()
+                                )
+                              );
+                            },
                             child: ClipRRect(
                               borderRadius: BorderRadius.all(Radius.circular(15)),
                               child: Container(
@@ -716,18 +737,23 @@ class _UserProfilePageState extends State<UserProfilePage> {
       );
     }
   }
+
+  void showFullBio() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(
+            'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Закрыть', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+            )
+          ],
+        );
+      }
+    );
+  }
 }
-
-
-// return _bottomNavBarIndex == 1 ? RefreshIndicator(
-// color: Color.fromRGBO(145, 10, 251, 5),
-// child: SingleChildScrollView(
-// scrollDirection: Axis.vertical,
-// physics: BouncingScrollPhysics(),
-// child: mainBody(),
-// ),
-// strokeWidth: 1,
-// onRefresh: () {
-// return Future.delayed(Duration(milliseconds: 1000));
-// },
-// ) : _bottomNavBarIndex == 4 ? SettingsPage() : null,
