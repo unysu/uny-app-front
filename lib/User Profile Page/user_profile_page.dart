@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +7,6 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
-import 'package:uny_app/User%20Profile%20Page/other_users_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
@@ -52,6 +50,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _pageController = PageController(
       initialPage: _bottomNavBarIndex
     );
+
   }
 
   @override
@@ -73,6 +72,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
        return ResponsiveWrapper.builder (
            Scaffold(
              extendBodyBehindAppBar: true,
+             resizeToAvoidBottomInset: false,
              appBar: AppBar(
                elevation: 0,
                automaticallyImplyLeading: false,

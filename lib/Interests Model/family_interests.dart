@@ -1,3 +1,6 @@
+
+import 'package:floor/floor.dart';
+
 class FamilyInterests {
 
   static FamilyInterests? _instance;

@@ -52,9 +52,12 @@ dependencies:
   sizer:
   flutter_svg:
   fluttertoast:
+  floor: ^1.2.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.9.2
+  floor_generator: ^1.2.0
+  build_runner: ^2.1.2
   flutter_test:
     sdk: flutter
 

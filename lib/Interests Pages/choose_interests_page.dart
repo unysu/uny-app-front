@@ -4,11 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:random_color/random_color.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:uny_app/Interests%20Model/career_interests_model.dart';
-import 'package:uny_app/Interests%20Model/family_interests_model.dart';
-import 'package:uny_app/Interests%20Model/general_interests_model.dart';
-import 'package:uny_app/Interests%20Model/sport_interests_model.dart';
-import 'package:uny_app/Interests%20Model/travelling_interests_model.dart';
+import 'package:uny_app/Interests%20Database/Database/database_object.dart';
+import 'package:uny_app/Interests%20Database/interests_database.dart';
+import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 
 class InterestsPage extends StatefulWidget {
@@ -17,6 +19,9 @@ class InterestsPage extends StatefulWidget {
 }
 
 class _InterestsPageState extends State<InterestsPage> {
+
+  late InterestsDatabase? db;
+
   RandomColor _randomColor = RandomColor();
 
   int _familyInterestsCounter = 0;
@@ -25,32 +30,32 @@ class _InterestsPageState extends State<InterestsPage> {
   int _travelingInterestsCounter = 0;
   int _generalInterestsCounter = 0;
 
-  late FamilyInterests familyInterests;
-  late CareerInterests careerInterests;
-  late SportInterests sportInterests;
-  late TravelingInterests travelingInterests;
-  late GeneralInterests generalInterests;
-
   late double height;
   late double width;
 
-  List<String>? _familyInterestsList = [];
-  List<String>? _careerInterestsList = [];
-  List<String>? _sportInterestsList = [];
-  List<String>? _travelingInterestsList = [];
-  List<String>? _generalInterestsList = [];
+  Future<List<FamilyInterestsModel>>? familyInterestsFuture;
+  Future<List<CareerInterestsModel>>? careerInterestsFuture;
+  Future<List<SportInterestsModel>>? sportInterestsFuture;
+  Future<List<TravellingInterestsModel>>? travellingInterestsFuture;
+  Future<List<GeneralInterestsModel>>? generalInterestsFuture;
 
-  List<String> _selectedFamilyInterests = [];
-  List<String> _selectedCareerInterests = [];
-  List<String> _selectedSportInterests = [];
-  List<String> _selectedTravelingInterests = [];
-  List<String> _selectedGeneralInterests = [];
+  List<FamilyInterestsModel>? _familyInterestsList = [];
+  List<CareerInterestsModel>? _careerInterestsList = [];
+  List<SportInterestsModel>? _sportInterestsList = [];
+  List<TravellingInterestsModel>? _travelingInterestsList = [];
+  List<GeneralInterestsModel>? _generalInterestsList = [];
 
-  List<String> _familyFilteredList = [];
-  List<String> _careerFilteredList = [];
-  List<String> _sportFilteredList = [];
-  List<String> _travelingFilteredList = [];
-  List<String> _generalFilteredList = [];
+  List<FamilyInterestsModel>? _familyFilteredList = [];
+  List<CareerInterestsModel>? _careerFilteredList = [];
+  List<SportInterestsModel>? _sportFilteredList = [];
+  List<TravellingInterestsModel>? _travelingFilteredList = [];
+  List<GeneralInterestsModel>? _generalFilteredList = [];
+
+  List<FamilyInterestsModel>? _selectedFamilyInterests = [];
+  List<CareerInterestsModel>? _selectedCareerInterests = [];
+  List<SportInterestsModel>? _selectedSportInterests = [];
+  List<TravellingInterestsModel>? _selectedTravelingInterests = [];
+  List<GeneralInterestsModel>? _selectedGeneralInterests = [];
 
   List<Color> _familyInterestsColor = [];
   List<Color> _careerInterestsColor = [];
@@ -86,68 +91,22 @@ class _InterestsPageState extends State<InterestsPage> {
   FocusNode? addNewInterestFieldFocusNode;
   TextEditingController? newInterestFieldTextController;
 
+
   @override
   void initState() {
     super.initState();
 
+    db = DatabaseObject.getDb;
+
+    familyInterestsFuture = db!.familyInterestsDao.getFamilyInterests().then((value) => _familyFilteredList = value);
+    careerInterestsFuture = db!.careerInterestsDao.getCareerInterests().then((value) => _careerFilteredList = value);
+    sportInterestsFuture = db!.sportInterestsDao.getSportInterests().then((value) => _sportFilteredList = value);
+    travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterests().then((value) => _travelingFilteredList = value);
+    generalInterestsFuture = db!.generalInterestsDao.getGeneralInterests().then((value) => _generalFilteredList = value);
+
+
     addNewInterestFieldFocusNode = FocusNode();
     newInterestFieldTextController = TextEditingController();
-
-    familyInterests = FamilyInterests.init();
-    careerInterests = CareerInterests.init();
-    sportInterests = SportInterests.init();
-    travelingInterests = TravelingInterests.init();
-    generalInterests = GeneralInterests.init();
-
-    _familyInterestsList = familyInterests.getFamilyInterests();
-    _familyFilteredList = _familyInterestsList!;
-
-    _careerInterestsList = careerInterests.getCareerInterests();
-    _careerFilteredList = _careerInterestsList!;
-
-    _sportInterestsList = sportInterests.getSportInterests();
-    _sportFilteredList = _sportInterestsList!;
-
-    _travelingInterestsList = travelingInterests.getTravellingInterests();
-    _travelingFilteredList = _travelingInterestsList!;
-
-    _generalInterestsList = generalInterests.getGeneralInterests();
-    _generalFilteredList = _generalInterestsList!;
-
-    for (int i = 0; i < _familyInterestsList!.length; ++i) {
-      _familyInterestsColor.add(_randomColor.randomColor(
-          colorHue: ColorHue.custom(Range(120, 130)),
-          colorSaturation: ColorSaturation.mediumSaturation,
-          colorBrightness: ColorBrightness.primary));
-    }
-
-    for (int i = 0; i < _careerInterestsList!.length; ++i) {
-      _careerInterestsColor.add(_randomColor.randomColor(
-          colorHue: ColorHue.custom(Range(180, 190)),
-          colorSaturation: ColorSaturation.highSaturation,
-          colorBrightness: ColorBrightness.primary));
-    }
-
-    for (int i = 0; i < _sportInterestsList!.length; ++i) {
-      _sportInterestsColor.add(_randomColor.randomColor(
-          colorHue: ColorHue.custom(Range(200, 220)),
-          colorSaturation: ColorSaturation.highSaturation,
-          colorBrightness: ColorBrightness.primary));
-    }
-
-    for (int i = 0; i < _travelingInterestsList!.length; ++i) {
-      _travelingInterestsColor.add(_randomColor.randomColor(
-          colorHue: ColorHue.custom(Range(10, 40)),
-          colorSaturation: ColorSaturation.highSaturation,
-          colorBrightness: ColorBrightness.light));
-    }
-
-    for (int i = 0; i < _generalInterestsList!.length; ++i) {
-      _generalInterestsColor.add(_randomColor.randomColor(
-          colorHue: ColorHue.custom(Range(240, 315)),
-          colorSaturation: ColorSaturation.highSaturation,
-          colorBrightness: ColorBrightness.light));
-    }
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       if (UniversalPlatform.isIOS) {
@@ -172,145 +131,6 @@ class _InterestsPageState extends State<InterestsPage> {
 
     addNewInterestFieldFocusNode = null;
     newInterestFieldTextController = null;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    _familyInterestsWidgetList = List.generate(_familyFilteredList.length, (index) {
-      return Material(
-        child: InkWell(
-          onTap: () {
-            _selectedFamilyInterests.add(_familyFilteredList[index]);
-            _selectedFamilyInterestsValue += 0.01;
-            ++_familyInterestsCounter;
-
-            setState((){});
-          },
-          borderRadius:
-          BorderRadius.all(Radius.circular(30)),
-          child: Chip(
-            visualDensity: VisualDensity.comfortable,
-            padding: EdgeInsets.all(10),
-            backgroundColor: _familyInterestsColor[index],
-            shadowColor: Colors.grey,
-            label: Text(
-              _familyFilteredList[index],
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-      );
-    });
-
-    _careerInterestsWidgetList = List.generate(_careerFilteredList.length,
-            (index) {
-          return Material(
-            child: InkWell(
-              onTap: () {
-                _selectedCareerInterests.add(_careerFilteredList[index]);
-                _selectedCareerInterestsValue += 0.01;
-                ++_careerInterestsCounter;
-
-                setState((){});
-              },
-              borderRadius:
-              BorderRadius.all(Radius.circular(30)),
-              child: Chip(
-                visualDensity: VisualDensity.comfortable,
-                padding: EdgeInsets.all(10),
-                backgroundColor: _careerInterestsColor[index],
-                shadowColor: Colors.grey,
-                label: Text(
-                  _careerFilteredList[index],
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          );
-        });
-
-    _sportInterestsWidgetList = List.generate(_sportFilteredList.length,
-            (index) {
-          return Material(
-            child: InkWell(
-              onTap: () {
-                _selectedSportInterests.add(_sportFilteredList[index]);
-                _selectedSportInterestsValue += 0.01;
-                ++_sportInterestsCounter;
-
-                setState((){});
-              },
-              borderRadius:
-              BorderRadius.all(Radius.circular(30)),
-              child: Chip(
-                visualDensity: VisualDensity.comfortable,
-                padding: EdgeInsets.all(10),
-                backgroundColor: _sportInterestsColor[index],
-                shadowColor: Colors.grey,
-                label: Text(
-                  _sportFilteredList[index],
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          );
-        });
-
-    _travelingInterestsWidgetList = List.generate(_travelingFilteredList.length,
-            (index) {
-          return Material(
-            child: InkWell(
-              onTap: () {
-                _selectedTravelingInterests.add(_travelingFilteredList[index]);
-                _selectedTravelingInterestsValue += 0.01;
-                ++_travelingInterestsCounter;
-
-                setState((){});
-              },
-              borderRadius:
-              BorderRadius.all(Radius.circular(30)),
-              child: Chip(
-                visualDensity: VisualDensity.comfortable,
-                padding: EdgeInsets.all(10),
-                backgroundColor: _travelingInterestsColor[index],
-                shadowColor: Colors.grey,
-                label: Text(
-                  _travelingFilteredList[index],
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          );
-        });
-
-    _generalInterestsWidgetList = List.generate(_generalFilteredList.length,
-            (index) {
-          return Material(
-            child: InkWell(
-              onTap: () {
-                _selectedGeneralInterests.add(_generalFilteredList[index]);
-                _selectedGeneralInterestsValue += 0.01;
-                ++_generalInterestsCounter;
-
-                setState((){});
-              },
-              borderRadius:
-              BorderRadius.all(Radius.circular(30)),
-              child: Chip(
-                visualDensity: VisualDensity.comfortable,
-                padding: EdgeInsets.all(10),
-                backgroundColor: _generalInterestsColor[index],
-                shadowColor: Colors.grey,
-                label: Text(
-                  _generalFilteredList[index],
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          );
-        });
   }
 
   @override
@@ -366,18 +186,18 @@ class _InterestsPageState extends State<InterestsPage> {
                     },
                     onChanged: (value) {
                       if(_isFamilyEnabled){
-                        _familyFilteredList = _familyInterestsList!.where((interest) => interest.toLowerCase().startsWith(value.toLowerCase())).toList();
+                        _familyFilteredList = _familyInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       }else if(_isCareerEnabled){
-                        _careerFilteredList = _careerInterestsList!.where((interest) => interest.toLowerCase().startsWith(value.toLowerCase())).toList();
+                        _careerFilteredList = _careerInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       }else if(_isSportEnabled){
-                        _sportFilteredList = _sportInterestsList!.where((interest) => interest.toLowerCase().startsWith(value.toLowerCase())).toList();
+                        _sportFilteredList = _sportInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       }else if(_isTravelingEnabled){
-                        _travelingFilteredList = _travelingInterestsList!.where((interest) => interest.toLowerCase().startsWith(value.toLowerCase())).toList();
+                        _travelingFilteredList = _travelingInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       }else{
-                        _generalFilteredList = _generalInterestsList!.where((interest) => interest.toLowerCase().startsWith(value.toLowerCase())).toList();
+                        _generalFilteredList = _generalInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       }
 
-                      didChangeDependencies();
+                      setState(() {});
 
                       if (value.length == 0) {
                         setState(() {
@@ -592,18 +412,302 @@ class _InterestsPageState extends State<InterestsPage> {
             )),
         Container(
           child: _isCareerEnabled
-              ? careerInterestsGridView()
+              ? careerInterestsFutureBuilder()
               : _isSportEnabled
-              ? sportInterestsGridView()
+              ? sportInterestsFutureBuilder()
               : _isTravelingEnabled
-              ? travelingInterestsGridView()
+              ? travellingInterestsFutureBuilder()
               : _isGeneralEnabled
-              ? generalInterestsGridView()
+              ? generalInterestsFutureBuilder()
               : _isFamilyEnabled
-              ? familyInterestsGridView()
+              ? familyInterestsFutureBuilder()
               : null
         ),
       ],
+    );
+  }
+
+  FutureBuilder<List<FamilyInterestsModel>> familyInterestsFutureBuilder(){
+    return FutureBuilder<List<FamilyInterestsModel>>(
+      future: familyInterestsFuture,
+      builder: (context, snapshot) {
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.green)
+          );
+        }
+
+        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+          _familyInterestsList = snapshot.data;
+
+          for (int i = 0; i < _familyInterestsList!.length; ++i) {
+            _familyInterestsColor.add(_randomColor.randomColor(
+                colorHue: ColorHue.custom(Range(120, 130)),
+                colorSaturation: ColorSaturation.mediumSaturation,
+                colorBrightness: ColorBrightness.primary));
+          }
+
+          _familyInterestsWidgetList = List.generate(_familyFilteredList!.length, (index) {
+            return Material(
+              child: InkWell(
+                onTap: () {
+                  _selectedFamilyInterests!.add(_familyFilteredList![index]);
+                  _selectedFamilyInterestsValue += 0.01;
+                  ++_familyInterestsCounter;
+
+                  setState(() {});
+                },
+                borderRadius:
+                BorderRadius.all(Radius.circular(30)),
+                child: Chip(
+                  visualDensity: VisualDensity.comfortable,
+                  padding: EdgeInsets.all(10),
+                  backgroundColor: _familyInterestsColor[index],
+                  shadowColor: Colors.grey,
+                  label: Text(
+                    _familyFilteredList![index].name!,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            );
+          });
+
+          return familyInterestsGridView();
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
+    );
+  }
+
+  FutureBuilder<List<CareerInterestsModel>> careerInterestsFutureBuilder(){
+    return FutureBuilder<List<CareerInterestsModel>>(
+      future: careerInterestsFuture,
+      builder: (context, snapshot) {
+
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return const Center(
+              child: CircularProgressIndicator(color: Colors.lightBlueAccent)
+          );
+        }
+        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+
+          _careerInterestsList = snapshot.data;
+
+          for (int i = 0; i < _careerInterestsList!.length; ++i) {
+            _careerInterestsColor.add(_randomColor.randomColor(
+                colorHue: ColorHue.custom(Range(180, 190)),
+                colorSaturation: ColorSaturation.highSaturation,
+                colorBrightness: ColorBrightness.primary));
+          }
+
+          _careerInterestsWidgetList = List.generate(_careerFilteredList!.length,
+                  (index) {
+                return Material(
+                  child: InkWell(
+                    onTap: () {
+                      _selectedCareerInterests!.add(_careerFilteredList![index]);
+                      _selectedCareerInterestsValue += 0.01;
+                      ++_careerInterestsCounter;
+
+                      setState((){});
+                    },
+                    borderRadius:
+                    BorderRadius.all(Radius.circular(30)),
+                    child: Chip(
+                      visualDensity: VisualDensity.comfortable,
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: _careerInterestsColor[index],
+                      shadowColor: Colors.grey,
+                      label: Text(
+                        _careerFilteredList![index].name!,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                );
+              });
+
+          return careerInterestsGridView();
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
+    );
+  }
+
+  FutureBuilder<List<SportInterestsModel>> sportInterestsFutureBuilder(){
+    return FutureBuilder<List<SportInterestsModel>>(
+      future: sportInterestsFuture,
+      builder: (context, snapshot) {
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return Center(
+              child: CircularProgressIndicator(color: Colors.blue[800])
+          );
+        }
+
+        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+          _sportInterestsList = snapshot.data;
+
+          for (int i = 0; i < _sportInterestsList!.length; ++i) {
+            _sportInterestsColor.add(_randomColor.randomColor(
+                colorHue: ColorHue.custom(Range(200, 220)),
+                colorSaturation: ColorSaturation.highSaturation,
+                colorBrightness: ColorBrightness.primary));
+          }
+
+          _sportInterestsWidgetList = List.generate(_sportFilteredList!.length,
+                  (index) {
+                return Material(
+                  child: InkWell(
+                    onTap: () {
+                      _selectedSportInterests!.add(_sportFilteredList![index]);
+                      _selectedSportInterestsValue += 0.01;
+                      ++_sportInterestsCounter;
+
+                      setState((){});
+                    },
+                    borderRadius:
+                    BorderRadius.all(Radius.circular(30)),
+                    child: Chip(
+                      visualDensity: VisualDensity.comfortable,
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: _sportInterestsColor[index],
+                      shadowColor: Colors.grey,
+                      label: Text(
+                        _sportFilteredList![index].name!,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                );
+              });
+
+          return sportInterestsGridView();
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
+    );
+  }
+
+  FutureBuilder<List<TravellingInterestsModel>> travellingInterestsFutureBuilder(){
+    return FutureBuilder<List<TravellingInterestsModel>>(
+      future: travellingInterestsFuture,
+      builder: (context, snapshot) {
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return Center(
+              child: CircularProgressIndicator(color: Colors.deepOrange)
+          );
+        }
+
+        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+          _travelingInterestsList = snapshot.data;
+
+          for (int i = 0; i < _travelingInterestsList!.length; ++i) {
+            _travelingInterestsColor.add(_randomColor.randomColor(
+                colorHue: ColorHue.custom(Range(10, 40)),
+                colorSaturation: ColorSaturation.highSaturation,
+                colorBrightness: ColorBrightness.light));
+          }
+
+          _travelingInterestsWidgetList = List.generate(_travelingFilteredList!.length,
+                  (index) {
+                return Material(
+                  child: InkWell(
+                    onTap: () {
+                      _selectedTravelingInterests!.add(_travelingFilteredList![index]);
+                      _selectedTravelingInterestsValue += 0.01;
+                      ++_travelingInterestsCounter;
+
+                      setState((){});
+                    },
+                    borderRadius:
+                    BorderRadius.all(Radius.circular(30)),
+                    child: Chip(
+                      visualDensity: VisualDensity.comfortable,
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: _travelingInterestsColor[index],
+                      shadowColor: Colors.grey,
+                      label: Text(
+                        _travelingFilteredList![index].name!,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                );
+              });
+
+          return travelingInterestsGridView();
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
+    );
+  }
+
+  FutureBuilder<List<GeneralInterestsModel>> generalInterestsFutureBuilder(){
+    return FutureBuilder<List<GeneralInterestsModel>>(
+      future: generalInterestsFuture,
+      builder: (context, snapshot) {
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return Center(
+              child: CircularProgressIndicator(color: Colors.purpleAccent)
+          );
+        }
+        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+          _generalInterestsList = snapshot.data;
+
+          for (int i = 0; i < _generalInterestsList!.length; ++i) {
+            _generalInterestsColor.add(_randomColor.randomColor(
+                colorHue: ColorHue.custom(Range(240, 315)),
+                colorSaturation: ColorSaturation.highSaturation,
+                colorBrightness: ColorBrightness.light));
+          }
+
+          _generalInterestsWidgetList = List.generate(_generalFilteredList!.length,
+                  (index) {
+                return Material(
+                  child: InkWell(
+                    onTap: () {
+                      _selectedGeneralInterests!.add(_generalFilteredList![index]);
+                      _selectedGeneralInterestsValue += 0.01;
+                      ++_generalInterestsCounter;
+
+                      setState((){});
+                    },
+                    borderRadius:
+                    BorderRadius.all(Radius.circular(30)),
+                    child: Chip(
+                      visualDensity: VisualDensity.comfortable,
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: _generalInterestsColor[index],
+                      shadowColor: Colors.grey,
+                      label: Text(
+                        _generalFilteredList![index].name!,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                );
+              });
+
+          return generalInterestsGridView();
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
     );
   }
 
@@ -640,7 +744,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       ],
                     ))),
             InkWell(
-              onTap: _selectedFamilyInterests.length != 0 ? () {
+              onTap: _selectedFamilyInterests!.length != 0 ? () {
                 setState(() {
                   _isCareerEnabled = true;
                   _isCareerIconEnabled = true;
@@ -666,9 +770,9 @@ class _InterestsPageState extends State<InterestsPage> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          _selectedFamilyInterests.length != 0 ?
+                          _selectedFamilyInterests!.length != 0 ?
                          Colors.deepPurpleAccent : Colors.grey,
-                          _selectedFamilyInterests.length != 0 ?
+                          _selectedFamilyInterests!.length != 0 ?
                          Colors.blueAccent : Colors.grey
                       ])),
               ),
@@ -676,7 +780,7 @@ class _InterestsPageState extends State<InterestsPage> {
           ],
         ),
         SizedBox(height: height / 100),
-        _selectedFamilyInterests.length == 0
+        _selectedFamilyInterests!.length == 0
             ? Center(
                 child: Text(
                   'Выберите минимум один интерес для продолжения',
@@ -691,7 +795,7 @@ class _InterestsPageState extends State<InterestsPage> {
                   child: Wrap(
                     spacing: 6.0,
                     runSpacing: 6.0,
-                    children: List.generate(_selectedFamilyInterests.length, (index) {
+                    children: List.generate(_selectedFamilyInterests!.length, (index) {
                       return Material(
                         child: InkWell(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -702,13 +806,13 @@ class _InterestsPageState extends State<InterestsPage> {
                             backgroundColor: _familyInterestsColor[index],
                             shadowColor: Colors.grey,
                             label: Text(
-                              _selectedFamilyInterests[index],
+                              _selectedFamilyInterests![index].name!,
                               style: TextStyle(color: Colors.white),
                             ),
                             deleteIcon: Icon(CupertinoIcons.clear_circled,
                                 color: Colors.white),
                             onDeleted: () {
-                              _selectedFamilyInterests.removeAt(index);
+                              _selectedFamilyInterests!.removeAt(index);
                               _selectedFamilyInterestsValue -= 0.01;
                               --_familyInterestsCounter;
 
@@ -726,7 +830,7 @@ class _InterestsPageState extends State<InterestsPage> {
           thickness: 1,
           color: Colors.grey.withOpacity(0.5),
         ),
-        _familyFilteredList.length != 0 ? SizedBox(
+        _familyFilteredList!.length != 0 ? SizedBox(
             height: height / 1.35,
             child: SafeArea (
               top: false,
@@ -799,7 +903,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       ],
                     ))),
             InkWell(
-              onTap: _selectedCareerInterests.length != 0 ? (){
+              onTap: _selectedCareerInterests!.length != 0 ? (){
                 setState(() {
                   _isSportEnabled = true;
                   _isSportIconEnabled = true;
@@ -823,14 +927,14 @@ class _InterestsPageState extends State<InterestsPage> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          _selectedCareerInterests.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedCareerInterests.length != 0 ? Colors.blueAccent : Colors.grey])),
+                          _selectedCareerInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                          _selectedCareerInterests!.length != 0 ? Colors.blueAccent : Colors.grey])),
               ),
             )
           ],
         ),
         SizedBox(height: height / 100),
-        _selectedCareerInterests.length == 0
+        _selectedCareerInterests!.length == 0
             ? Center(
           child: Text(
             'Выберите минимум один интерес для продолжения',
@@ -844,7 +948,7 @@ class _InterestsPageState extends State<InterestsPage> {
             child: Wrap(
               spacing: 6.0,
               runSpacing: 6.0,
-              children: List.generate(_selectedCareerInterests.length, (index) {
+              children: List.generate(_selectedCareerInterests!.length, (index) {
                 return Material(
                   child: InkWell(
                     borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -855,13 +959,13 @@ class _InterestsPageState extends State<InterestsPage> {
                       backgroundColor: _careerInterestsColor[index],
                       shadowColor: Colors.grey,
                       label: Text(
-                        _selectedCareerInterests[index],
+                        _selectedCareerInterests![index].name!,
                         style: TextStyle(color: Colors.white),
                       ),
                       deleteIcon: Icon(CupertinoIcons.clear_circled,
                           color: Colors.white),
                       onDeleted: () {
-                        _selectedCareerInterests.removeAt(index);
+                        _selectedCareerInterests!.removeAt(index);
                         _selectedCareerInterestsValue -= 0.01;
                         --_careerInterestsCounter;
 
@@ -879,7 +983,7 @@ class _InterestsPageState extends State<InterestsPage> {
           thickness: 1,
           color: Colors.grey.withOpacity(0.5),
         ),
-        _careerFilteredList.length != 0 ? SizedBox(
+        _careerFilteredList!.length != 0 ? SizedBox(
             height: height / 1.35,
             child: SafeArea(
               top: false,
@@ -952,7 +1056,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       ],
                     ))),
             InkWell(
-              onTap: _selectedSportInterests.length != 0 ? (){
+              onTap: _selectedSportInterests!.length != 0 ? (){
                 setState(() {
                   _isSportEnabled = false;
 
@@ -976,15 +1080,15 @@ class _InterestsPageState extends State<InterestsPage> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          _selectedSportInterests.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedSportInterests.length != 0 ? Colors.blueAccent : Colors.grey
+                          _selectedSportInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                          _selectedSportInterests!.length != 0 ? Colors.blueAccent : Colors.grey
                         ])),
               ),
             )
           ],
         ),
         SizedBox(height: height / 100),
-        _selectedSportInterests.length == 0
+        _selectedSportInterests!.length == 0
             ? Center(
           child: Text(
             'Выберите минимум один интерес для продолжения',
@@ -999,7 +1103,7 @@ class _InterestsPageState extends State<InterestsPage> {
             child: Wrap(
               spacing: 6.0,
               runSpacing: 6.0,
-              children: List.generate(_selectedSportInterests.length, (index) {
+              children: List.generate(_selectedSportInterests!.length, (index) {
                 return Material(
                   child: InkWell(
                     borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -1010,13 +1114,13 @@ class _InterestsPageState extends State<InterestsPage> {
                       backgroundColor: _sportInterestsColor[index],
                       shadowColor: Colors.grey,
                       label: Text(
-                        _selectedSportInterests[index],
+                        _selectedSportInterests![index].name!,
                         style: TextStyle(color: Colors.white),
                       ),
                       deleteIcon: Icon(CupertinoIcons.clear_circled,
                           color: Colors.white),
                       onDeleted: () {
-                        _selectedSportInterests.removeAt(index);
+                        _selectedSportInterests!.removeAt(index);
                         _selectedSportInterestsValue -= 0.01;
                         --_sportInterestsCounter;
 
@@ -1034,7 +1138,7 @@ class _InterestsPageState extends State<InterestsPage> {
           thickness: 1,
           color: Colors.grey.withOpacity(0.5),
         ),
-        _sportFilteredList.length != 0 ? SizedBox(
+        _sportFilteredList!.length != 0 ? SizedBox(
             height: height / 1.35,
             child: SafeArea(
               top: false,
@@ -1107,7 +1211,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       ],
                     ))),
             InkWell(
-              onTap: _selectedTravelingInterests.length != 0 ? (){
+              onTap: _selectedTravelingInterests!.length != 0 ? (){
                 setState(() {
                   _isTravelingEnabled = false;
 
@@ -1131,15 +1235,15 @@ class _InterestsPageState extends State<InterestsPage> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          _selectedTravelingInterests.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedTravelingInterests.length != 0 ? Colors.blueAccent : Colors.grey
+                          _selectedTravelingInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                          _selectedTravelingInterests!.length != 0 ? Colors.blueAccent : Colors.grey
                         ])),
               ),
             )
           ],
         ),
         SizedBox(height: height / 100),
-        _selectedTravelingInterests.length == 0
+        _selectedTravelingInterests!.length == 0
             ? Center(
           child: Text(
             'Выберите минимум один интерес для продолжения',
@@ -1154,7 +1258,7 @@ class _InterestsPageState extends State<InterestsPage> {
             child: Wrap(
               spacing: 6.0,
               runSpacing: 6.0,
-              children: List.generate(_selectedTravelingInterests.length, (index) {
+              children: List.generate(_selectedTravelingInterests!.length, (index) {
                 return Material(
                   child: InkWell(
                     borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -1165,13 +1269,13 @@ class _InterestsPageState extends State<InterestsPage> {
                       backgroundColor: _travelingInterestsColor[index],
                       shadowColor: Colors.grey,
                       label: Text(
-                        _selectedTravelingInterests[index],
+                        _selectedTravelingInterests![index].name!,
                         style: TextStyle(color: Colors.white),
                       ),
                       deleteIcon: Icon(CupertinoIcons.clear_circled,
                           color: Colors.white),
                       onDeleted: () {
-                        _selectedTravelingInterests.removeAt(index);
+                        _selectedTravelingInterests!.removeAt(index);
                         _selectedTravelingInterestsValue -= 0.01;
                         --_travelingInterestsCounter;
 
@@ -1189,7 +1293,7 @@ class _InterestsPageState extends State<InterestsPage> {
           thickness: 1,
           color: Colors.grey.withOpacity(0.5),
         ),
-        _travelingFilteredList.length != 0 ? SizedBox(
+        _travelingFilteredList!.length != 0 ? SizedBox(
             height: height / 1.35,
             child: SafeArea(
               top: false,
@@ -1262,7 +1366,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       ],
                     ))),
             InkWell(
-              onTap: _selectedGeneralInterests.length != 0 ? (){
+              onTap: _selectedGeneralInterests!.length != 0 ? (){
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => UserProfilePage()),
@@ -1285,15 +1389,15 @@ class _InterestsPageState extends State<InterestsPage> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          _selectedGeneralInterests.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedGeneralInterests.length != 0 ? Colors.blueAccent : Colors.grey
+                          _selectedGeneralInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                          _selectedGeneralInterests!.length != 0 ? Colors.blueAccent : Colors.grey
                         ])),
               ),
             )
           ],
         ),
         SizedBox(height: height / 100),
-        _selectedGeneralInterests.length == 0
+        _selectedGeneralInterests!.length == 0
             ? Center(
           child: Text(
             'Выберите минимум один интерес для продолжения',
@@ -1308,7 +1412,7 @@ class _InterestsPageState extends State<InterestsPage> {
             child: Wrap(
               spacing: 6.0,
               runSpacing: 6.0,
-              children: List.generate(_selectedGeneralInterests.length, (index) {
+              children: List.generate(_selectedGeneralInterests!.length, (index) {
                 return Material(
                   child: InkWell(
                     borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -1319,13 +1423,13 @@ class _InterestsPageState extends State<InterestsPage> {
                       backgroundColor: _generalInterestsColor[index],
                       shadowColor: Colors.grey,
                       label: Text(
-                        _selectedGeneralInterests[index],
+                        _selectedGeneralInterests![index].name!,
                         style: TextStyle(color: Colors.white),
                       ),
                       deleteIcon: Icon(CupertinoIcons.clear_circled,
                           color: Colors.white),
                       onDeleted: () {
-                        _selectedGeneralInterests.removeAt(index);
+                        _selectedGeneralInterests!.removeAt(index);
                         _selectedGeneralInterestsValue -= 0.01;
                         --_generalInterestsCounter;
 
@@ -1343,7 +1447,7 @@ class _InterestsPageState extends State<InterestsPage> {
           thickness: 1,
           color: Colors.grey.withOpacity(0.5),
         ),
-        _generalFilteredList.length != 0 ? SizedBox(
+        _generalFilteredList!.length != 0 ? SizedBox(
             height: height / 1.35,
             child: SafeArea(
               top: false,
@@ -1662,35 +1766,35 @@ class _InterestsPageState extends State<InterestsPage> {
   void addNewInterest(String value){
     if(_isFamilyEnabled){
       setState(() {
-        _selectedFamilyInterests.add(value);
+        _selectedFamilyInterests!.add(FamilyInterestsModel(null, value));
         _selectedFamilyInterestsValue += 0.01;
 
         ++_familyInterestsCounter;
       });
     }else if(_isCareerEnabled){
       setState(() {
-        _selectedCareerInterests.add(value);
+        _selectedCareerInterests!.add(CareerInterestsModel(null, value));
         _selectedCareerInterestsValue += 0.01;
 
         ++_careerInterestsCounter;
       });
     }else if(_isSportEnabled){
       setState(() {
-        _selectedSportInterests.add(value);
+        _selectedSportInterests!.add(SportInterestsModel(null, value));
         _selectedSportInterestsValue += 0.01;
 
         ++_sportInterestsCounter;
       });
     }else if(_isTravelingEnabled){
       setState(() {
-        _selectedTravelingInterests.add(value);
+        _selectedTravelingInterests!.add(TravellingInterestsModel(null, value));
         _selectedTravelingInterestsValue += 0.01;
 
         ++_travelingInterestsCounter;
       });
     }else if(_isGeneralEnabled){
       setState(() {
-        _selectedGeneralInterests.add(value);
+        _selectedGeneralInterests!.add(GeneralInterestsModel(null, value));
         _selectedGeneralInterestsValue += 0.01;
 
         ++_generalInterestsCounter;
