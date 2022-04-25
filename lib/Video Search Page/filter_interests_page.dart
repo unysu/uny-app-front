@@ -81,8 +81,9 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     _travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterests().then((value) => _travelingFilteredList = value);
     _generalInterestsFuture = db!.generalInterestsDao.getGeneralInterests().then((value) => _generalFilteredList = value);
 
-    if(ShPreferences.getFamilyInterestsShPref() != null){
-      _selectedFamilyInterests = ShPreferences.getFamilyInterestsShPref();
+
+    if(ShPreferences.getAllInterestsShPref() != null){
+      _selectedAllInterests = ShPreferences.getAllInterestsShPref();
     }
 
     if(ShPreferences.getFamilyInterestsShPref() != null){
