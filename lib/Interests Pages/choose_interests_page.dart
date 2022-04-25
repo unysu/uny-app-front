@@ -22,8 +22,6 @@ class _InterestsPageState extends State<InterestsPage> {
 
   late InterestsDatabase? db;
 
-  RandomColor _randomColor = RandomColor();
-
   int _familyInterestsCounter = 0;
   int _careerInterestsCounter = 0;
   int _sportInterestsCounter = 0;
@@ -56,12 +54,6 @@ class _InterestsPageState extends State<InterestsPage> {
   List<SportInterestsModel>? _selectedSportInterests = [];
   List<TravellingInterestsModel>? _selectedTravelingInterests = [];
   List<GeneralInterestsModel>? _selectedGeneralInterests = [];
-
-  List<Color> _familyInterestsColor = [];
-  List<Color> _careerInterestsColor = [];
-  List<Color> _sportInterestsColor = [];
-  List<Color> _travelingInterestsColor = [];
-  List<Color> _generalInterestsColor = [];
 
   List<Widget>? _familyInterestsWidgetList;
   List<Widget>? _careerInterestsWidgetList;
@@ -440,13 +432,6 @@ class _InterestsPageState extends State<InterestsPage> {
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _familyInterestsList = snapshot.data;
 
-          for (int i = 0; i < _familyInterestsList!.length; ++i) {
-            _familyInterestsColor.add(_randomColor.randomColor(
-                colorHue: ColorHue.custom(Range(120, 130)),
-                colorSaturation: ColorSaturation.mediumSaturation,
-                colorBrightness: ColorBrightness.primary));
-          }
-
           _familyInterestsWidgetList = List.generate(_familyFilteredList!.length, (index) {
             return Material(
               child: InkWell(
@@ -462,7 +447,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 child: Chip(
                   visualDensity: VisualDensity.comfortable,
                   padding: EdgeInsets.all(10),
-                  backgroundColor: _familyInterestsColor[index],
+                  backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
                   shadowColor: Colors.grey,
                   label: Text(
                     _familyFilteredList![index].name!,
@@ -497,13 +482,6 @@ class _InterestsPageState extends State<InterestsPage> {
 
           _careerInterestsList = snapshot.data;
 
-          for (int i = 0; i < _careerInterestsList!.length; ++i) {
-            _careerInterestsColor.add(_randomColor.randomColor(
-                colorHue: ColorHue.custom(Range(180, 190)),
-                colorSaturation: ColorSaturation.highSaturation,
-                colorBrightness: ColorBrightness.primary));
-          }
-
           _careerInterestsWidgetList = List.generate(_careerFilteredList!.length,
                   (index) {
                 return Material(
@@ -520,7 +498,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     child: Chip(
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _careerInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _careerFilteredList![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _careerFilteredList![index].name!,
@@ -554,13 +532,6 @@ class _InterestsPageState extends State<InterestsPage> {
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _sportInterestsList = snapshot.data;
 
-          for (int i = 0; i < _sportInterestsList!.length; ++i) {
-            _sportInterestsColor.add(_randomColor.randomColor(
-                colorHue: ColorHue.custom(Range(200, 220)),
-                colorSaturation: ColorSaturation.highSaturation,
-                colorBrightness: ColorBrightness.primary));
-          }
-
           _sportInterestsWidgetList = List.generate(_sportFilteredList!.length,
                   (index) {
                 return Material(
@@ -577,7 +548,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     child: Chip(
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _sportInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _sportFilteredList![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _sportFilteredList![index].name!,
@@ -611,13 +582,6 @@ class _InterestsPageState extends State<InterestsPage> {
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _travelingInterestsList = snapshot.data;
 
-          for (int i = 0; i < _travelingInterestsList!.length; ++i) {
-            _travelingInterestsColor.add(_randomColor.randomColor(
-                colorHue: ColorHue.custom(Range(10, 40)),
-                colorSaturation: ColorSaturation.highSaturation,
-                colorBrightness: ColorBrightness.light));
-          }
-
           _travelingInterestsWidgetList = List.generate(_travelingFilteredList!.length,
                   (index) {
                 return Material(
@@ -634,7 +598,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     child: Chip(
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _travelingInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _travelingFilteredList![index].name!,
@@ -667,13 +631,6 @@ class _InterestsPageState extends State<InterestsPage> {
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _generalInterestsList = snapshot.data;
 
-          for (int i = 0; i < _generalInterestsList!.length; ++i) {
-            _generalInterestsColor.add(_randomColor.randomColor(
-                colorHue: ColorHue.custom(Range(240, 315)),
-                colorSaturation: ColorSaturation.highSaturation,
-                colorBrightness: ColorBrightness.light));
-          }
-
           _generalInterestsWidgetList = List.generate(_generalFilteredList!.length,
                   (index) {
                 return Material(
@@ -690,7 +647,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     child: Chip(
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _generalInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _generalFilteredList![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _generalFilteredList![index].name!,
@@ -803,7 +760,7 @@ class _InterestsPageState extends State<InterestsPage> {
                             labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                             visualDensity: VisualDensity.comfortable,
                             padding: EdgeInsets.all(10),
-                            backgroundColor: _familyInterestsColor[index],
+                            backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
                             shadowColor: Colors.grey,
                             label: Text(
                               _selectedFamilyInterests![index].name!,
@@ -860,6 +817,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     Text(
                       'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                       maxLines: 2,
+                      textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 15, color: Colors.grey),
                     ),
                     addInterestsWidget()
@@ -956,7 +914,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _careerInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _selectedCareerInterests![index].name!,
@@ -1013,6 +971,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                   maxLines: 2,
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey),
                 ),
                 addInterestsWidget()
@@ -1111,7 +1070,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _sportInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _selectedSportInterests![index].name!,
@@ -1168,6 +1127,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                   maxLines: 2,
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey),
                 ),
                 addInterestsWidget()
@@ -1266,7 +1226,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _travelingInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _selectedTravelingInterests![index].name!,
@@ -1323,6 +1283,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                   maxLines: 2,
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey),
                 ),
                 addInterestsWidget()
@@ -1420,7 +1381,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                       visualDensity: VisualDensity.comfortable,
                       padding: EdgeInsets.all(10),
-                      backgroundColor: _generalInterestsColor[index],
+                      backgroundColor: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
                       shadowColor: Colors.grey,
                       label: Text(
                         _selectedGeneralInterests![index].name!,
@@ -1477,6 +1438,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 Text(
                   'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                   maxLines: 2,
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey),
                 ),
                 addInterestsWidget()
@@ -1766,35 +1728,35 @@ class _InterestsPageState extends State<InterestsPage> {
   void addNewInterest(String value){
     if(_isFamilyEnabled){
       setState(() {
-        _selectedFamilyInterests!.add(FamilyInterestsModel(null, value));
+        _selectedFamilyInterests!.add(FamilyInterestsModel(null, value, Colors.green.value.toRadixString(16)));
         _selectedFamilyInterestsValue += 0.01;
 
         ++_familyInterestsCounter;
       });
     }else if(_isCareerEnabled){
       setState(() {
-        _selectedCareerInterests!.add(CareerInterestsModel(null, value));
+        _selectedCareerInterests!.add(CareerInterestsModel(null, value, Colors.lightBlueAccent.value.toRadixString(16)));
         _selectedCareerInterestsValue += 0.01;
 
         ++_careerInterestsCounter;
       });
     }else if(_isSportEnabled){
       setState(() {
-        _selectedSportInterests!.add(SportInterestsModel(null, value));
+        _selectedSportInterests!.add(SportInterestsModel(null, value, Colors.blueAccent[800]!.value.toRadixString(16)));
         _selectedSportInterestsValue += 0.01;
 
         ++_sportInterestsCounter;
       });
     }else if(_isTravelingEnabled){
       setState(() {
-        _selectedTravelingInterests!.add(TravellingInterestsModel(null, value));
+        _selectedTravelingInterests!.add(TravellingInterestsModel(null, value, Colors.deepOrangeAccent.value.toRadixString(16)));
         _selectedTravelingInterestsValue += 0.01;
 
         ++_travelingInterestsCounter;
       });
     }else if(_isGeneralEnabled){
       setState(() {
-        _selectedGeneralInterests!.add(GeneralInterestsModel(null, value));
+        _selectedGeneralInterests!.add(GeneralInterestsModel(null, value, Colors.purpleAccent.value.toRadixString(16)));
         _selectedGeneralInterestsValue += 0.01;
 
         ++_generalInterestsCounter;

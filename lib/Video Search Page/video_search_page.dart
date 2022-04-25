@@ -7,6 +7,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
+import 'package:uny_app/Video%20Search%20Page/filter_interests_page.dart';
 
 class VideoSearchPage extends StatefulWidget {
 
@@ -25,7 +27,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
   final String _chatAsset = 'assets/chat_video_search.svg';
   final String _reactionAsset = 'assets/video_search_reaction.svg';
 
-  int _choseInterestsFilter = 0;
+  int _chosenInterestsCounter = 0;
 
   bool _isReactionButtonTapped = false;
   bool _isManSelected = false;
@@ -600,10 +602,15 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                   child: Row(
                     children: [
                       TextButton(
-                        onPressed: () => null,
+                        onPressed: _chosenInterestsCounter != 0 ? (){
+                          ShPreferences.clear();
+                          setState((){
+                            _chosenInterestsCounter = 0;
+                          });
+                        } : null,
                         child: Text(
                           'Сбросить',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          style: TextStyle(fontSize: 16, color: _chosenInterestsCounter == 0 ? Colors.grey : Color.fromRGBO(145, 10, 251, 5)),
                         ),
                       ),
                       SizedBox(width: width / 8),
@@ -631,7 +638,6 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                       ),
                       SizedBox(height: 10),
                       TextFormField(
-                        //controller: _topicTextController,
                         cursorColor: Color.fromRGBO(145, 10, 251, 5),
                         style: TextStyle(color: Colors.black),
                         textInputAction: TextInputAction.done,
@@ -657,7 +663,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                 width: 20,
                                 child: Center(
                                   child: Text(
-                                    '$_choseInterestsFilter',
+                                    '$_chosenInterestsCounter',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -688,6 +694,18 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FilterInterestsVideoPage()
+                            )
+                          ).then((count){
+                            setState((){
+                              _chosenInterestsCounter = count;
+                            });
+                          });
+                        },
                       ),
                       SizedBox(height: 20),
                       Text(

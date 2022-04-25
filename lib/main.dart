@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:random_color/random_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
@@ -13,12 +14,14 @@ import 'package:uny_app/Interests%20Model/sport_interests.dart';
 import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
-import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
+import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 import 'Interests Model/career_interests.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ShPreferences.init();
   runApp(MaterialApp(
     home: SplashScreenPage(),
   ));
@@ -33,11 +36,14 @@ class SplashScreenPage extends StatefulWidget{
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
 
+  RandomColor _randomColor = RandomColor();
+
   late FamilyInterests familyInterests;
   late CareerInterests careerInterests;
   late SportInterests sportInterests;
   late TravelingInterests travelingInterests;
   late GeneralInterests generalInterests;
+
 
   List<String>? _familyInterestsList = [];
   List<String>? _careerInterestsList = [];
@@ -134,31 +140,56 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       final generalInterestsDao = database.generalInterestsDao;
 
       for(int i = 0; i < _familyInterestsList!.length; ++i){
-        final familyInterests = FamilyInterestsModel(i, _familyInterestsList![i]);
+        Color? color = _randomColor.randomColor(
+            colorHue: ColorHue.custom(Range(120, 130)),
+            colorSaturation: ColorSaturation.mediumSaturation,
+            colorBrightness: ColorBrightness.primary);
+
+        final familyInterests = FamilyInterestsModel(i, _familyInterestsList![i], color.value.toRadixString(16));
 
         await familyInterestsDao.insertFamilyInterest(familyInterests);
       }
 
       for(int i = 0; i < _careerInterestsList!.length; ++i){
-        final careerInterests = CareerInterestsModel(i, _careerInterestsList![i]);
+        Color? color = _randomColor.randomColor(
+            colorHue: ColorHue.custom(Range(180, 190)),
+            colorSaturation: ColorSaturation.highSaturation,
+            colorBrightness: ColorBrightness.primary);
+
+        final careerInterests = CareerInterestsModel(i, _careerInterestsList![i], color.value.toRadixString(16));
 
         await careerInterestsDao.insertCareerInterests(careerInterests);
       }
 
       for(int i = 0; i < _sportInterestsList!.length; ++i){
-        final sportInterests = SportInterestsModel(i, _sportInterestsList![i]);
+        Color? color = _randomColor.randomColor(
+            colorHue: ColorHue.custom(Range(200, 220)),
+            colorSaturation: ColorSaturation.highSaturation,
+            colorBrightness: ColorBrightness.primary);
+
+        final sportInterests = SportInterestsModel(i, _sportInterestsList![i], color.value.toRadixString(16));
 
         await sportInterestsDao.insertSportInterests(sportInterests);
       }
 
       for(int i = 0; i < _travelingInterestsList!.length; ++i){
-        final travelingInterests = TravellingInterestsModel(i, _travelingInterestsList![i]);
+        Color? color = _randomColor.randomColor(
+            colorHue: ColorHue.custom(Range(10, 40)),
+            colorSaturation: ColorSaturation.highSaturation,
+            colorBrightness: ColorBrightness.light);
+
+        final travelingInterests = TravellingInterestsModel(i, _travelingInterestsList![i], color.value.toRadixString(16));
 
         await travelingInterestsDao.insertTravelingInterests(travelingInterests);
       }
 
       for(int i = 0; i < _generalInterestsList!.length; ++i){
-        final generalInterests = GeneralInterestsModel(i, _generalInterestsList![i]);
+        Color? color = _randomColor.randomColor(
+            colorHue: ColorHue.custom(Range(240, 315)),
+            colorSaturation: ColorSaturation.highSaturation,
+            colorBrightness: ColorBrightness.light);
+
+        final generalInterests = GeneralInterestsModel(i, _generalInterestsList![i], color.value.toRadixString(16));
 
         await generalInterestsDao.insertGeneralInterests(generalInterests);
       }
