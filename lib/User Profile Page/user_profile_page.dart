@@ -79,6 +79,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                systemOverlayStyle: _bottomNavBarIndex == 1 ?
                SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : null,
                backgroundColor: Colors.transparent,
+               toolbarHeight: 0,
              ),
              body: PageView(
                physics: NeverScrollableScrollPhysics(),
@@ -171,7 +172,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                    setState(() {
                      _bottomNavBarIndex = index;
                    });
-                   _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
+                   _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
                  },
                )
              )
@@ -193,7 +194,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       physics: BouncingScrollPhysics(),
       child: Column(
         children: [
-          Align(
+          Container(
               child: ClipRRect(
                 borderRadius: BorderRadius.only(
                     bottomRight: Radius.circular(20),
@@ -269,7 +270,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   IconButton(
                                     icon: Icon(Icons.settings, color: Colors.white),
                                     onPressed: () {
-                                      print('fffff');
+                                      setState(() {
+                                        _bottomNavBarIndex = 4;
+                                      });
+                                      _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
                                     },
                                   ),
                                 ],

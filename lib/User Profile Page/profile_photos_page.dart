@@ -46,7 +46,7 @@ class _ProfilePhotosPageState extends State<ProfilePhotosPage> {
                   child:  FittedBox(
                     child: InkWell(
                       onTap: () => Navigator.pop(context),
-                      child: Text('Отмена', style: TextStyle(fontSize: 17, color: Colors.red)),
+                      child: Text('Отмена', style: TextStyle(color: Colors.red)),
                     ),
                   ),
                 ),

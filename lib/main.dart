@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
+import 'package:uny_app/Interests%20Model/all_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/family_interests.dart';
 import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
@@ -17,6 +18,7 @@ import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 import 'Interests Model/career_interests.dart';
+import 'Interests Pages/choose_interests_page.dart';
 
 
 void main() async {
@@ -120,6 +122,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
 
     DatabaseObject.setDb = database;
 
+    int? allInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM AllInterestsModel'));
     int? familyInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM FamilyInterestsModel'));
     int? careerInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM CareerInterestsModel'));
     int? sportInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM SportInterestsModel'));
@@ -127,12 +130,14 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     int? generalInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM GeneralInterestsModel'));
 
     if(
+        allInterestsCount == 0 &&
         familyInterestsCount == 0 &&
         careerInterestsCount == 0 &&
         sportInterestsCount == 0  &&
         travellingInterestsCount == 0 &&
         generalInterestsCount == 0
     ){
+      final allInterestsDao = database.allInterestsDao;
       final familyInterestsDao = database.familyInterestsDao;
       final careerInterestsDao = database.careerInterestsDao;
       final sportInterestsDao = database.sportInterestsDao;
@@ -192,6 +197,52 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
         final generalInterests = GeneralInterestsModel(i, _generalInterestsList![i], color.value.toRadixString(16));
 
         await generalInterestsDao.insertGeneralInterests(generalInterests);
+      }
+
+      List<FamilyInterestsModel> _familyInterests = await familyInterestsDao.getFamilyInterests();
+      List<CareerInterestsModel> _careerInterests = await careerInterestsDao.getCareerInterests();
+      List<SportInterestsModel> _sportInterests = await sportInterestsDao.getSportInterests();
+      List<TravellingInterestsModel> _travelingInterest = await travelingInterestsDao.getTravelingInterests();
+      List<GeneralInterestsModel> _generalInterests = await generalInterestsDao.getGeneralInterests();
+
+      Map<String, String> familyInterestsMap = Map.fromIterable(_familyInterests,
+          key: (interest) => interest.name,
+          value: (interest) => interest.color);
+
+      Map<String, String> careerInterestsMap = Map.fromIterable(_careerInterests,
+          key: (interest) => interest.name,
+          value: (interest) => interest.color);
+
+      Map<String, String> sportInterestsMap = Map.fromIterable(_sportInterests,
+          key: (interest) => interest.name,
+          value: (interest) => interest.color);
+
+      Map<String, String> travelingInterestsMap = Map.fromIterable(_travelingInterest,
+          key: (interest) => interest.name,
+          value: (interest) => interest.color);
+
+      Map<String, String> generalInterestsMap = Map.fromIterable(_generalInterests,
+          key: (interest) => interest.name,
+          value: (interest) => interest.color);
+
+
+      List<AllInterestsModel>? _allInterestsList = [];
+      Map<String, String> allInterestsMap = {};
+      allInterestsMap.addAll(familyInterestsMap);
+      allInterestsMap.addAll(careerInterestsMap);
+      allInterestsMap.addAll(sportInterestsMap);
+      allInterestsMap.addAll(travelingInterestsMap);
+      allInterestsMap.addAll(generalInterestsMap);
+
+      allInterestsMap.forEach((name, color) {
+        _allInterestsList.add(AllInterestsModel(name, color));
+      });
+
+      _allInterestsList.shuffle();
+      for(int i = 0; i < _allInterestsList.length; ++i){
+        final allInterests = AllInterestsModel.ForDB(i, _allInterestsList[i].name, _allInterestsList[i].color);
+
+        await allInterestsDao.insertAllInterests(allInterests);
       }
     }else{
       return;

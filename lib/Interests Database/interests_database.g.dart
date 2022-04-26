@@ -61,6 +61,8 @@ class _$InterestsDatabase extends InterestsDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
+  AllInterestsDao? _allInterestsDaoInstance;
+
   FamilyInterestsDao? _familyInterestsDaoInstance;
 
   CareerInterestsDao? _careerInterestsDaoInstance;
@@ -90,6 +92,8 @@ class _$InterestsDatabase extends InterestsDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `AllInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
+        await database.execute(
             'CREATE TABLE IF NOT EXISTS `FamilyInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `CareerInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
@@ -104,6 +108,12 @@ class _$InterestsDatabase extends InterestsDatabase {
       },
     );
     return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+  }
+
+  @override
+  AllInterestsDao get allInterestsDao {
+    return _allInterestsDaoInstance ??=
+        _$AllInterestsDao(database, changeListener);
   }
 
   @override
@@ -137,6 +147,59 @@ class _$InterestsDatabase extends InterestsDatabase {
   }
 }
 
+class _$AllInterestsDao extends AllInterestsDao {
+  _$AllInterestsDao(this.database, this.changeListener)
+      : _queryAdapter = QueryAdapter(database),
+        _allInterestsModelInsertionAdapter = InsertionAdapter(
+            database,
+            'AllInterestsModel',
+            (AllInterestsModel item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'color': item.color
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<AllInterestsModel> _allInterestsModelInsertionAdapter;
+
+  @override
+  Future<List<AllInterestsModel>> getAllInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM AllInterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) =>
+            AllInterestsModel(row['name'] as String?, row['color'] as String?),
+        arguments: [start, end]);
+  }
+
+  @override
+  Future<List<AllInterestsModel>> filterInterest(String name) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM AllInterestsModel WHERE name LIKE %?1%',
+        mapper: (Map<String, Object?> row) =>
+            AllInterestsModel(row['name'] as String?, row['color'] as String?),
+        arguments: [name]);
+  }
+
+  @override
+  Future<List<AllInterestsModel>> getAllInterests() async {
+    return _queryAdapter.queryList('SELECT * FROM AllInterestsModel',
+        mapper: (Map<String, Object?> row) =>
+            AllInterestsModel(row['name'] as String?, row['color'] as String?));
+  }
+
+  @override
+  Future<void> insertAllInterests(AllInterestsModel allInterestsModel) async {
+    await _allInterestsModelInsertionAdapter.insert(
+        allInterestsModel, OnConflictStrategy.replace);
+  }
+}
+
 class _$FamilyInterestsDao extends FamilyInterestsDao {
   _$FamilyInterestsDao(this.database, this.changeListener)
       : _queryAdapter = QueryAdapter(database),
@@ -157,6 +220,16 @@ class _$FamilyInterestsDao extends FamilyInterestsDao {
 
   final InsertionAdapter<FamilyInterestsModel>
       _familyInterestsModelInsertionAdapter;
+
+  @override
+  Future<List<FamilyInterestsModel>> getFamilyInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM FamilyInterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => FamilyInterestsModel(
+            row['id'] as int?, row['name'] as String?, row['color'] as String?),
+        arguments: [start, end]);
+  }
 
   @override
   Future<List<FamilyInterestsModel>> getFamilyInterests() async {
@@ -197,6 +270,16 @@ class _$CareerInterestsDao extends CareerInterestsDao {
       _careerInterestsModelInsertionAdapter;
 
   @override
+  Future<List<CareerInterestsModel>> getCareerInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM CareerInterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => CareerInterestsModel(
+            row['id'] as int?, row['name'] as String?, row['color'] as String?),
+        arguments: [start, end]);
+  }
+
+  @override
   Future<List<CareerInterestsModel>> getCareerInterests() async {
     return _queryAdapter.queryList('SELECT * FROM CareerInterestsModel',
         mapper: (Map<String, Object?> row) => CareerInterestsModel(
@@ -233,6 +316,16 @@ class _$SportInterestsDao extends SportInterestsDao {
 
   final InsertionAdapter<SportInterestsModel>
       _sportInterestsModelInsertionAdapter;
+
+  @override
+  Future<List<SportInterestsModel>> getSportInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM SportInterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => SportInterestsModel(
+            row['id'] as int?, row['name'] as String?, row['color'] as String?),
+        arguments: [start, end]);
+  }
 
   @override
   Future<List<SportInterestsModel>> getSportInterests() async {
@@ -273,6 +366,16 @@ class _$TravelingInterestsDao extends TravelingInterestsDao {
       _travellingInterestsModelInsertionAdapter;
 
   @override
+  Future<List<TravellingInterestsModel>> getTravelingInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM TravellingInterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => TravellingInterestsModel(
+            row['id'] as int?, row['name'] as String?, row['color'] as String?),
+        arguments: [start, end]);
+  }
+
+  @override
   Future<List<TravellingInterestsModel>> getTravelingInterests() async {
     return _queryAdapter.queryList('SELECT * FROM TravellingInterestsModel',
         mapper: (Map<String, Object?> row) => TravellingInterestsModel(
@@ -309,6 +412,16 @@ class _$GeneralInterestsDao extends GeneralInterestsDao {
 
   final InsertionAdapter<GeneralInterestsModel>
       _generalInterestsModelInsertionAdapter;
+
+  @override
+  Future<List<GeneralInterestsModel>> getGeneralInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM GeneralInterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => GeneralInterestsModel(
+            row['id'] as int?, row['name'] as String?, row['color'] as String?),
+        arguments: [start, end]);
+  }
 
   @override
   Future<List<GeneralInterestsModel>> getGeneralInterests() async {

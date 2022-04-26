@@ -56,15 +56,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         ListTile(
           title: Text('Приостановить уведомления', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
           contentPadding: EdgeInsets.symmetric(horizontal: width / 20),
-          trailing: UniversalPlatform.isIOS ? CupertinoSwitch(
-            activeColor: Color.fromRGBO(145, 10, 251, 5),
-            value: _isNotificationsDisabled,
-            onChanged: (value){
-              setState(() {
-                _isNotificationsDisabled = value;
-              });
-            },
-          ) : Switch(
+          trailing: Switch.adaptive(
             activeColor: Color.fromRGBO(145, 10, 251, 5),
             value: _isNotificationsDisabled,
             onChanged: (value){

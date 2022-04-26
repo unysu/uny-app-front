@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uny_app/Interests%20Model/all_interests_model.dart';
+import 'package:uny_app/Interests%20Model/all_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';

@@ -1,12 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
-import 'package:uny_app/Interests%20Model/all_interests_model.dart';
+import 'package:uny_app/Interests%20Model/all_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
@@ -22,6 +20,19 @@ class FilterInterestsVideoPage extends StatefulWidget{
 
 
 class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
+  
+  ScrollController? _allInterestsScrollController;
+  ScrollController? _careerInterestsScrollController;
+  ScrollController? _travelingInterestsScrollController;
+  ScrollController? _generalInterestsScrollController;
+
+  int allInterestsStart = 0;
+  int familyInterestsStart = 0;
+  int careerInterestsStart = 0;
+  int sportInterestsStart = 0;
+  int travelingInterestsStart = 0;
+  int generalInterestsStart = 0;
+  int end = 150;
 
   late InterestsDatabase? db;
 
@@ -37,6 +48,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   bool _isTravelingSelected = false;
   bool _isGeneralSelected = false;
 
+  Future<List<AllInterestsModel>>? _allInterestsFuture;
   Future<List<FamilyInterestsModel>>? _familyInterestsFuture;
   Future<List<CareerInterestsModel>>? _careerInterestsFuture;
   Future<List<SportInterestsModel>>? _sportInterestsFuture;
@@ -64,22 +76,87 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   List<TravellingInterestsModel>? _selectedTravelingInterests = [];
   List<GeneralInterestsModel>? _selectedGeneralInterests = [];
 
-  List<Widget>? _allInterestsWidgetList;
-  List<Widget>? _familyInterestsWidgetList;
-  List<Widget>? _careerInterestsWidgetList;
-  List<Widget>? _sportInterestsWidgetList;
-  List<Widget>? _travelingInterestsWidgetList;
-  List<Widget>? _generalInterestsWidgetList;
 
   @override
   void initState() {
-    db = DatabaseObject.getDb;
+    _allInterestsScrollController = ScrollController();
+    _careerInterestsScrollController = ScrollController();
+    _travelingInterestsScrollController = ScrollController();
+    _generalInterestsScrollController = ScrollController();
 
-    _familyInterestsFuture = db!.familyInterestsDao.getFamilyInterests().then((value) => _familyFilteredList = value);
-    _careerInterestsFuture = db!.careerInterestsDao.getCareerInterests().then((value) => _careerFilteredList = value);
-    _sportInterestsFuture = db!.sportInterestsDao.getSportInterests().then((value) => _sportFilteredList = value);
-    _travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterests().then((value) => _travelingFilteredList = value);
-    _generalInterestsFuture = db!.generalInterestsDao.getGeneralInterests().then((value) => _generalFilteredList = value);
+
+    _allInterestsScrollController!.addListener(() async {
+      if(_allInterestsScrollController!.position.atEdge) {
+        if(_allInterestsFilteredList!.length < 6504){
+          allInterestsStart += 150;
+          List<AllInterestsModel> allInterests = await db!.allInterestsDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString());
+          setState(() {
+            _allInterestsFilteredList!.addAll(allInterests);
+          });
+        }else if(_allInterestsFilteredList!.length == 6504){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
+
+    _careerInterestsScrollController!.addListener(() async {
+      if(_careerInterestsScrollController!.position.atEdge) {
+        if(_careerFilteredList!.length < 1619){
+          careerInterestsStart += 150;
+          List<CareerInterestsModel> allInterests = await db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString());
+          setState(() {
+            _careerFilteredList!.addAll(allInterests);
+          });
+        }else if(_careerFilteredList!.length == 1619){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
+
+    _travelingInterestsScrollController!.addListener(() async {
+      if(_travelingInterestsScrollController!.position.atEdge) {
+        if(_travelingFilteredList!.length < 1415){
+          travelingInterestsStart += 150;
+          List<TravellingInterestsModel> allInterests = await db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString());
+          setState(() {
+            _travelingFilteredList!.addAll(allInterests);
+          });
+        }else if(_travelingFilteredList!.length == 1415){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
+
+    _generalInterestsScrollController!.addListener(() async {
+      if(_generalInterestsScrollController!.position.atEdge) {
+        if(_generalFilteredList!.length < 3446){
+          generalInterestsStart += 80;
+          List<GeneralInterestsModel> allInterests = await db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString());
+          setState(() {
+            _generalFilteredList!.addAll(allInterests);
+          });
+        }else if(_generalFilteredList!.length == 3446){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
+
+    
+    db = DatabaseObject.getDb;
+    _allInterestsFuture = db!.allInterestsDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString()).then((value) => _allInterestsFilteredList = value);
+    _familyInterestsFuture = db!.familyInterestsDao.getFamilyInterestsByLimit(familyInterestsStart.toString(), end.toString()).then((value) => _familyFilteredList = value);
+    _careerInterestsFuture = db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerFilteredList = value);
+    _sportInterestsFuture = db!.sportInterestsDao.getSportInterestsByLimit(sportInterestsStart.toString(), end.toString()).then((value) => _sportFilteredList = value);
+    _travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString()).then((value) => _travelingFilteredList = value);
+    _generalInterestsFuture = db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalFilteredList = value);
 
 
     if(ShPreferences.getAllInterestsShPref() != null){
@@ -106,76 +183,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
       _selectedGeneralInterests = ShPreferences.getGeneralInterestsShPref();
     }
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      List<FamilyInterestsModel> familyInterests = await db!.familyInterestsDao.getFamilyInterests();
-      List<CareerInterestsModel> careerInterests = await db!.careerInterestsDao.getCareerInterests();
-      List<SportInterestsModel> sportInterests = await db!.sportInterestsDao.getSportInterests();
-      List<TravellingInterestsModel> travelingInterests =  await db!.travelingInterestsDao.getTravelingInterests();
-      List<GeneralInterestsModel> generalInterests = await db!.generalInterestsDao.getGeneralInterests();
-
-      Map<String, String> familyInterestsMap = Map.fromIterable(familyInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> careerInterestsMap = Map.fromIterable(careerInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> sportInterestsMap = Map.fromIterable(sportInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> travelingInterestsMap = Map.fromIterable(travelingInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> generalInterestsMap = Map.fromIterable(generalInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> allInterestsMap = {};
-      allInterestsMap.addAll(familyInterestsMap);
-      allInterestsMap.addAll(careerInterestsMap);
-      allInterestsMap.addAll(sportInterestsMap);
-      allInterestsMap.addAll(travelingInterestsMap);
-      allInterestsMap.addAll(generalInterestsMap);
-
-      allInterestsMap.forEach((name, color) {
-        _allInterestsList!.add(AllInterestsModel(name, color));
-      });
-
-      _allInterestsFilteredList = _allInterestsList!..shuffle();
-    });
-
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    _allInterestsWidgetList = List.generate(_allInterestsFilteredList!.length, (index) {
-      return Material(
-        child: InkWell(
-          onTap: () {
-            _selectedAllInterests!.add(_allInterestsFilteredList![index]);
-            setState(() {});
-          },
-          borderRadius:
-          BorderRadius.all(Radius.circular(30)),
-          child: Chip(
-            visualDensity: VisualDensity.comfortable,
-            padding: EdgeInsets.all(10),
-            backgroundColor: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
-            shadowColor: Colors.grey,
-            label: Text(
-              _allInterestsFilteredList![index].name!,
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-      );
-    });
-
-    super.didChangeDependencies();
   }
 
   @override
@@ -187,6 +195,12 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     ShPreferences.setSportInterests(_selectedSportInterests);
     ShPreferences.setTravelingInterests(_selectedTravelingInterests);
     ShPreferences.setGeneralInterests(_selectedGeneralInterests);
+
+    _allInterestsScrollController!.dispose();
+    _careerInterestsScrollController!.dispose();
+    _travelingInterestsScrollController!.dispose();
+    _generalInterestsScrollController!.dispose();
+
 
     super.dispose();
   }
@@ -247,9 +261,9 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       });
                     },
 
-                    onChanged: (value){
+                    onChanged: (value) async {
                       if(_isAllSelected){
-                        _allInterestsFilteredList = _allInterestsFilteredList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                        _allInterestsFilteredList = _allInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       } else if(_isFamilySelected){
                         _familyFilteredList = _familyInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
                       }else if(_isCareerSelected){
@@ -285,7 +299,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
       },
     );
   }
-
 
   Widget mainBody() {
     return Wrap(
@@ -494,18 +507,41 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             child: _isAllSelected
                    ? allInterestsGridView()
                    : _isFamilySelected
-                   ? familyInterestsFutureBuilder()
+                   ? familyInterestsGridView()
                    : _isCareerSelected
-                   ? careerInterestsFutureBuilder()
+                   ? careerInterestsGridView()
                    : _isSportSelected
-                   ? sportInterestsFutureBuilder()
+                   ? sportInterestsGridView()
                    : _isTravelingSelected
-                   ? travellingInterestsFutureBuilder()
+                   ? travelingInterestsGridView()
                    : _isGeneralSelected
-                   ? generalInterestsFutureBuilder()
+                   ? generalInterestsGridView()
                    : null
         ),
       ],
+    );
+  }
+
+  FutureBuilder<List<AllInterestsModel>> allInterestsFutureBuilder(){
+    return FutureBuilder<List<AllInterestsModel>>(
+      future: _allInterestsFuture,
+      builder: (context, snapshot) {
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return const Center(
+              child: CircularProgressIndicator(color: Colors.green)
+          );
+        }
+
+        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+          _allInterestsList = snapshot.data;
+
+          return allInterestsGridView();
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
     );
   }
 
@@ -521,29 +557,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _familyInterestsList = snapshot.data;
-
-          _familyInterestsWidgetList = List.generate(_familyFilteredList!.length, (index) {
-            return Material(
-              child: InkWell(
-                onTap: () {
-                  _selectedFamilyInterests!.add(_familyFilteredList![index]);
-                  setState(() {});
-                },
-                borderRadius:
-                BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(10),
-                  backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _familyFilteredList![index].name!,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            );
-          });
 
           return familyInterestsGridView();
         }else{
@@ -569,30 +582,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
           _careerInterestsList = snapshot.data;
 
-          _careerInterestsWidgetList = List.generate(_careerFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedCareerInterests!.add(_careerFilteredList![index]);
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _careerFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _careerFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
-
           return careerInterestsGridView();
         }else{
           return Center(
@@ -615,31 +604,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _sportInterestsList = snapshot.data;
-
-          _sportInterestsWidgetList = List.generate(_sportFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedSportInterests!.add(_sportFilteredList![index]);
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _sportFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _sportFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
 
           return sportInterestsGridView();
         }else{
@@ -664,31 +628,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _travelingInterestsList = snapshot.data;
 
-          _travelingInterestsWidgetList = List.generate(_travelingFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedTravelingInterests!.add(_travelingFilteredList![index]);
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _travelingFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
-
           return travelingInterestsGridView();
         }else{
           return Center(
@@ -711,31 +650,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _generalInterestsList = snapshot.data;
 
-          _generalInterestsWidgetList = List.generate(_generalFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedGeneralInterests!.add(_generalFilteredList![index]);
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _generalFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
-
           return generalInterestsGridView();
         }else{
           return Center(
@@ -746,281 +660,441 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     );
   }
 
+
   Widget allInterestsGridView() {
-    didChangeDependencies();
-    return Column(
-      children: [
-        Divider(
-          thickness: 1,
-        ),
-        _allInterestsFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+    if(_allInterestsList!.length != 0){
+      return Column(
+        children: [
+          Divider(
+            thickness: 1,
+          ),
+          _allInterestsFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container (
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _allInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _allInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container (
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 2.0,
+                            children: List.generate(_allInterestsFilteredList!.length, (index) {
+                              return Material(
+                                child: InkWell(
+                                  onTap: () {
+                                    _selectedAllInterests!.add(_allInterestsFilteredList![index]);
+                                    setState(() {});
+                                  },
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                  child: Chip(
+                                    visualDensity: VisualDensity.comfortable,
+                                    padding: EdgeInsets.all(10),
+                                    backgroundColor: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
+                                    shadowColor: Colors.grey,
+                                    label: Text(
+                                      _allInterestsFilteredList![index].name!,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            })
+                        ),
+                      )),
                 ),
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return allInterestsFutureBuilder();
+    }
   }
 
   Widget familyInterestsGridView() {
-    return Column(
-      children: [
-        Divider(
-          thickness: 1,
-        ),
-        _familyFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea (
-              top: false,
-              child: SingleChildScrollView (
-                scrollDirection: Axis.vertical,
+    if(_familyInterestsList!.length != 0){
+      return Column(
+        children: [
+          Divider(
+            thickness: 1,
+          ),
+          _familyFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea (
+                top: false,
                 child: SingleChildScrollView (
-                    scrollDirection: Axis.horizontal,
-                    child: Container (
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _familyInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView (
+                      scrollDirection: Axis.horizontal,
+                      child: Container (
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_familyFilteredList!.length, (index) {
+                              return Material(
+                                child: InkWell(
+                                  onTap: () {
+                                    _selectedFamilyInterests!.add(_familyFilteredList![index]);
+                                    setState(() {});
+                                  },
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                                  child: Chip(
+                                    visualDensity: VisualDensity.comfortable,
+                                    padding: EdgeInsets.all(10),
+                                    backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                                    shadowColor: Colors.grey,
+                                    label: Text(
+                                      _familyFilteredList![index].name!,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            })
+                        ),
+                      )),
                 ),
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return familyInterestsFutureBuilder();
+    }
   }
 
   Widget careerInterestsGridView(){
-    return Column(
-      children: [
-        Divider(
-          thickness: 1,
-        ),
-        _careerFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+    if(_careerInterestsList!.length != 0){
+      return Column(
+        children: [
+          Divider(
+            thickness: 1,
+          ),
+          _careerFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _careerInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _careerInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_careerFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedCareerInterests!.add(_careerFilteredList![index]);
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _careerFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _careerFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return careerInterestsFutureBuilder();
+    }
   }
 
   Widget sportInterestsGridView() {
-    return Column(
-      children: [
-        Divider(
-          thickness: 1,
-        ),
-        _sportFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+    if(_sportInterestsList!.length != 0){
+      return Column(
+        children: [
+          Divider(
+            thickness: 1,
+          ),
+          _sportFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _sportInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_sportFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedSportInterests!.add(_sportFilteredList![index]);
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _sportFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _sportFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return sportInterestsFutureBuilder();
+    }
   }
 
   Widget travelingInterestsGridView() {
-    return Column(
-      children: [
-        Divider(
-          thickness: 1,
-        ),
-        _travelingFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+    if(_travelingInterestsList!.length != 0){
+      return Column(
+        children: [
+          Divider(
+            thickness: 1,
+          ),
+          _travelingFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _travelingInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _travelingInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_travelingFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedTravelingInterests!.add(_travelingFilteredList![index]);
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _travelingFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return travellingInterestsFutureBuilder();
+    }
   }
 
   Widget generalInterestsGridView() {
-    return Column(
-      children: [
-        Divider(
-          thickness: 1,
-        ),
-        _generalFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+    if(_generalInterestsList!.length != 0){
+      return Column(
+        children: [
+          Divider(
+            thickness: 1,
+          ),
+          _generalFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _generalInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _generalInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_generalFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedGeneralInterests!.add(_generalFilteredList![index]);
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _generalFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _generalFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return generalInterestsFutureBuilder();
+    }
   }
 
 
@@ -1041,7 +1115,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                   visualDensity: VisualDensity.comfortable,
                   padding: EdgeInsets.all(6),
-                  backgroundColor: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
+                  backgroundColor: Color(int.parse('0x' + _selectedAllInterests![index].color!)),
                   shadowColor: Colors.grey,
                   label: Text(
                     _selectedAllInterests![index].name!,
@@ -1063,14 +1137,14 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget familySelectedInterests(){
-    return _selectedAllInterests!.length == 0
+    return _selectedFamilyInterests!.length == 0
         ? Container() : SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Container(
         child: Wrap(
           spacing: 6.0,
           runSpacing: 6.0,
-          children: List.generate(_selectedAllInterests!.length, (index) {
+          children: List.generate(_selectedFamilyInterests!.length, (index) {
             return Material(
               child: InkWell(
                 borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -1078,16 +1152,16 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                   visualDensity: VisualDensity.comfortable,
                   padding: EdgeInsets.all(6),
-                  backgroundColor: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
+                  backgroundColor: Color(int.parse('0x' + _selectedFamilyInterests![index].color!)),
                   shadowColor: Colors.grey,
                   label: Text(
-                    _selectedAllInterests![index].name!,
+                    _selectedFamilyInterests![index].name!,
                     style: TextStyle(color: Colors.white),
                   ),
                   deleteIcon: Icon(CupertinoIcons.clear_circled,
                       color: Colors.white),
                   onDeleted: () {
-                    _selectedAllInterests!.removeAt(index);
+                    _selectedFamilyInterests!.removeAt(index);
                     setState((){});
                   },
                 ),

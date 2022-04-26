@@ -1,7 +1,7 @@
 
 import 'package:floor/floor.dart';
 
-@entity
+@Entity()
 class CareerInterestsModel{
 
   @PrimaryKey()

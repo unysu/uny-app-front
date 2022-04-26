@@ -2,7 +2,7 @@
 import 'package:floor/floor.dart';
 import 'package:flutter/cupertino.dart';
 
-@entity
+@Entity()
 class SportInterestsModel{
 
   @PrimaryKey()

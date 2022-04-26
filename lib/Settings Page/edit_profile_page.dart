@@ -356,15 +356,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Отображать знак зодиака', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-              UniversalPlatform.isIOS ? CupertinoSwitch(
-                activeColor: Color.fromRGBO(145, 10, 251, 5),
-                value: _showZodiacSign,
-                onChanged: (value){
-                  setState(() {
-                    _showZodiacSign = value;
-                  });
-                },
-              ) : Switch(
+              Switch.adaptive(
                 activeColor: Color.fromRGBO(145, 10, 251, 5),
                 value: _showZodiacSign,
                 onChanged: (value){
@@ -422,15 +414,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Я не работаю', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-              UniversalPlatform.isIOS ? CupertinoSwitch(
-                activeColor: Color.fromRGBO(145, 10, 251, 5),
-                value: _iAmNotWorking,
-                onChanged: (value){
-                  setState(() {
-                    _iAmNotWorking = value;
-                  });
-                },
-              ) : Switch(
+              Switch.adaptive(
                 activeColor: Color.fromRGBO(145, 10, 251, 5),
                 value: _iAmNotWorking,
                 onChanged: (value){

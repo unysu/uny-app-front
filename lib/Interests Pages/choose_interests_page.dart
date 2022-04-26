@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:random_color/random_color.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
@@ -19,6 +18,18 @@ class InterestsPage extends StatefulWidget {
 }
 
 class _InterestsPageState extends State<InterestsPage> {
+
+  ScrollController? _allInterestsScrollController;
+  ScrollController? _careerInterestsScrollController;
+  ScrollController? _travelingInterestsScrollController;
+  ScrollController? _generalInterestsScrollController;
+
+  int familyInterestsStart = 0;
+  int careerInterestsStart = 0;
+  int sportInterestsStart = 0;
+  int travelingInterestsStart = 0;
+  int generalInterestsStart = 0;
+  int end = 150;
 
   late InterestsDatabase? db;
 
@@ -55,12 +66,6 @@ class _InterestsPageState extends State<InterestsPage> {
   List<TravellingInterestsModel>? _selectedTravelingInterests = [];
   List<GeneralInterestsModel>? _selectedGeneralInterests = [];
 
-  List<Widget>? _familyInterestsWidgetList;
-  List<Widget>? _careerInterestsWidgetList;
-  List<Widget>? _sportInterestsWidgetList;
-  List<Widget>? _travelingInterestsWidgetList;
-  List<Widget>? _generalInterestsWidgetList;
-
   double _selectedFamilyInterestsValue = 0.0;
   double _selectedCareerInterestsValue = 0.0;
   double _selectedSportInterestsValue = 0.0;
@@ -86,19 +91,69 @@ class _InterestsPageState extends State<InterestsPage> {
 
   @override
   void initState() {
-    super.initState();
+    _allInterestsScrollController = ScrollController();
+    _careerInterestsScrollController = ScrollController();
+    _travelingInterestsScrollController = ScrollController();
+    _generalInterestsScrollController = ScrollController();
 
     db = DatabaseObject.getDb;
 
-    familyInterestsFuture = db!.familyInterestsDao.getFamilyInterests().then((value) => _familyFilteredList = value);
-    careerInterestsFuture = db!.careerInterestsDao.getCareerInterests().then((value) => _careerFilteredList = value);
-    sportInterestsFuture = db!.sportInterestsDao.getSportInterests().then((value) => _sportFilteredList = value);
-    travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterests().then((value) => _travelingFilteredList = value);
-    generalInterestsFuture = db!.generalInterestsDao.getGeneralInterests().then((value) => _generalFilteredList = value);
-
+    familyInterestsFuture = db!.familyInterestsDao.getFamilyInterestsByLimit(familyInterestsStart.toString(), end.toString()).then((value) => _familyFilteredList = value);
+    careerInterestsFuture = db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerFilteredList = value);
+    sportInterestsFuture = db!.sportInterestsDao.getSportInterestsByLimit(sportInterestsStart.toString(), end.toString()).then((value) => _sportFilteredList = value);
+    travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString()).then((value) => _travelingFilteredList = value);
+    generalInterestsFuture = db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalFilteredList = value);
 
     addNewInterestFieldFocusNode = FocusNode();
     newInterestFieldTextController = TextEditingController();
+
+    _careerInterestsScrollController!.addListener(() async {
+      if(_careerInterestsScrollController!.position.atEdge) {
+        if(_careerFilteredList!.length < 1619){
+          careerInterestsStart += 150;
+          List<CareerInterestsModel> allInterests = await db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString());
+          setState(() {
+            _careerFilteredList!.addAll(allInterests);
+          });
+        }else if(_careerFilteredList!.length == 1619){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
+
+    _travelingInterestsScrollController!.addListener(() async {
+      if(_travelingInterestsScrollController!.position.atEdge) {
+        if(_travelingFilteredList!.length < 1415){
+          travelingInterestsStart += 150;
+          List<TravellingInterestsModel> allInterests = await db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString());
+          setState(() {
+            _travelingFilteredList!.addAll(allInterests);
+          });
+        }else if(_travelingFilteredList!.length == 1415){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
+
+    _generalInterestsScrollController!.addListener(() async {
+      if(_generalInterestsScrollController!.position.atEdge) {
+        if(_generalFilteredList!.length < 3446){
+          generalInterestsStart += 80;
+          List<GeneralInterestsModel> allInterests = await db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString());
+          setState(() {
+            _generalFilteredList!.addAll(allInterests);
+          });
+        }else if(_generalFilteredList!.length == 3446){
+          return;
+        }else{
+          return;
+        }
+      }
+    });
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       if (UniversalPlatform.isIOS) {
@@ -115,14 +170,23 @@ class _InterestsPageState extends State<InterestsPage> {
             });
       }
     });
+
+    super.initState();
   }
 
   @override
   void dispose() {
-    super.dispose();
 
     addNewInterestFieldFocusNode = null;
     newInterestFieldTextController = null;
+
+    _allInterestsScrollController!.dispose();
+    _careerInterestsScrollController!.dispose();
+    _travelingInterestsScrollController!.dispose();
+    _generalInterestsScrollController!.dispose();
+
+
+    super.dispose();
   }
 
   @override
@@ -404,20 +468,21 @@ class _InterestsPageState extends State<InterestsPage> {
             )),
         Container(
           child: _isCareerEnabled
-              ? careerInterestsFutureBuilder()
+              ? careerInterestsGridView()
               : _isSportEnabled
-              ? sportInterestsFutureBuilder()
+              ? sportInterestsGridView()
               : _isTravelingEnabled
-              ? travellingInterestsFutureBuilder()
+              ? travelingInterestsGridView()
               : _isGeneralEnabled
-              ? generalInterestsFutureBuilder()
+              ? generalInterestsGridView()
               : _isFamilyEnabled
-              ? familyInterestsFutureBuilder()
+              ? familyInterestsGridView()
               : null
         ),
       ],
     );
   }
+
 
   FutureBuilder<List<FamilyInterestsModel>> familyInterestsFutureBuilder(){
     return FutureBuilder<List<FamilyInterestsModel>>(
@@ -431,32 +496,6 @@ class _InterestsPageState extends State<InterestsPage> {
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _familyInterestsList = snapshot.data;
-
-          _familyInterestsWidgetList = List.generate(_familyFilteredList!.length, (index) {
-            return Material(
-              child: InkWell(
-                onTap: () {
-                  _selectedFamilyInterests!.add(_familyFilteredList![index]);
-                  _selectedFamilyInterestsValue += 0.01;
-                  ++_familyInterestsCounter;
-
-                  setState(() {});
-                },
-                borderRadius:
-                BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(10),
-                  backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _familyFilteredList![index].name!,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            );
-          });
 
           return familyInterestsGridView();
         }else{
@@ -482,33 +521,6 @@ class _InterestsPageState extends State<InterestsPage> {
 
           _careerInterestsList = snapshot.data;
 
-          _careerInterestsWidgetList = List.generate(_careerFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedCareerInterests!.add(_careerFilteredList![index]);
-                      _selectedCareerInterestsValue += 0.01;
-                      ++_careerInterestsCounter;
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _careerFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _careerFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
-
           return careerInterestsGridView();
         }else{
           return Center(
@@ -531,33 +543,6 @@ class _InterestsPageState extends State<InterestsPage> {
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _sportInterestsList = snapshot.data;
-
-          _sportInterestsWidgetList = List.generate(_sportFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedSportInterests!.add(_sportFilteredList![index]);
-                      _selectedSportInterestsValue += 0.01;
-                      ++_sportInterestsCounter;
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _sportFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _sportFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
 
           return sportInterestsGridView();
         }else{
@@ -582,33 +567,6 @@ class _InterestsPageState extends State<InterestsPage> {
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _travelingInterestsList = snapshot.data;
 
-          _travelingInterestsWidgetList = List.generate(_travelingFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedTravelingInterests!.add(_travelingFilteredList![index]);
-                      _selectedTravelingInterestsValue += 0.01;
-                      ++_travelingInterestsCounter;
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _travelingFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
-
           return travelingInterestsGridView();
         }else{
           return Center(
@@ -631,33 +589,6 @@ class _InterestsPageState extends State<InterestsPage> {
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _generalInterestsList = snapshot.data;
 
-          _generalInterestsWidgetList = List.generate(_generalFilteredList!.length,
-                  (index) {
-                return Material(
-                  child: InkWell(
-                    onTap: () {
-                      _selectedGeneralInterests!.add(_generalFilteredList![index]);
-                      _selectedGeneralInterestsValue += 0.01;
-                      ++_generalInterestsCounter;
-
-                      setState((){});
-                    },
-                    borderRadius:
-                    BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _generalFilteredList![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              });
-
           return generalInterestsGridView();
         }else{
           return Center(
@@ -668,786 +599,935 @@ class _InterestsPageState extends State<InterestsPage> {
     );
   }
 
-  Widget familyInterestsGridView() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                width: width * 0.78,
-                height: 26,
-                padding: EdgeInsets.only(left: width / 20),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: height,
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.green[100],
-                            color: Colors.green,
-                            value: _selectedFamilyInterestsValue,
-                          ),
-                        ),
-                        Container(
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.only(right: 10),
-                          child: Text(
-                            '${_familyInterestsCounter}',
-                            style: TextStyle(fontSize: 15, color: Colors.green),
-                          ),
-                        )
-                      ],
-                    ))),
-            InkWell(
-              onTap: _selectedFamilyInterests!.length != 0 ? () {
-                setState(() {
-                  _isCareerEnabled = true;
-                  _isCareerIconEnabled = true;
 
-                  _isFamilyEnabled = false;
-                });
-              } : null,
-              child: Container(
-                height: 50,
-                width: 100,
-                child: Center(
-                  child: Text('Далее',
-                      style: TextStyle(
-                          fontSize: 15, color:
-                      Colors.white)),
-                ),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                    gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          _selectedFamilyInterests!.length != 0 ?
-                         Colors.deepPurpleAccent : Colors.grey,
-                          _selectedFamilyInterests!.length != 0 ?
-                         Colors.blueAccent : Colors.grey
-                      ])),
-              ),
-            )
-          ],
-        ),
-        SizedBox(height: height / 100),
-        _selectedFamilyInterests!.length == 0
-            ? Center(
-                child: Text(
-                  'Выберите минимум один интерес для продолжения',
-                  style: TextStyle(
-                      fontSize: 15, color: Colors.grey.withOpacity(0.7)),
+  Widget familyInterestsGridView() {
+    if(_familyInterestsList!.length != 0){
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                  width: width * 0.78,
+                  height: 26,
+                  padding: EdgeInsets.only(left: width / 20),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: height,
+                            child: LinearProgressIndicator(
+                              backgroundColor: Colors.green[100],
+                              color: Colors.green,
+                              value: _selectedFamilyInterestsValue,
+                            ),
+                          ),
+                          Container(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 10),
+                            child: Text(
+                              '${_familyInterestsCounter}',
+                              style: TextStyle(fontSize: 15, color: Colors.green),
+                            ),
+                          )
+                        ],
+                      ))),
+              InkWell(
+                onTap: _selectedFamilyInterests!.length != 0 ? () {
+                  setState(() {
+                    _isCareerEnabled = true;
+                    _isCareerIconEnabled = true;
+
+                    _isFamilyEnabled = false;
+                  });
+                } : null,
+                child: Container(
+                  height: 50,
+                  width: 100,
+                  child: Center(
+                    child: Text('Далее',
+                        style: TextStyle(
+                            fontSize: 15, color:
+                        Colors.white)),
+                  ),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            _selectedFamilyInterests!.length != 0 ?
+                            Colors.deepPurpleAccent : Colors.grey,
+                            _selectedFamilyInterests!.length != 0 ?
+                            Colors.blueAccent : Colors.grey
+                          ])),
                 ),
               )
-            : SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  padding: EdgeInsets.only(bottom: 5),
-                  child: Wrap(
-                    spacing: 6.0,
-                    runSpacing: 6.0,
-                    children: List.generate(_selectedFamilyInterests!.length, (index) {
-                      return Material(
-                        child: InkWell(
-                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                          child: Chip(
-                            labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                            visualDensity: VisualDensity.comfortable,
-                            padding: EdgeInsets.all(10),
-                            backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
-                            shadowColor: Colors.grey,
-                            label: Text(
-                              _selectedFamilyInterests![index].name!,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            deleteIcon: Icon(CupertinoIcons.clear_circled,
-                                color: Colors.white),
-                            onDeleted: () {
-                              _selectedFamilyInterests!.removeAt(index);
-                              _selectedFamilyInterestsValue -= 0.01;
-                              --_familyInterestsCounter;
-
-                              setState((){});
-                            },
-                          ),
+            ],
+          ),
+          SizedBox(height: height / 100),
+          _selectedFamilyInterests!.length == 0
+              ? Center(
+            child: Text(
+              'Выберите минимум один интерес для продолжения',
+              style: TextStyle(
+                  fontSize: 15, color: Colors.grey.withOpacity(0.7)),
+            ),
+          )
+              : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Wrap(
+                spacing: 6.0,
+                runSpacing: 6.0,
+                children: List.generate(_selectedFamilyInterests!.length, (index) {
+                  return Material(
+                    child: InkWell(
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                      child: Chip(
+                        labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        visualDensity: VisualDensity.comfortable,
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                        shadowColor: Colors.grey,
+                        label: Text(
+                          _selectedFamilyInterests![index].name!,
+                          style: TextStyle(color: Colors.white),
                         ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
-        SizedBox(height: height / 100),
-        Divider(
-          thickness: 1,
-          color: Colors.grey.withOpacity(0.5),
-        ),
-        _familyFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea (
-              top: false,
-              child: SingleChildScrollView (
-                scrollDirection: Axis.vertical,
-                child: SingleChildScrollView (
-                    scrollDirection: Axis.horizontal,
-                    child: Container (
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _familyInterestsWidgetList!
+                        deleteIcon: Icon(CupertinoIcons.clear_circled,
+                            color: Colors.white),
+                        onDeleted: () {
+                          _selectedFamilyInterests!.removeAt(index);
+                          _selectedFamilyInterestsValue -= 0.01;
+                          --_familyInterestsCounter;
+
+                          setState((){});
+                        },
                       ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-                duration: Duration(milliseconds: 150),
-                padding: EdgeInsets.symmetric(
-                    vertical:  height / 5,
-                    horizontal: width / 10),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 15, color: Colors.grey),
                     ),
-                    addInterestsWidget()
-                  ],
-                )
-        )
-      ],
-    );
+                  );
+                }),
+              ),
+            ),
+          ),
+          SizedBox(height: height / 100),
+          Divider(
+            thickness: 1,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          _familyFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea (
+                top: false,
+                child: SingleChildScrollView (
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView (
+                      scrollDirection: Axis.horizontal,
+                      child: Container (
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_familyFilteredList!.length, (index) {
+                              return Material(
+                                child: InkWell(
+                                  onTap: () {
+                                    _selectedFamilyInterests!.add(_familyFilteredList![index]);
+                                    _selectedFamilyInterestsValue += 0.01;
+                                    ++_familyInterestsCounter;
+
+                                    setState(() {});
+                                  },
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                                  child: Chip(
+                                    visualDensity: VisualDensity.comfortable,
+                                    padding: EdgeInsets.all(10),
+                                    backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                                    shadowColor: Colors.grey,
+                                    label: Text(
+                                      _familyFilteredList![index].name!,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            })
+                        ),
+                      )),
+                ),
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  addInterestsWidget()
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return familyInterestsFutureBuilder();
+    }
   }
 
   Widget careerInterestsGridView(){
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                width: width * 0.78,
-                height: 26,
-                padding: EdgeInsets.only(left: width / 20),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: height,
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.blue[100],
-                            color: Color.fromRGBO(1, 188, 248, 5),
-                            value: _selectedCareerInterestsValue,
+    if(_careerInterestsList!.length != 0){
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                  width: width * 0.78,
+                  height: 26,
+                  padding: EdgeInsets.only(left: width / 20),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: height,
+                            child: LinearProgressIndicator(
+                              backgroundColor: Colors.blue[100],
+                              color: Color.fromRGBO(1, 188, 248, 5),
+                              value: _selectedCareerInterestsValue,
+                            ),
                           ),
-                        ),
-                        Container(
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.only(right: 10),
-                          child: Text(
-                            '${_careerInterestsCounter}',
-                            style: TextStyle(fontSize: 15, color: Color.fromRGBO(1, 188, 248, 5)),
-                          ),
-                        )
-                      ],
-                    ))),
-            InkWell(
-              onTap: _selectedCareerInterests!.length != 0 ? (){
-                setState(() {
-                  _isSportEnabled = true;
-                  _isSportIconEnabled = true;
+                          Container(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 10),
+                            child: Text(
+                              '${_careerInterestsCounter}',
+                              style: TextStyle(fontSize: 15, color: Color.fromRGBO(1, 188, 248, 5)),
+                            ),
+                          )
+                        ],
+                      ))),
+              InkWell(
+                onTap: _selectedCareerInterests!.length != 0 ? (){
+                  setState(() {
+                    _isSportEnabled = true;
+                    _isSportIconEnabled = true;
 
-                  _isCareerEnabled = false;
-                });
-              } : null,
-              child: Container(
-                height: 50,
-                width: 100,
-                child: Center(
-                  child: Text('Далее',
-                      style: TextStyle(fontSize: 15, color: Colors.white)),
-                ),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                    gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          _selectedCareerInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedCareerInterests!.length != 0 ? Colors.blueAccent : Colors.grey])),
-              ),
-            )
-          ],
-        ),
-        SizedBox(height: height / 100),
-        _selectedCareerInterests!.length == 0
-            ? Center(
-          child: Text(
-            'Выберите минимум один интерес для продолжения',
-            style: TextStyle(
-                fontSize: 15, color: Colors.grey.withOpacity(0.7)),
-          ),
-        ) : SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            padding: EdgeInsets.only(bottom: 5),
-            child: Wrap(
-              spacing: 6.0,
-              runSpacing: 6.0,
-              children: List.generate(_selectedCareerInterests!.length, (index) {
-                return Material(
-                  child: InkWell(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _selectedCareerInterests![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      deleteIcon: Icon(CupertinoIcons.clear_circled,
-                          color: Colors.white),
-                      onDeleted: () {
-                        _selectedCareerInterests!.removeAt(index);
-                        _selectedCareerInterestsValue -= 0.01;
-                        --_careerInterestsCounter;
-
-                        setState((){});
-                      },
-                    ),
+                    _isCareerEnabled = false;
+                  });
+                } : null,
+                child: Container(
+                  height: 50,
+                  width: 100,
+                  child: Center(
+                    child: Text('Далее',
+                        style: TextStyle(fontSize: 15, color: Colors.white)),
                   ),
-                );
-              }),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            _selectedCareerInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                            _selectedCareerInterests!.length != 0 ? Colors.blueAccent : Colors.grey])),
+                ),
+              )
+            ],
+          ),
+          SizedBox(height: height / 100),
+          _selectedCareerInterests!.length == 0
+              ? Center(
+            child: Text(
+              'Выберите минимум один интерес для продолжения',
+              style: TextStyle(
+                  fontSize: 15, color: Colors.grey.withOpacity(0.7)),
+            ),
+          ) : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Wrap(
+                spacing: 6.0,
+                runSpacing: 6.0,
+                children: List.generate(_selectedCareerInterests!.length, (index) {
+                  return Material(
+                    child: InkWell(
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                      child: Chip(
+                        labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        visualDensity: VisualDensity.comfortable,
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
+                        shadowColor: Colors.grey,
+                        label: Text(
+                          _selectedCareerInterests![index].name!,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        deleteIcon: Icon(CupertinoIcons.clear_circled,
+                            color: Colors.white),
+                        onDeleted: () {
+                          _selectedCareerInterests!.removeAt(index);
+                          _selectedCareerInterestsValue -= 0.01;
+                          --_careerInterestsCounter;
+
+                          setState((){});
+                        },
+                      ),
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: height / 100),
-        Divider(
-          thickness: 1,
-          color: Colors.grey.withOpacity(0.5),
-        ),
-        _careerFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+          SizedBox(height: height / 100),
+          Divider(
+            thickness: 1,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          _careerFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _careerInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _careerInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_careerFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedCareerInterests!.add(_careerFilteredList![index]);
+                                        _selectedCareerInterestsValue += 0.01;
+                                        ++_careerInterestsCounter;
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _careerFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _careerFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-                addInterestsWidget()
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  addInterestsWidget()
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return careerInterestsFutureBuilder();
+    }
   }
 
   Widget sportInterestsGridView() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                width: width * 0.78,
-                height: 26,
-                padding: EdgeInsets.only(left: width / 20),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: height,
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.blueAccent.withOpacity(0.3),
-                            color: Colors.blueAccent,
-                            value: _selectedSportInterestsValue,
+    if(_sportInterestsList!.length != 0){
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                  width: width * 0.78,
+                  height: 26,
+                  padding: EdgeInsets.only(left: width / 20),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: height,
+                            child: LinearProgressIndicator(
+                              backgroundColor: Colors.blueAccent.withOpacity(0.3),
+                              color: Colors.blueAccent,
+                              value: _selectedSportInterestsValue,
+                            ),
                           ),
-                        ),
-                        Container(
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.only(right: 10),
-                          child: Text(
-                            '${_sportInterestsCounter}',
-                            style: TextStyle(fontSize: 15, color: Colors.blueAccent),
-                          ),
-                        )
-                      ],
-                    ))),
-            InkWell(
-              onTap: _selectedSportInterests!.length != 0 ? (){
-                setState(() {
-                  _isSportEnabled = false;
+                          Container(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 10),
+                            child: Text(
+                              '${_sportInterestsCounter}',
+                              style: TextStyle(fontSize: 15, color: Colors.blueAccent),
+                            ),
+                          )
+                        ],
+                      ))),
+              InkWell(
+                onTap: _selectedSportInterests!.length != 0 ? (){
+                  setState(() {
+                    _isSportEnabled = false;
 
-                  _isTravelingEnabled = true;
-                  _isTravelingIconEnabled = true;
-                });
-              } : null,
-              child: Container(
-                height: 50,
-                width: 100,
-                child: Center(
-                  child: Text('Далее',
-                      style: TextStyle(fontSize: 15, color: Colors.white)),
-                ),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                    gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          _selectedSportInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedSportInterests!.length != 0 ? Colors.blueAccent : Colors.grey
-                        ])),
-              ),
-            )
-          ],
-        ),
-        SizedBox(height: height / 100),
-        _selectedSportInterests!.length == 0
-            ? Center(
-          child: Text(
-            'Выберите минимум один интерес для продолжения',
-            style: TextStyle(
-                fontSize: 15, color: Colors.grey.withOpacity(0.7)),
-          ),
-        )
-            : SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            padding: EdgeInsets.only(bottom: 5),
-            child: Wrap(
-              spacing: 6.0,
-              runSpacing: 6.0,
-              children: List.generate(_selectedSportInterests!.length, (index) {
-                return Material(
-                  child: InkWell(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _selectedSportInterests![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      deleteIcon: Icon(CupertinoIcons.clear_circled,
-                          color: Colors.white),
-                      onDeleted: () {
-                        _selectedSportInterests!.removeAt(index);
-                        _selectedSportInterestsValue -= 0.01;
-                        --_sportInterestsCounter;
-
-                        setState((){});
-                      },
-                    ),
+                    _isTravelingEnabled = true;
+                    _isTravelingIconEnabled = true;
+                  });
+                } : null,
+                child: Container(
+                  height: 50,
+                  width: 100,
+                  child: Center(
+                    child: Text('Далее',
+                        style: TextStyle(fontSize: 15, color: Colors.white)),
                   ),
-                );
-              }),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            _selectedSportInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                            _selectedSportInterests!.length != 0 ? Colors.blueAccent : Colors.grey
+                          ])),
+                ),
+              )
+            ],
+          ),
+          SizedBox(height: height / 100),
+          _selectedSportInterests!.length == 0
+              ? Center(
+            child: Text(
+              'Выберите минимум один интерес для продолжения',
+              style: TextStyle(
+                  fontSize: 15, color: Colors.grey.withOpacity(0.7)),
+            ),
+          )
+              : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Wrap(
+                spacing: 6.0,
+                runSpacing: 6.0,
+                children: List.generate(_selectedSportInterests!.length, (index) {
+                  return Material(
+                    child: InkWell(
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                      child: Chip(
+                        labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        visualDensity: VisualDensity.comfortable,
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
+                        shadowColor: Colors.grey,
+                        label: Text(
+                          _selectedSportInterests![index].name!,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        deleteIcon: Icon(CupertinoIcons.clear_circled,
+                            color: Colors.white),
+                        onDeleted: () {
+                          _selectedSportInterests!.removeAt(index);
+                          _selectedSportInterestsValue -= 0.01;
+                          --_sportInterestsCounter;
+
+                          setState((){});
+                        },
+                      ),
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: height / 100),
-        Divider(
-          thickness: 1,
-          color: Colors.grey.withOpacity(0.5),
-        ),
-        _sportFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+          SizedBox(height: height / 100),
+          Divider(
+            thickness: 1,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          _sportFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _sportInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_sportFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedSportInterests!.add(_sportFilteredList![index]);
+                                        _selectedSportInterestsValue += 0.01;
+                                        ++_sportInterestsCounter;
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _sportFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _sportFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-                addInterestsWidget()
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  addInterestsWidget()
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return sportInterestsFutureBuilder();
+    }
   }
 
   Widget travelingInterestsGridView() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                width: width * 0.78,
-                height: 26,
-                padding: EdgeInsets.only(left: width / 20),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: height,
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.orange.withOpacity(0.3),
-                            color: Colors.orange,
-                            value: _selectedTravelingInterestsValue,
+    if(_travelingInterestsList!.length != 0){
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                  width: width * 0.78,
+                  height: 26,
+                  padding: EdgeInsets.only(left: width / 20),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: height,
+                            child: LinearProgressIndicator(
+                              backgroundColor: Colors.orange.withOpacity(0.3),
+                              color: Colors.orange,
+                              value: _selectedTravelingInterestsValue,
+                            ),
                           ),
-                        ),
-                        Container(
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.only(right: 10),
-                          child: Text(
-                            '${_travelingInterestsCounter}',
-                            style: TextStyle(fontSize: 15, color: Colors.orange),
-                          ),
-                        )
-                      ],
-                    ))),
-            InkWell(
-              onTap: _selectedTravelingInterests!.length != 0 ? (){
-                setState(() {
-                  _isTravelingEnabled = false;
+                          Container(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 10),
+                            child: Text(
+                              '${_travelingInterestsCounter}',
+                              style: TextStyle(fontSize: 15, color: Colors.orange),
+                            ),
+                          )
+                        ],
+                      ))),
+              InkWell(
+                onTap: _selectedTravelingInterests!.length != 0 ? (){
+                  setState(() {
+                    _isTravelingEnabled = false;
 
-                  _isGeneralEnabled = true;
-                  _isGeneralIconEnabled= true;
-                });
-              } : null,
-              child: Container(
-                height: 50,
-                width: 100,
-                child: Center(
-                  child: Text('Далее',
-                      style: TextStyle(fontSize: 15, color: Colors.white)),
-                ),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                    gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          _selectedTravelingInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedTravelingInterests!.length != 0 ? Colors.blueAccent : Colors.grey
-                        ])),
-              ),
-            )
-          ],
-        ),
-        SizedBox(height: height / 100),
-        _selectedTravelingInterests!.length == 0
-            ? Center(
-          child: Text(
-            'Выберите минимум один интерес для продолжения',
-            style: TextStyle(
-                fontSize: 15, color: Colors.grey.withOpacity(0.7)),
-          ),
-        )
-            : SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            padding: EdgeInsets.only(bottom: 5),
-            child: Wrap(
-              spacing: 6.0,
-              runSpacing: 6.0,
-              children: List.generate(_selectedTravelingInterests!.length, (index) {
-                return Material(
-                  child: InkWell(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _selectedTravelingInterests![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      deleteIcon: Icon(CupertinoIcons.clear_circled,
-                          color: Colors.white),
-                      onDeleted: () {
-                        _selectedTravelingInterests!.removeAt(index);
-                        _selectedTravelingInterestsValue -= 0.01;
-                        --_travelingInterestsCounter;
-
-                        setState((){});
-                      },
-                    ),
+                    _isGeneralEnabled = true;
+                    _isGeneralIconEnabled= true;
+                  });
+                } : null,
+                child: Container(
+                  height: 50,
+                  width: 100,
+                  child: Center(
+                    child: Text('Далее',
+                        style: TextStyle(fontSize: 15, color: Colors.white)),
                   ),
-                );
-              }),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            _selectedTravelingInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                            _selectedTravelingInterests!.length != 0 ? Colors.blueAccent : Colors.grey
+                          ])),
+                ),
+              )
+            ],
+          ),
+          SizedBox(height: height / 100),
+          _selectedTravelingInterests!.length == 0
+              ? Center(
+            child: Text(
+              'Выберите минимум один интерес для продолжения',
+              style: TextStyle(
+                  fontSize: 15, color: Colors.grey.withOpacity(0.7)),
+            ),
+          ) : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Wrap(
+                spacing: 6.0,
+                runSpacing: 6.0,
+                children: List.generate(_selectedTravelingInterests!.length, (index) {
+                  return Material(
+                    child: InkWell(
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                      child: Chip(
+                        labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        visualDensity: VisualDensity.comfortable,
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
+                        shadowColor: Colors.grey,
+                        label: Text(
+                          _selectedTravelingInterests![index].name!,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        deleteIcon: Icon(CupertinoIcons.clear_circled,
+                            color: Colors.white),
+                        onDeleted: () {
+                          _selectedTravelingInterests!.removeAt(index);
+                          _selectedTravelingInterestsValue -= 0.01;
+                          --_travelingInterestsCounter;
+
+                          setState((){});
+                        },
+                      ),
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: height / 100),
-        Divider(
-          thickness: 1,
-          color: Colors.grey.withOpacity(0.5),
-        ),
-        _travelingFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+          SizedBox(height: height / 100),
+          Divider(
+            thickness: 1,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          _travelingFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _travelingInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _travelingInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_travelingFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedTravelingInterests!.add(_travelingFilteredList![index]);
+                                        _selectedTravelingInterestsValue += 0.01;
+                                        ++_travelingInterestsCounter;
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _travelingFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-                addInterestsWidget()
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  addInterestsWidget()
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return travellingInterestsFutureBuilder();
+    }
   }
 
   Widget generalInterestsGridView() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                width: width * 0.78,
-                height: 26,
-                padding: EdgeInsets.only(left: width / 20),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: height,
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.deepPurpleAccent.withOpacity(0.3),
-                            color: Colors.deepPurpleAccent,
-                            value: _selectedGeneralInterestsValue,
+    if(_generalInterestsList!.length != 0){
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                  width: width * 0.78,
+                  height: 26,
+                  padding: EdgeInsets.only(left: width / 20),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: height,
+                            child: LinearProgressIndicator(
+                              backgroundColor: Colors.deepPurpleAccent.withOpacity(0.3),
+                              color: Colors.deepPurpleAccent,
+                              value: _selectedGeneralInterestsValue,
+                            ),
                           ),
-                        ),
-                        Container(
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.only(right: 10),
-                          child: Text(
-                            '${_generalInterestsCounter}',
-                            style: TextStyle(fontSize: 15, color: Colors.deepPurpleAccent),
-                          ),
-                        )
-                      ],
-                    ))),
-            InkWell(
-              onTap: _selectedGeneralInterests!.length != 0 ? (){
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserProfilePage()),
-                      (Route<dynamic> route) => false,
-                );
-              } : null,
-              child: Container(
-                height: 50,
-                width: 100,
-                child: Center(
-                  child: Text('Готово',
-                      style: TextStyle(fontSize: 15, color: Colors.white)),
-                ),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                    gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          _selectedGeneralInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                          _selectedGeneralInterests!.length != 0 ? Colors.blueAccent : Colors.grey
-                        ])),
-              ),
-            )
-          ],
-        ),
-        SizedBox(height: height / 100),
-        _selectedGeneralInterests!.length == 0
-            ? Center(
-          child: Text(
-            'Выберите минимум один интерес для продолжения',
-            style: TextStyle(
-                fontSize: 15, color: Colors.grey.withOpacity(0.7)),
-          ),
-        )
-            : SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            padding: EdgeInsets.only(bottom: 5),
-            child: Wrap(
-              spacing: 6.0,
-              runSpacing: 6.0,
-              children: List.generate(_selectedGeneralInterests!.length, (index) {
-                return Material(
-                  child: InkWell(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    child: Chip(
-                      labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                      visualDensity: VisualDensity.comfortable,
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
-                      shadowColor: Colors.grey,
-                      label: Text(
-                        _selectedGeneralInterests![index].name!,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      deleteIcon: Icon(CupertinoIcons.clear_circled,
-                          color: Colors.white),
-                      onDeleted: () {
-                        _selectedGeneralInterests!.removeAt(index);
-                        _selectedGeneralInterestsValue -= 0.01;
-                        --_generalInterestsCounter;
-
-                        setState((){});
-                      },
-                    ),
+                          Container(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 10),
+                            child: Text(
+                              '${_generalInterestsCounter}',
+                              style: TextStyle(fontSize: 15, color: Colors.deepPurpleAccent),
+                            ),
+                          )
+                        ],
+                      ))),
+              InkWell(
+                onTap: _selectedGeneralInterests!.length != 0 ? (){
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserProfilePage()),
+                        (Route<dynamic> route) => false,
+                  );
+                } : null,
+                child: Container(
+                  height: 50,
+                  width: 100,
+                  child: Center(
+                    child: Text('Готово',
+                        style: TextStyle(fontSize: 15, color: Colors.white)),
                   ),
-                );
-              }),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            _selectedGeneralInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
+                            _selectedGeneralInterests!.length != 0 ? Colors.blueAccent : Colors.grey
+                          ])),
+                ),
+              )
+            ],
+          ),
+          SizedBox(height: height / 100),
+          _selectedGeneralInterests!.length == 0
+              ? Center(
+            child: Text(
+              'Выберите минимум один интерес для продолжения',
+              style: TextStyle(
+                  fontSize: 15, color: Colors.grey.withOpacity(0.7)),
+            ),
+          )
+              : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Wrap(
+                spacing: 6.0,
+                runSpacing: 6.0,
+                children: List.generate(_selectedGeneralInterests!.length, (index) {
+                  return Material(
+                    child: InkWell(
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                      child: Chip(
+                        labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                        visualDensity: VisualDensity.comfortable,
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
+                        shadowColor: Colors.grey,
+                        label: Text(
+                          _selectedGeneralInterests![index].name!,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        deleteIcon: Icon(CupertinoIcons.clear_circled,
+                            color: Colors.white),
+                        onDeleted: () {
+                          _selectedGeneralInterests!.removeAt(index);
+                          _selectedGeneralInterestsValue -= 0.01;
+                          --_generalInterestsCounter;
+
+                          setState((){});
+                        },
+                      ),
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: height / 100),
-        Divider(
-          thickness: 1,
-          color: Colors.grey.withOpacity(0.5),
-        ),
-        _generalFilteredList!.length != 0 ? SizedBox(
-            height: height / 1.35,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+          SizedBox(height: height / 100),
+          Divider(
+            thickness: 1,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          _generalFilteredList!.length != 0 ? SizedBox(
+              height: height / 1.35,
+              child: SafeArea(
+                top: false,
                 child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      padding: EdgeInsets.only(left: 10),
-                      width: width * 2,
-                      child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 6.0,
-                          children: _generalInterestsWidgetList!
-                      ),
-                    )),
-              ),
-            )) : AnimatedPadding(
-            duration: Duration(milliseconds: 150),
-            padding: EdgeInsets.symmetric(
-                vertical:  height / 5,
-                horizontal: width / 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                  scrollDirection: Axis.vertical,
+                  controller: _generalInterestsScrollController,
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width / 0.7,
+                        child: Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: List.generate(_generalFilteredList!.length,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
+                                        _selectedGeneralInterests!.add(_generalFilteredList![index]);
+                                        _selectedGeneralInterestsValue += 0.01;
+                                        ++_generalInterestsCounter;
+
+                                        setState((){});
+                                      },
+                                      borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                      child: Chip(
+                                        visualDensity: VisualDensity.comfortable,
+                                        padding: EdgeInsets.all(10),
+                                        backgroundColor: Color(int.parse('0x' + _generalFilteredList![index].color!)),
+                                        shadowColor: Colors.grey,
+                                        label: Text(
+                                          _generalFilteredList![index].name!,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                        ),
+                      )),
                 ),
-                addInterestsWidget()
-              ],
-            )
-        )
-      ],
-    );
+              )) : AnimatedPadding(
+              duration: Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  vertical:  height / 5,
+                  horizontal: width / 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  addInterestsWidget()
+                ],
+              )
+          )
+        ],
+      );
+    }else{
+      return generalInterestsFutureBuilder();
+    }
   }
+
+
 
   Widget popup18PlusAttentionWidget() {
     return Material(
@@ -1725,6 +1805,8 @@ class _InterestsPageState extends State<InterestsPage> {
     );
   }
 
+
+
   void addNewInterest(String value){
     if(_isFamilyEnabled){
       setState(() {
@@ -1837,8 +1919,4 @@ class _InterestsPageState extends State<InterestsPage> {
     });
   }
 
-  // Checking whether keyboard opened or closed
-  bool isKeyboardClosed(){
-    return MediaQuery.of(context).viewInsets.bottom == 0.0;
-  }
 }
