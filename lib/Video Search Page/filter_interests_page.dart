@@ -41,8 +41,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
   bool _isSearching = false;
 
-  bool _isAllSelected = false;
-  bool _isFamilySelected = true;
+  bool _isAllSelected = true;
+  bool _isFamilySelected = false;
   bool _isCareerSelected = false;
   bool _isSportSelected = false;
   bool _isTravelingSelected = false;
@@ -196,11 +196,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     ShPreferences.setTravelingInterests(_selectedTravelingInterests);
     ShPreferences.setGeneralInterests(_selectedGeneralInterests);
 
-    _allInterestsScrollController!.dispose();
-    _careerInterestsScrollController!.dispose();
-    _travelingInterestsScrollController!.dispose();
-    _generalInterestsScrollController!.dispose();
-
 
     super.dispose();
   }
@@ -294,7 +289,14 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                 centerTitle: true,
               ),
               body: mainBody(),
-            )
+            ),
+          maxWidth: 800,
+          minWidth: 450,
+          defaultScale: true,
+          breakpoints: [
+            ResponsiveBreakpoint.resize(450, name: MOBILE),
+            ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+          ],
         );
       },
     );
@@ -669,7 +671,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             thickness: 1,
           ),
           _allInterestsFilteredList!.length != 0 ? SizedBox(
-              height: height / 1.35,
+              height: height / 1.21,
               child: SafeArea(
                 top: false,
                 child: SingleChildScrollView(
@@ -740,7 +742,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             thickness: 1,
           ),
           _familyFilteredList!.length != 0 ? SizedBox(
-              height: height / 1.35,
+              height: height / 1.21,
               child: SafeArea (
                 top: false,
                 child: SingleChildScrollView (
@@ -811,7 +813,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             thickness: 1,
           ),
           _careerFilteredList!.length != 0 ? SizedBox(
-              height: height / 1.35,
+              height: height / 1.21,
               child: SafeArea(
                 top: false,
                 child: SingleChildScrollView(
@@ -884,7 +886,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             thickness: 1,
           ),
           _sportFilteredList!.length != 0 ? SizedBox(
-              height: height / 1.35,
+              height: height / 1.21,
               child: SafeArea(
                 top: false,
                 child: SingleChildScrollView(
@@ -957,7 +959,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             thickness: 1,
           ),
           _travelingFilteredList!.length != 0 ? SizedBox(
-              height: height / 1.35,
+              height: height / 1.21,
               child: SafeArea(
                 top: false,
                 child: SingleChildScrollView(
@@ -1031,7 +1033,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
             thickness: 1,
           ),
           _generalFilteredList!.length != 0 ? SizedBox(
-              height: height / 1.35,
+              height: height / 1.21,
               child: SafeArea(
                 top: false,
                 child: SingleChildScrollView(

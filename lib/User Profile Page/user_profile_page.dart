@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/Messages%20Page/messages_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
@@ -71,13 +72,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
         width = constraints.maxWidth;
        return ResponsiveWrapper.builder (
            Scaffold(
-             extendBodyBehindAppBar: true,
              resizeToAvoidBottomInset: false,
+             extendBodyBehindAppBar: true,
              appBar: AppBar(
                elevation: 0,
                automaticallyImplyLeading: false,
                systemOverlayStyle: _bottomNavBarIndex == 1 ?
-               SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : null,
+               SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : _bottomNavBarIndex == 0 ? SystemUiOverlayStyle.dark : null,
                backgroundColor: Colors.transparent,
                toolbarHeight: 0,
              ),
@@ -85,7 +86,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                physics: NeverScrollableScrollPhysics(),
                controller: _pageController,
                children: [
-                 Container(),
+                 MessagesPage(),
                  RefreshIndicator(
                    color: Color.fromRGBO(145, 10, 251, 5),
                    child: SingleChildScrollView(
