@@ -102,9 +102,14 @@ class _GenderPageState extends State<GenderPage>{
                   double height = constraint.maxHeight;
                   double width = constraint.maxWidth;
                   return Stack(
-                    clipBehavior: Clip.antiAlias,
+                    clipBehavior: Clip.none,
                     children: [
-                      Positioned (
+                      Positioned(
+                          left: height / 11,
+                          top: width / 22,
+                          child: SvgPicture.asset(_genderPageLinesAsset),
+                      ),
+                      Positioned(
                           left: height / 6,
                           bottom: width * 0.8,
                           child:  GestureDetector(
@@ -189,11 +194,6 @@ class _GenderPageState extends State<GenderPage>{
                         bottom: width / 1.57,
                         child: SvgPicture.asset(_dotAsset)
                       ),
-                      Positioned(
-                        left: height / 11,
-                        top: width / 22,
-                        child: SvgPicture.asset(_genderPageLinesAsset)
-                      )
                     ],
                   );
                 },

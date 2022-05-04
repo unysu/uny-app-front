@@ -110,6 +110,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                     showBottomSheet();
                   } else if (status.isPermanentlyDenied) {
                     showAlertDialog();
+                  }else if(status.isLimited){
+                    showAlertDialog();
                   }
                 }else if(UniversalPlatform.isAndroid){
                   var storagePermission = await Permission.storage.request();

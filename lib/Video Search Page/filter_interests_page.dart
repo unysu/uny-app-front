@@ -535,7 +535,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         }
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-          _allInterestsList = snapshot.data;
+          _allInterestsList = List.from(snapshot.data!.toList());
 
           return allInterestsGridView();
         }else{
@@ -558,7 +558,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         }
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-          _familyInterestsList = snapshot.data;
+          _familyInterestsList = List.from(snapshot.data!.toList());
 
           return familyInterestsGridView();
         }else{
@@ -581,8 +581,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
           );
         }
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-
-          _careerInterestsList = snapshot.data;
+          _careerInterestsList = List.from(snapshot.data!.toList());
 
           return careerInterestsGridView();
         }else{
@@ -605,7 +604,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         }
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-          _sportInterestsList = snapshot.data;
+          _sportInterestsList = List.from(snapshot.data!.toList());
 
           return sportInterestsGridView();
         }else{
@@ -628,7 +627,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         }
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-          _travelingInterestsList = snapshot.data;
+          _travelingInterestsList = List.from(snapshot.data!.toList());
 
           return travelingInterestsGridView();
         }else{
@@ -650,7 +649,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
           );
         }
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-          _generalInterestsList = snapshot.data;
+          _generalInterestsList = List.from(snapshot.data!.toList());
 
           return generalInterestsGridView();
         }else{
@@ -681,28 +680,45 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       scrollDirection: Axis.horizontal,
                       child: Container (
                         padding: EdgeInsets.only(left: 10),
-                        width: width / 0.7,
+                        width: width / 0.5,
                         child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 2.0,
+                            spacing: 7.0,
+                            runSpacing: 9.0,
                             children: List.generate(_allInterestsFilteredList!.length, (index) {
                               return Material(
                                 child: InkWell(
                                   onTap: () {
                                     _selectedAllInterests!.add(_allInterestsFilteredList![index]);
+
+                                    _allInterestsFilteredList!.removeAt(index);
+
                                     setState(() {});
                                   },
                                   borderRadius: BorderRadius.all(Radius.circular(30)),
-                                  child: Chip(
-                                    visualDensity: VisualDensity.comfortable,
-                                    padding: EdgeInsets.all(10),
-                                    backgroundColor: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
-                                    shadowColor: Colors.grey,
-                                    label: Text(
-                                      _allInterestsFilteredList![index].name!,
-                                      style: TextStyle(color: Colors.white),
+                                  child: Container(
+                                    height: 40,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: Center(
+                                      widthFactor: 1,
+                                      child: Text(
+                                        _allInterestsFilteredList![index].name!,
+                                        style: const TextStyle(color: Colors.white),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
-                                  ),
+                                    decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                        color: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)).withOpacity(0.7),
+                                              offset: Offset(3, 3),
+                                              blurRadius: 0,
+                                              spreadRadius: 0
+                                          )
+                                        ]
+                                    ),
+                                  )
                                 ),
                               );
                             })
@@ -710,7 +726,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       )),
                 ),
               )) : AnimatedPadding(
-              duration: Duration(milliseconds: 150),
+              duration: const Duration(milliseconds: 150),
               padding: EdgeInsets.symmetric(
                   vertical:  height / 5,
                   horizontal: width / 10),
@@ -751,29 +767,45 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       scrollDirection: Axis.horizontal,
                       child: Container (
                         padding: EdgeInsets.only(left: 10),
-                        width: width / 0.7,
+                        width: width / 0.5,
                         child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
+                            spacing: 8.0,
+                            runSpacing: 10.0,
                             children: List.generate(_familyFilteredList!.length, (index) {
                               return Material(
                                 child: InkWell(
                                   onTap: () {
                                     _selectedFamilyInterests!.add(_familyFilteredList![index]);
+
+                                    _familyFilteredList!.removeAt(index);
+
                                     setState(() {});
                                   },
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
-                                  child: Chip(
-                                    visualDensity: VisualDensity.comfortable,
-                                    padding: EdgeInsets.all(10),
-                                    backgroundColor: Color(int.parse('0x' + _familyFilteredList![index].color!)),
-                                    shadowColor: Colors.grey,
-                                    label: Text(
-                                      _familyFilteredList![index].name!,
-                                      style: TextStyle(color: Colors.white),
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                  child: Container(
+                                    height: 40,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: Center(
+                                      widthFactor: 1,
+                                      child: Text(
+                                        _familyFilteredList![index].name!,
+                                        style: const TextStyle(color: Colors.white),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
-                                  ),
+                                    decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                        color: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.green[800]!,
+                                              offset: Offset(3, 3),
+                                              blurRadius: 0,
+                                              spreadRadius: 0
+                                          )
+                                        ]
+                                    ),
+                                  )
                                 ),
                               );
                             })
@@ -823,30 +855,46 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       scrollDirection: Axis.horizontal,
                       child: Container(
                         padding: EdgeInsets.only(left: 10),
-                        width: width / 0.7,
+                        width: width / 0.5,
                         child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
+                            spacing: 8.0,
+                            runSpacing: 10.0,
                             children: List.generate(_careerFilteredList!.length,
                                     (index) {
                                   return Material(
                                     child: InkWell(
                                       onTap: () {
                                         _selectedCareerInterests!.add(_careerFilteredList![index]);
+
+                                        _careerFilteredList!.removeAt(index);
+
                                         setState((){});
                                       },
-                                      borderRadius:
-                                      BorderRadius.all(Radius.circular(30)),
-                                      child: Chip(
-                                        visualDensity: VisualDensity.comfortable,
-                                        padding: EdgeInsets.all(10),
-                                        backgroundColor: Color(int.parse('0x' + _careerFilteredList![index].color!)),
-                                        shadowColor: Colors.grey,
-                                        label: Text(
-                                          _careerFilteredList![index].name!,
-                                          style: TextStyle(color: Colors.white),
+                                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                                      child: Container(
+                                        height: 40,
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Center(
+                                          widthFactor: 1,
+                                          child: Text(
+                                            _careerFilteredList![index].name!,
+                                            style: const TextStyle(color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
-                                      ),
+                                        decoration: BoxDecoration(
+                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                            color: Color(int.parse('0x' + _careerFilteredList![index].color!)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  color: Colors.blue[600]!,
+                                                  offset: Offset(3, 3),
+                                                  blurRadius: 0,
+                                                  spreadRadius: 0
+                                              )
+                                            ]
+                                        ),
+                                      )
                                     ),
                                   );
                                 })
@@ -895,10 +943,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       scrollDirection: Axis.horizontal,
                       child: Container(
                         padding: EdgeInsets.only(left: 10),
-                        width: width / 0.7,
+                        width: width / 0.5,
                         child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
+                            spacing: 8.0,
+                            runSpacing: 10.0,
                             children: List.generate(_sportFilteredList!.length,
                                     (index) {
                                   return Material(
@@ -906,20 +954,35 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                       onTap: () {
                                         _selectedSportInterests!.add(_sportFilteredList![index]);
 
+                                        _sportFilteredList!.removeAt(index);
+
                                         setState((){});
                                       },
-                                      borderRadius:
-                                      BorderRadius.all(Radius.circular(30)),
-                                      child: Chip(
-                                        visualDensity: VisualDensity.comfortable,
-                                        padding: EdgeInsets.all(10),
-                                        backgroundColor: Color(int.parse('0x' + _sportFilteredList![index].color!)),
-                                        shadowColor: Colors.grey,
-                                        label: Text(
-                                          _sportFilteredList![index].name!,
-                                          style: TextStyle(color: Colors.white),
+                                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                                      child: Container(
+                                        height: 40,
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Center(
+                                          widthFactor: 1,
+                                          child: Text(
+                                            _sportFilteredList![index].name!,
+                                            style: const TextStyle(color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
-                                      ),
+                                        decoration: BoxDecoration(
+                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                            color: Color(int.parse('0x' + _sportFilteredList![index].color!)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  color: Colors.blue[600]!,
+                                                  offset: Offset(3, 3),
+                                                  blurRadius: 0,
+                                                  spreadRadius: 0
+                                              )
+                                            ]
+                                        ),
+                                      )
                                     ),
                                   );
                                 })
@@ -969,10 +1032,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       scrollDirection: Axis.horizontal,
                       child: Container(
                         padding: EdgeInsets.only(left: 10),
-                        width: width / 0.7,
+                        width: width / 0.5,
                         child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
+                            spacing: 8.0,
+                            runSpacing: 10.0,
                             children: List.generate(_travelingFilteredList!.length,
                                     (index) {
                                   return Material(
@@ -980,20 +1043,35 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                       onTap: () {
                                         _selectedTravelingInterests!.add(_travelingFilteredList![index]);
 
+                                        _travelingFilteredList!.removeAt(index);
+
                                         setState((){});
                                       },
-                                      borderRadius:
-                                      BorderRadius.all(Radius.circular(30)),
-                                      child: Chip(
-                                        visualDensity: VisualDensity.comfortable,
-                                        padding: EdgeInsets.all(10),
-                                        backgroundColor: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
-                                        shadowColor: Colors.grey,
-                                        label: Text(
-                                          _travelingFilteredList![index].name!,
-                                          style: TextStyle(color: Colors.white),
+                                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                                      child: Container(
+                                        height: 40,
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Center(
+                                          widthFactor: 1,
+                                          child: Text(
+                                            _travelingFilteredList![index].name!,
+                                            style: const TextStyle(color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
-                                      ),
+                                        decoration: BoxDecoration(
+                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                            color: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  color: Colors.orange[800]!,
+                                                  offset: Offset(3, 3),
+                                                  blurRadius: 0,
+                                                  spreadRadius: 0
+                                              )
+                                            ]
+                                        ),
+                                      )
                                     ),
                                   );
                                 })
@@ -1043,10 +1121,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                       scrollDirection: Axis.horizontal,
                       child: Container(
                         padding: EdgeInsets.only(left: 10),
-                        width: width / 0.7,
+                        width: width / 0.5,
                         child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
+                            spacing: 8.0,
+                            runSpacing: 10.0,
                             children: List.generate(_generalFilteredList!.length,
                                     (index) {
                                   return Material(
@@ -1054,20 +1132,35 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                       onTap: () {
                                         _selectedGeneralInterests!.add(_generalFilteredList![index]);
 
+                                        _generalFilteredList!.removeAt(index);
+
                                         setState((){});
                                       },
-                                      borderRadius:
-                                      BorderRadius.all(Radius.circular(30)),
-                                      child: Chip(
-                                        visualDensity: VisualDensity.comfortable,
-                                        padding: EdgeInsets.all(10),
-                                        backgroundColor: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                                        shadowColor: Colors.grey,
-                                        label: Text(
-                                          _generalFilteredList![index].name!,
-                                          style: TextStyle(color: Colors.white),
+                                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                                      child: Container(
+                                        height: 40,
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Center(
+                                          widthFactor: 1,
+                                          child: Text(
+                                            _generalFilteredList![index].name!,
+                                            style: const TextStyle(color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
-                                      ),
+                                        decoration: BoxDecoration(
+                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                            color: Color(int.parse('0x' + _generalFilteredList![index].color!)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                  color: Colors.deepPurple,
+                                                  offset: Offset(3, 3),
+                                                  blurRadius: 0,
+                                                  spreadRadius: 0
+                                              )
+                                            ]
+                                        ),
+                                      )
                                     ),
                                   );
                                 })
@@ -1102,230 +1195,374 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
 
   Widget allSelectedInterests(){
-    return _selectedAllInterests!.length == 0
-        ? Container() : SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        child: Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          children: List.generate(_selectedAllInterests!.length, (index) {
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(6),
-                  backgroundColor: Color(int.parse('0x' + _selectedAllInterests![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _selectedAllInterests![index].name!,
-                    style: TextStyle(color: Colors.white),
+    return _selectedAllInterests!.isEmpty
+        ? Container() : Container(
+        width: width * 2,
+        height: 50,
+        padding: const EdgeInsets.only(left: 5, right: 5),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 6.0,
+            runSpacing: 6.0,
+            children: List.generate(_selectedAllInterests!.length, (index) {
+              return Material(
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _selectedAllInterests![index].name!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: IconButton(
+                            icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
+                            onPressed: (){
+
+                              int indx = _allInterestsList!.indexOf(_selectedAllInterests![index]);
+                              _allInterestsFilteredList!.insert(indx, _selectedAllInterests![index]);
+
+                              _selectedAllInterests!.removeAt(index);
+                              setState((){});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                  deleteIcon: Icon(CupertinoIcons.clear_circled,
-                      color: Colors.white),
-                  onDeleted: () {
-                    _selectedAllInterests!.removeAt(index);
-                    setState((){});
-                  },
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Color(int.parse('0x' + _selectedAllInterests![index].color!)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Color(int.parse('0x' + _selectedAllInterests![index].color!)).withOpacity(0.7),
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0
+                        )
+                      ]
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
-      ),
+              );
+            }).reversed.toList(),
+          ),
+        )
     );
   }
 
   Widget familySelectedInterests(){
     return _selectedFamilyInterests!.length == 0
-        ? Container() : SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        child: Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          children: List.generate(_selectedFamilyInterests!.length, (index) {
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(6),
-                  backgroundColor: Color(int.parse('0x' + _selectedFamilyInterests![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _selectedFamilyInterests![index].name!,
-                    style: TextStyle(color: Colors.white),
+        ? Container() : Container(
+        width: width * 2,
+        height: 50,
+        padding: const EdgeInsets.only(left: 5, right: 5),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 6.0,
+            runSpacing: 6.0,
+            children: List.generate(_selectedFamilyInterests!.length, (index) {
+              return Material(
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _selectedFamilyInterests![index].name!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: IconButton(
+                            icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
+                            onPressed: (){
+
+                              int indx = _familyInterestsList!.indexOf(_selectedFamilyInterests![index]);
+                              _familyFilteredList!.insert(indx, _selectedFamilyInterests![index]);
+
+                              _selectedFamilyInterests!.removeAt(index);
+
+                              setState((){});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                  deleteIcon: Icon(CupertinoIcons.clear_circled,
-                      color: Colors.white),
-                  onDeleted: () {
-                    _selectedFamilyInterests!.removeAt(index);
-                    setState((){});
-                  },
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Color(int.parse('0x' + _selectedFamilyInterests![index].color!)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.green[800]!,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0
+                        )
+                      ]
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
-      ),
+              );
+            }).reversed.toList(),
+          ),
+        )
     );
   }
 
   Widget careerSelectedInterests(){
     return _selectedCareerInterests!.length == 0
-        ? Container(): SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        padding: EdgeInsets.only(bottom: 5),
-        child: Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          children: List.generate(_selectedCareerInterests!.length, (index) {
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(10),
-                  backgroundColor: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _selectedCareerInterests![index].name!,
-                    style: TextStyle(color: Colors.white),
+        ? Container(): Container(
+        width: width * 2,
+        height: 50,
+        padding: const EdgeInsets.only(left: 5, right: 5),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 6.0,
+            runSpacing: 6.0,
+            children: List.generate(_selectedCareerInterests!.length, (index) {
+              return Material(
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _selectedCareerInterests![index].name!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: IconButton(
+                            icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
+                            onPressed: (){
+                              int indx = _careerInterestsList!.indexOf(_selectedCareerInterests![index]);
+                              _careerFilteredList!.insert(indx, _selectedCareerInterests![index]);
+
+                              _selectedCareerInterests!.removeAt(index);
+
+                              setState((){});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                  deleteIcon: Icon(CupertinoIcons.clear_circled,
-                      color: Colors.white),
-                  onDeleted: () {
-                    _selectedCareerInterests!.removeAt(index);
-                    setState((){});
-                  },
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.blue[600]!,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0
+                        )
+                      ]
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
-      ),
+              );
+            }).reversed.toList(),
+          ),
+        )
     );
   }
 
   Widget sportSelectedInterests(){
     return _selectedSportInterests!.length == 0
-        ? Container(): SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        padding: EdgeInsets.only(bottom: 5),
-        child: Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          children: List.generate(_selectedSportInterests!.length, (index) {
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(10),
-                  backgroundColor: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _selectedSportInterests![index].name!,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  deleteIcon: Icon(CupertinoIcons.clear_circled,
-                      color: Colors.white),
-                  onDeleted: () {
-                    _selectedSportInterests!.removeAt(index);
+        ? Container(): Container(
+        width: width * 2,
+        height: 50,
+        padding: const EdgeInsets.only(left: 5, right: 5),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 6.0,
+            runSpacing: 6.0,
+            children: List.generate(_selectedSportInterests!.length, (index) {
+              return Material(
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _selectedSportInterests![index].name!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: IconButton(
+                            icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
+                            onPressed: (){
+                              int indx = _sportInterestsList!.indexOf(_selectedSportInterests![index]);
+                              _sportFilteredList!.insert(indx, _selectedSportInterests![index]);
 
-                    setState((){});
-                  },
+                              _selectedSportInterests!.removeAt(index);
+
+                              setState((){});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.blue[600]!,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0
+                        )
+                      ]
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
-      ),
+              );
+            }).reversed.toList(),
+          ),
+        )
     );
   }
 
   Widget travelingSelectedInterests(){
     return _selectedTravelingInterests!.length == 0
-        ? Container(): SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        padding: EdgeInsets.only(bottom: 5),
-        child: Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          children: List.generate(_selectedTravelingInterests!.length, (index) {
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(10),
-                  backgroundColor: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _selectedTravelingInterests![index].name!,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  deleteIcon: Icon(CupertinoIcons.clear_circled,
-                      color: Colors.white),
-                  onDeleted: () {
-                    _selectedTravelingInterests!.removeAt(index);
+        ? Container(): Container(
+        width: width * 2,
+        height: 50,
+        padding: const EdgeInsets.only(left: 5, right: 5),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 6.0,
+            runSpacing: 6.0,
+            children: List.generate(_selectedTravelingInterests!.length, (index) {
+              return Material(
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _selectedTravelingInterests![index].name!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: IconButton(
+                            icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
+                            onPressed: (){
+                              int indx = _travelingInterestsList!.indexOf(_selectedTravelingInterests![index]);
+                              _travelingFilteredList!.insert(indx, _selectedTravelingInterests![index]);
 
-                    setState((){});
-                  },
+                              _selectedTravelingInterests!.removeAt(index);
+                              setState((){});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.orange[800]!,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0
+                        )
+                      ]
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
-      ),
+              );
+            }).reversed.toList(),
+          ),
+        )
     );
   }
 
   Widget generalSelectedInterests(){
     return _selectedGeneralInterests!.length == 0
-        ? Container() : SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        padding: EdgeInsets.only(bottom: 5),
-        child: Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          children: List.generate(_selectedGeneralInterests!.length, (index) {
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                child: Chip(
-                  labelPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                  visualDensity: VisualDensity.comfortable,
-                  padding: EdgeInsets.all(10),
-                  backgroundColor: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
-                  shadowColor: Colors.grey,
-                  label: Text(
-                    _selectedGeneralInterests![index].name!,
-                    style: TextStyle(color: Colors.white),
+        ? Container() : Container(
+        width: width * 2,
+        height: 50,
+        padding: const EdgeInsets.only(left: 5, right: 5),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            spacing: 6.0,
+            runSpacing: 6.0,
+            children: List.generate(_selectedGeneralInterests!.length, (index) {
+              return Material(
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          _selectedGeneralInterests![index].name!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: IconButton(
+                            icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
+                            onPressed: (){
+                              int indx = _generalInterestsList!.indexOf(_selectedGeneralInterests![index]);
+                              _generalFilteredList!.insert(indx, _selectedGeneralInterests![index]);
+
+                              _selectedGeneralInterests!.removeAt(index);
+
+                              setState((){});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                  deleteIcon: Icon(CupertinoIcons.clear_circled,
-                      color: Colors.white),
-                  onDeleted: () {
-                    _selectedGeneralInterests!.removeAt(index);
-                    setState((){});
-                  },
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      color: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.deepPurple,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                            spreadRadius: 0
+                        )
+                      ]
+                  ),
                 ),
-              ),
-            );
-          }),
-        ),
-      ),
+              );
+            }).reversed.toList(),
+          ),
+        )
     );
   }
 }

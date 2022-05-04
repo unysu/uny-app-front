@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:random_color/random_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
 import 'package:uny_app/Interests%20Model/all_interests_db_model.dart';
@@ -15,10 +16,11 @@ import 'package:uny_app/Interests%20Model/sport_interests.dart';
 import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
+import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 import 'Interests Model/career_interests.dart';
-import 'Interests Pages/choose_interests_page.dart';
+
 
 
 void main() async {

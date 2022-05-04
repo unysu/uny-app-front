@@ -197,6 +197,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               cursorColor: Colors.white,
               textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
+              readOnly: true,
               decoration: InputDecoration(
                 hintText: 'Дата рождения',
                 hintStyle: TextStyle(fontSize: 17, color: isDateOfBirthFieldEmpty != true ? Colors.white : Colors.red),

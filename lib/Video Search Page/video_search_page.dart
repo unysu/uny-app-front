@@ -384,8 +384,8 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                         child: Stack(
                           children: [
                             Container(
-                              height: 60,
-                              width: 60,
+                              height: height / 14,
+                              width: width / 8,
                               decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   image: DecorationImage(
@@ -397,9 +397,9 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                             ),
                             Positioned(
                               top: height / 20,
-                              left: width / 55,
+                              left: width / 69,
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 5),
+                                padding: EdgeInsets.symmetric(horizontal: 6),
                                 child: Text('64 %', style: TextStyle(
                                     color: Colors.white)),
                                 decoration: BoxDecoration(
