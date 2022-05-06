@@ -18,6 +18,7 @@ import 'package:uny_app/Interests%20Model/travelling_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
 import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 import 'Interests Model/career_interests.dart';
 
@@ -26,6 +27,7 @@ import 'Interests Model/career_interests.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ShPreferences.init();
+  await TokenData.init();
   runApp(MaterialApp(
     home: SplashScreenPage(),
   ));

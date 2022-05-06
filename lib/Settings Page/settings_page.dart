@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +13,6 @@ import 'package:uny_app/Settings%20Page/edit_profile_page.dart';
 import 'package:uny_app/Settings%20Page/notifications_settings_page.dart';
 import 'package:uny_app/Settings%20Page/privacy_settings_page.dart';
 import 'package:uny_app/Settings%20Page/support_settings_page.dart';
-import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 
 class SettingsPage extends StatefulWidget{

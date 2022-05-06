@@ -1,10 +1,14 @@
+import 'package:chopper/chopper.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/phone_nmb_confirm_page.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
 
 class AuthorizationPage extends StatefulWidget{
   const AuthorizationPage({Key? key}) : super(key: key);
@@ -24,10 +28,11 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
 
   FocusNode? focusNode;
 
-  MaskedTextController? textController;
+  MaskedTextController? phoneNumberTextController;
 
-  bool? isDisabled = true;
-  bool? validate = false;
+  bool isDisabled = true;
+  bool validate = false;
+  bool showLoading = false;
 
   late double mqWidth;
   late double mqHeight;
@@ -37,7 +42,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
     super.initState();
 
     focusNode = FocusNode();
-    textController = MaskedTextController(mask: '(000) 000-00-00');
+    phoneNumberTextController = MaskedTextController(mask: '(000) 000-00-00');
   }
 
   @override
@@ -45,7 +50,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
     super.dispose();
 
     focusNode!.dispose();
-    textController!.dispose();
+    phoneNumberTextController!.dispose();
   }
 
   @override
@@ -124,7 +129,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                       children: [
                         Text('Номер телефона', style: TextStyle(fontSize: 15, color: validate == true ? Colors.red : Colors.white)),
                         TextFormField(
-                          controller: textController,
+                          controller: phoneNumberTextController,
                           focusNode: focusNode,
                           style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.number,
@@ -144,7 +149,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                                     width: 40,
                                     child: IconButton(
                                         onPressed: (){
-                                          textController!.clear();
+                                          phoneNumberTextController!.clear();
                                           setState(() {
                                             isDisabled = true;
                                           });
@@ -196,17 +201,50 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                       borderRadius: BorderRadius.circular(11),
                       color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
                       child: InkWell(
-                        onTap: validate == true || isDisabled == true ? null : (){Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneNumberConfirmationPage(phoneNumber: textController!.text)));},
+                        onTap: validate == true || isDisabled == true ? null : () async {
+                          setState(() {
+                            showLoading = true;
+                          });
+
+                          final output = phoneNumberTextController!.text.replaceAll(RegExp(r"[^\s\w]"), '');
+                          final number = output.replaceAll(' ', '');
+
+                          var data = {
+                            'phone_number' : '+7' + number
+                          };
+
+                          Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).auth(data);
+
+                          if(response.body!.success == true) {
+                            showLoading = false;
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PhoneNumberConfirmationPage(phoneNumber: phoneNumberTextController!.text))
+                            );
+                          }
+                        },
                         child: SizedBox(
                           width: 200,
                           height: 50,
-                          child: Center(child: Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
-                        ),
+                          child: Center(
+                              child: !showLoading
+                                    ? Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))
+                                    : Container(
+                                       height: 30,
+                                       width: 30,
+                                       child: CircularProgressIndicator(
+                                         color: Colors.black,
+                                         strokeWidth: 2,
+                                       ),
+                                     )
+                                 ),
+                             ),
+                         )
                       ),
-                    )
-                ),
-              ],
-            ),
+                   )
+                ],
+              ),
           ),
           Container(
             padding: EdgeInsets.only(top: mqHeight * 0.15, right: mqWidth * 0.1, left: mqWidth * 0.1),

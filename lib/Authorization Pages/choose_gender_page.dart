@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 
 class GenderPage extends StatefulWidget{
   @override

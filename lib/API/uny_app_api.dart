@@ -1,12 +1,42 @@
 import 'package:chopper/chopper.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
+import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
+import 'package:uny_app/Json%20Converter/json_converter.dart';
 
 part 'uny_app_api.chopper.dart';
 
 @ChopperApi()
 abstract class UnyAPI extends ChopperService{
 
-  static UnyAPI api(){
+  @Post(path: '/auth')
+  Future<Response<AuthModel>> auth(@Body() var data);
+
+  @Post(path: '/login')
+  Future<Response<UserDataModel>> confirmCode(@Body() var data);
+
+  @Post(path: '/resend_sms')
+  Future<Response<AuthModel>> resendSMS(@Body() var data);
+
+  @Post(path: '/user/remove_account')
+  Future<Response<AuthModel>> removeAccount(@Header('Authorization') String token);
+
+
+  static UnyAPI create(String converterCode){
     JsonConverter? converter;
+
+    switch(converterCode){
+      case Constants.AUTH_MODEL_CONVERTER_CONSTANT:
+        converter = JsonToTypeConverter({
+          AuthModel: (json) => AuthModel.fromJson(json)
+        });
+        break;
+      case Constants.USER_DATA_MODEL_CONVERTER_CONSTANT:
+        converter = JsonToTypeConverter({
+          UserDataModel: (json) => UserDataModel.fromJson(json)
+        });
+        break;
+    }
 
     final client = ChopperClient(
       baseUrl: 'http://54.209.251.199/api',

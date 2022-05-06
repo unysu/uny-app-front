@@ -1,3 +1,4 @@
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -5,8 +6,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
 import 'package:uny_app/Settings%20Page/change_phone_number_page.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 
 class EditProfilePage extends StatefulWidget{
   @override
@@ -620,12 +625,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               actions: [
                 CupertinoActionSheetAction(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => AuthorizationPage()),
-                          (Route<dynamic> route) => false,
-                    );
+                  onPressed: () async {
+                    String token = TokenData.getUserToken();
+                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount('Bearer ' + token);
+
+                    if(response.body!.success == true){
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => AuthorizationPage()),
+                            (Route<dynamic> route) => false,
+                      );
+                    }
                   },
                   isDestructiveAction: true,
                   child: Text('Удалить аккаунт'),
@@ -659,12 +669,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: (){
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => AuthorizationPage()),
-                          (Route<dynamic> route) => false,
-                    );
+                  onPressed: () async {
+                    String token = TokenData.getUserToken();
+                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount('Bearer ' + token);
+
+                    if(response.body!.success == true){
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => AuthorizationPage()),
+                            (Route<dynamic> route) => false,
+                      );
+                    }
                   },
                   child: Text('Удалить аккаунт', style: TextStyle(color: Colors.red)),
                 ),

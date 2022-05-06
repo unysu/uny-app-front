@@ -1,12 +1,18 @@
 import 'dart:async';
 
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_verification_code/flutter_verification_code.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/choose_gender_page.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
+import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 
 class PhoneNumberConfirmationPage extends StatefulWidget{
 
@@ -17,21 +23,16 @@ class PhoneNumberConfirmationPage extends StatefulWidget{
   });
 
   @override
-  _PhoneNumberConfirmationPageState createState() => _PhoneNumberConfirmationPageState(phoneNumber: phoneNumber);
+  _PhoneNumberConfirmationPageState createState() => _PhoneNumberConfirmationPageState();
 }
 
 class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPage> {
-
-  String? phoneNumber;
-
-  _PhoneNumberConfirmationPageState({
-    required this.phoneNumber
-  });
 
   int counter = 59;
 
   bool? isWrong = false;
   bool? isDisabled = true;
+  bool? showLoading = false;
 
   String? sampleCode = '0000';
   String? code;
@@ -108,7 +109,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                 SizedBox(
                   width: mqWidth * 0.8,
                   child: Text(
-                    'Мы отправили код на твой номер телефона +7 $phoneNumber',
+                    'Мы отправили код на твой номер телефона +7 ${widget.phoneNumber}',
                     maxLines: 3,
                     style: TextStyle(fontSize: 17, color: Colors.grey),
                   ),
@@ -153,7 +154,21 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         InkWell(
-                          onTap: counter == 0 ? () => {setState((){counter = 59; countDown();})} : null,
+                          onTap: counter == 0 ? () async {
+                            final output = widget.phoneNumber!.replaceAll(RegExp(r"[^\s\w]"), '');
+                            final number = output.replaceAll(' ', '');
+
+                            var data = {
+                              'phone_number' : '+7' + number
+                            };
+
+                            Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).resendSMS(data);
+
+                            setState((){
+                              counter = 59;
+                              countDown();
+                            });
+                          } : null,
                           child: Text(
                               'Отправить повторно ',
                               style: TextStyle(fontSize: 17, color: counter == 0 ? Colors.white : Colors.grey)
@@ -175,18 +190,63 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                 borderRadius: BorderRadius.circular(11),
                 color: isDisabled == true ? Colors.white.withOpacity(0.3) : Colors.white,
                 child: InkWell(
-                  onTap: isDisabled == true ? null : (){
-                    code != sampleCode ? setState((){
-                      isWrong = true;
-                    }) : setState((){
-                      isWrong = false;
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
+                  onTap: isDisabled == true ? null : () async {
+                    setState(() {
+                      showLoading = true;
                     });
+
+
+                    final output = widget.phoneNumber!.replaceAll(RegExp(r"[^\s\w]"), '');
+                    final number = output.replaceAll(' ', '');
+
+                    var data = {
+                      'phone_number' : '+7' + number,
+                      'auth_code' : code! + '4'
+                    };
+
+                    Response<UserDataModel> response = await UnyAPI.create(Constants.USER_DATA_MODEL_CONVERTER_CONSTANT).confirmCode(data);
+                    UserDataModel userData = response.body!;
+
+                    if(userData.success == true){
+                      setState((){
+                        isWrong = false;
+                        showLoading = false;
+                      });
+
+                      TokenData.setUserToken(userData.token);
+
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
+                    }else{
+                      setState(() {
+                        isWrong = true;
+                        showLoading = false;
+                      });
+                    }
+
+                    // code! + '5' != sampleCode ? setState((){
+                    //   isWrong = true;
+                    //   showLoading = false;
+                    // }) : setState((){
+                    //   isWrong = false;
+                    //   showLoading = false;
+                    //   Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
+                    // });
                   },
                   child: SizedBox(
                     width: 200,
                     height: 50,
-                    child: Center(child: Text('Далее', style: TextStyle(color:isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))),
+                    child: Center(
+                        child: !showLoading!
+                        ? Text('Далее', style: TextStyle(color:isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))
+                        : Container(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        )
+                    ),
                   ),
                 ),
               )
