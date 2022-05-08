@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/Chats%20Page/messages_page.dart';
+import 'package:uny_app/Timeline%20Page/time_line_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
@@ -78,7 +79,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                elevation: 0,
                automaticallyImplyLeading: false,
                systemOverlayStyle: _bottomNavBarIndex == 1 ?
-               SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : _bottomNavBarIndex == 0 ? SystemUiOverlayStyle.dark : null,
+               SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 || _bottomNavBarIndex == 2 ? SystemUiOverlayStyle.dark : _bottomNavBarIndex == 0 ? SystemUiOverlayStyle.dark : null,
                backgroundColor: Colors.transparent,
                toolbarHeight: 0,
              ),
@@ -99,7 +100,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                      return Future.delayed(Duration(milliseconds: 1000));
                    },
                  ),
-                 Container(),
+                 TimeLinePage(),
                  VideoSearchPage(),
                  SettingsPage(),
                ],
