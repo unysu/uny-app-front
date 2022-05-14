@@ -114,7 +114,7 @@ class _GenderPageState extends State<GenderPage>{
                           left: height / 6,
                           bottom: width * 0.8,
                           child:  GestureDetector(
-                            onTap: () => nextPage(),
+                            onTap: () => nextPage('Female'),
                             child: Column(
                               children: [
                                 Image.asset(_womanAsset),
@@ -134,7 +134,7 @@ class _GenderPageState extends State<GenderPage>{
                           child: Column(
                             children: [
                               GestureDetector(
-                                onTap: () => nextPage(),
+                                onTap: () => nextPage('Other'),
                                 child: Image.asset(_anotherGenderAsset)
                               ),
                               Text('Другое', style: TextStyle(color: Colors.white))
@@ -146,7 +146,7 @@ class _GenderPageState extends State<GenderPage>{
                           bottom: width / 2,
                           child: GestureDetector(
                             excludeFromSemantics: false,
-                            onTap: () => nextPage(),
+                            onTap: () => nextPage('Male'),
                             child: Column(
                               children: [
                                 Image.asset(_manAsset),
@@ -205,7 +205,7 @@ class _GenderPageState extends State<GenderPage>{
     );
   }
 
-  void nextPage(){
-    Navigator.push(context, MaterialPageRoute(builder: (context) => AuthorizationInfoPage()));
+  void nextPage(String gender){
+    Navigator.push(context, MaterialPageRoute(builder: (context) => AuthorizationInfoPage(gender)));
   }
 }

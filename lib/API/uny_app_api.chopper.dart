@@ -50,4 +50,43 @@ class _$UnyAPI extends UnyAPI {
     final $request = Request('POST', $url, client.baseUrl, headers: $headers);
     return client.send<AuthModel, AuthModel>($request);
   }
+
+  @override
+  Future<Response<UserDataModel>> updateUser(String token, dynamic data) {
+    final $url = '/user/update_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<UserDataModel, UserDataModel>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> uploadMedia(String token, dynamic data) {
+    final $url = '/user/upload_media';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> addInterests(String token, dynamic data) {
+    final $url = '/user/add_interests';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
 }

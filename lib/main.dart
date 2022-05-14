@@ -77,7 +77,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     addInterestsToDb().whenComplete(() {
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => UserProfilePage())
+          MaterialPageRoute(builder: (context) => AuthorizationPage())
       );
     });
   }

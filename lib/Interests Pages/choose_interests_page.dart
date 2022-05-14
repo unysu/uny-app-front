@@ -1,8 +1,13 @@
+import 'dart:convert';
+
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
 import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
@@ -10,6 +15,7 @@ import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 
 class InterestsPage extends StatefulWidget {
@@ -84,6 +90,8 @@ class _InterestsPageState extends State<InterestsPage> {
   bool _isSportIconEnabled = false;
   bool _isTravelingIconEnabled = false;
   bool _isGeneralIconEnabled = false;
+
+  bool _showLoading = false;
 
   FocusNode? addNewInterestFieldFocusNode;
   TextEditingController? newInterestFieldTextController;
@@ -1541,18 +1549,26 @@ class _InterestsPageState extends State<InterestsPage> {
                       ))),
               InkWell(
                 onTap: _selectedGeneralInterests!.length != 0 ? (){
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => UserProfilePage()),
-                        (Route<dynamic> route) => false,
-                  );
+                  setState(() {
+                    _showLoading = true;
+                  });
+                  addInterestsToServer();
                 } : null,
                 child: Container(
                   height: 50,
                   width: 100,
                   child: Center(
-                    child: Text('Готово',
-                        style: TextStyle(fontSize: 15, color: Colors.white)),
+                    child: !_showLoading
+                    ? Text('Готово',
+                        style: TextStyle(fontSize: 15, color: Colors.white))
+                    : Container(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   ),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.only(
@@ -2120,4 +2136,96 @@ class _InterestsPageState extends State<InterestsPage> {
     });
   }
 
+
+
+  void addInterestsToServer() async {
+
+    final API = await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER);
+
+    String token = 'Bearer ' + TokenData.getUserToken();
+
+    List<String?> _familyInterests = [];
+    List<String?> _careerInterests = [];
+    List<String?> _sportInterests = [];
+    List<String?> _travelingInterests = [];
+    List<String?> _generalInterests = [];
+
+    for(var i in _selectedFamilyInterests!){
+      _familyInterests.add(i.name);
+    }
+
+    for(var i in _selectedCareerInterests!){
+      _careerInterests.add(i.name);
+    }
+
+    for(var i in _selectedSportInterests!){
+      _sportInterests.add(i.name);
+    }
+
+    for(var i in _selectedTravelingInterests!){
+      _travelingInterests.add(i.name);
+    }
+
+    for(var i in _selectedGeneralInterests!){
+      _generalInterests.add(i.name);
+    }
+
+
+    var data = {
+      'interests' : jsonEncode(_familyInterests),
+      'type' : 'family'
+    };
+
+   API.addInterests(token, data).whenComplete(() async {
+      data = {
+        'interests' : jsonEncode(_careerInterests),
+        'type' : 'career'
+      };
+
+      API.addInterests(token, data).whenComplete(() async {
+
+        data = {
+          'interests' : jsonEncode(_sportInterests),
+          'type' : 'sport'
+        };
+
+        API.addInterests(token, data).whenComplete(() async {
+
+          data = {
+            'interests' : jsonEncode(_sportInterests),
+            'type' : 'sport'
+          };
+
+          API.addInterests(token, data).whenComplete(() async {
+
+            data = {
+              'interests' : jsonEncode(_travelingInterests),
+              'type' : 'traveling'
+            };
+
+            API.addInterests(token, data).then((value){
+              print(value.body);
+
+              data = {
+                'interests' : jsonEncode(_generalInterests),
+                'type' : 'general'
+              };
+
+              API.addInterests(token, data).whenComplete((){
+                setState(() {
+                  _showLoading = false;
+                });
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserProfilePage()),
+                      (Route<dynamic> route) => false,
+                );
+              });
+            });
+          });
+        });
+      });
+    });
+  }
 }

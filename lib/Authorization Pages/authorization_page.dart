@@ -26,6 +26,8 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
   final String _fbImg = 'assets/fb_auth.svg';
   final String _okImg = 'assets/ok_auth.svg';
 
+  String _phoneNumberCodeString = '+7';
+
   FocusNode? focusNode;
 
   MaskedTextController? phoneNumberTextController;
@@ -37,12 +39,15 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
   late double mqWidth;
   late double mqHeight;
 
+
   @override
   void initState() {
     super.initState();
 
     focusNode = FocusNode();
-    phoneNumberTextController = MaskedTextController(mask: '(000) 000-00-00');
+    phoneNumberTextController = MaskedTextController(
+        mask: '(000) 000-00-00'
+    );
   }
 
   @override
@@ -136,11 +141,40 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                           cursorColor: Colors.white,
                           textAlign: TextAlign.left,
                           decoration: InputDecoration(
-                              hintText: ('(XXX) XXX-XX-XX'),
+                              hintText: _phoneNumberCodeString == '+7'
+                                  ? ('(XXX) XXX-XX-XX')
+                                  : ('(XX) XXX-XXXX'),
                               hintStyle: const TextStyle(color: Colors.grey),
-                              prefixIcon: const Text('+7 ', style: TextStyle(color: Colors.white, fontSize: 15)),
+                              prefixIcon: DropdownButton<String>(
+                                isExpanded: false,
+                                value: _phoneNumberCodeString,
+                                icon: Icon(Icons.keyboard_arrow_down_sharp, color: Colors.grey),
+                                underline: Container(),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: '+7',
+                                    child: Text('+7', style: TextStyle(fontSize: 17, color: Colors.black)),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: '+971',
+                                    child: Text('+971', style: TextStyle(fontSize: 17, color: Colors.black)),
+                                  )
+                                ],
+                                onChanged: (value){
+                                  setState(() {
+                                    _phoneNumberCodeString = value!;
+                                  });
+
+                                  if(value == '+971'){
+                                    phoneNumberTextController!.updateMask('(00) 000-0000');
+                                  }else{
+                                    phoneNumberTextController!.updateMask('(000) 000-00-00');
+                                  }
+                                },
+                              ),
                               alignLabelWithHint: true,
-                              errorText: validate == true ? 'Номер должен содержать 11 цифр' : null,
+                              errorText: validate == true && _phoneNumberCodeString == '+7'
+                                  ? 'Номер должен содержать 10 цифр' : validate == true && _phoneNumberCodeString == '+971' ? 'Номер должен содержать 9 цифр' : null,
                               errorStyle: TextStyle(color: Colors.red, fontSize: 15),
                               prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                               suffixIcon: focusNode!.hasFocus ? SizedBox(
@@ -170,16 +204,30 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                             FocusScope.of(context).requestFocus(focusNode);
                           },
                           onChanged: (value) {
-                            if(value.length != 15 || value == ''){
-                              setState(() {
-                                validate = true;
-                                isDisabled = true;
-                              });
+                            if(_phoneNumberCodeString == '+7'){
+                              if(value.length != 15 || value == ''){
+                                setState(() {
+                                  validate = true;
+                                  isDisabled = true;
+                                });
+                              }else{
+                                setState(() {
+                                  validate = false;
+                                  isDisabled = false;
+                                });
+                              }
                             }else{
-                              setState(() {
-                                validate = false;
-                                isDisabled = false;
-                              });
+                              if(value.length != 13 || value == ''){
+                                setState(() {
+                                  validate = true;
+                                  isDisabled = true;
+                                });
+                              }else{
+                                setState(() {
+                                  validate = false;
+                                  isDisabled = false;
+                                });
+                              }
                             }
                           },
                         )
@@ -222,6 +270,10 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                                 MaterialPageRoute(
                                     builder: (context) => PhoneNumberConfirmationPage(phoneNumber: phoneNumberTextController!.text))
                             );
+                          }else{
+                            setState(() {
+                              showLoading = false;
+                            });
                           }
                         },
                         child: SizedBox(

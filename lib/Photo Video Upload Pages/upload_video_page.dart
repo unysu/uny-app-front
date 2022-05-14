@@ -1,15 +1,21 @@
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
 
@@ -30,6 +36,8 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
 
   final String _mainImageAsset = 'assets/upload_video_page_icon.svg';
   final String _newMediaImageAsset = 'assets/new_media.svg';
+
+  bool _showLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -236,16 +244,58 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
             borderRadius: BorderRadius.circular(11),
             color: Color.fromRGBO(145, 10, 251, 5),
             child: InkWell(
-              onTap: (){
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => InterestsPage())
-                );
+              onTap: () async {
+                String token = 'Bearer ' + TokenData.getUserToken();
+
+                setState(() {
+                  _showLoading = true;
+                });
+
+                if(_video != null){
+                  String path = _video!.path;
+
+                  String? mime = lookupMimeType(path);
+
+                  Uint8List videoBytes = File(path).readAsBytesSync();
+
+                  String base64Video = base64Encode(videoBytes);
+
+                  var data = {
+                    'media' : base64Video,
+                    'mime' : mime,
+                    'description' : 'simple video'
+                  };
+
+                 await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete((){
+                   _showLoading = false;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => InterestsPage())
+                    );
+                  });
+
+                }else{
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => InterestsPage())
+                  );
+                }
               },
               child: Container(
                 height: height / 15,
-                child: Center(child: Text('Далее', style: TextStyle(
-                    color: Colors.white.withOpacity(0.9), fontSize: 17))),
+                child: Center(
+                    child: !_showLoading
+                        ? Text('Далее', style: TextStyle(
+                        color: Colors.white.withOpacity(0.9), fontSize: 17))
+                        : Container(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                ),
               ),
             ),
           ),

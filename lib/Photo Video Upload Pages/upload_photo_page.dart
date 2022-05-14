@@ -1,15 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Photo%20Video%20Upload%20Pages/upload_video_page.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 
 class UploadPhotoPage extends StatefulWidget{
 
@@ -23,6 +30,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
   late double width;
 
   final ImagePicker _picker = ImagePicker();
+
+  bool _showLoading = false;
 
   File? image;
 
@@ -212,16 +221,55 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   ? Color.fromRGBO(145, 10, 251, 5)
                   : Colors.grey.withOpacity(0.5),
               child: InkWell(
-                onTap: imagesList.asMap().isEmpty ? null : () {
+                onTap: imagesList.asMap().isEmpty ? null : () async {
+                  String token = 'Bearer ' + TokenData.getUserToken();
+
+                  setState(() {
+                    _showLoading = true;
+                  });
+
+                  for(var image in imagesList) {
+
+                    String? mime = lookupMimeType(image!);
+
+                    Uint8List imageBytes = File(image).readAsBytesSync();
+
+                    String base64Img = base64Encode(imageBytes);
+
+                    var data = {
+                      'media' : base64Img,
+                      'mime' : mime,
+                      'description' : 'simple image'
+                    };
+
+                    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data);
+                  }
+
+                  setState(() {
+                    _showLoading = false;
+                  });
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => UploadVideoPage())
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UploadVideoPage()
+                    )
                   );
                 },
                 child: Container(
-                  child: Center(child: Text('Далее', style: TextStyle(
-                      color: imagesList.asMap().isEmpty ? Colors.white : Colors
-                          .white.withOpacity(0.9), fontSize: 17))),
+                  child: Center(
+                      child: !_showLoading
+                          ? Text('Далее', style: TextStyle(
+                          color: imagesList.asMap().isEmpty ? Colors.white : Colors
+                              .white.withOpacity(0.9), fontSize: 17))
+                          : Container(
+                              height: 30,
+                              width: 30,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                        ),
+                      )
+                  ),
                 ),
               ),
             )

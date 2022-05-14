@@ -201,7 +201,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
 
                     var data = {
                       'phone_number' : '+7' + number,
-                      'auth_code' : code! + '4'
+                      'auth_code' : code!
                     };
 
                     Response<UserDataModel> response = await UnyAPI.create(Constants.USER_DATA_MODEL_CONVERTER_CONSTANT).confirmCode(data);
@@ -222,22 +222,13 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                         showLoading = false;
                       });
                     }
-
-                    // code! + '5' != sampleCode ? setState((){
-                    //   isWrong = true;
-                    //   showLoading = false;
-                    // }) : setState((){
-                    //   isWrong = false;
-                    //   showLoading = false;
-                    //   Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
-                    // });
                   },
                   child: SizedBox(
                     width: 200,
                     height: 50,
                     child: Center(
                         child: !showLoading!
-                        ? Text('Далее', style: TextStyle(color:isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))
+                        ? Text('Далее', style: TextStyle(color: isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))
                         : Container(
                           height: 30,
                           width: 30,
