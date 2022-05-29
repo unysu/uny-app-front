@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:random_color/random_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
@@ -75,10 +76,17 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     _generalInterestsList = generalInterests.getGeneralInterests();
 
     addInterestsToDb().whenComplete(() {
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AuthorizationPage())
-      );
+      if(TokenData.getUserToken() != ''){
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => UserProfilePage())
+        );
+      }else{
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AuthorizationPage())
+        );
+      }
     });
   }
 

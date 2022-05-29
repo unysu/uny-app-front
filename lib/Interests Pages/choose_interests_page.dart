@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -164,7 +162,7 @@ class _InterestsPageState extends State<InterestsPage> {
       }
     });
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (UniversalPlatform.isIOS) {
         await showCupertinoModalPopup(
             context: context,
@@ -2140,92 +2138,93 @@ class _InterestsPageState extends State<InterestsPage> {
 
   void addInterestsToServer() async {
 
-    final API = await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER);
-
     String token = 'Bearer ' + TokenData.getUserToken();
 
-    List<String?> _familyInterests = [];
-    List<String?> _careerInterests = [];
-    List<String?> _sportInterests = [];
-    List<String?> _travelingInterests = [];
-    List<String?> _generalInterests = [];
+    Map<String, String> _familyInterestsMap = {};
+    Map<String, String> _careerInterestsMap = {};
+    Map<String, String> _sportInterestsMap = {};
+    Map<String, String> _travelingInterestsMap = {};
+    Map<String, String> _generalInterestsMap = {};
 
-    for(var i in _selectedFamilyInterests!){
-      _familyInterests.add(i.name);
+    List<Map<String, String>> _interestsList = [];
+
+    for (int i = 0; i < _selectedFamilyInterests!.length; i++) {
+      _familyInterestsMap = Map();
+
+      _familyInterestsMap.addAll({
+        'type' : 'family',
+        'interest' : '${_selectedFamilyInterests![i].name}',
+        'color' : '${_selectedFamilyInterests![i].color}'
+      });
+
+      _interestsList.add(_familyInterestsMap);
     }
 
-    for(var i in _selectedCareerInterests!){
-      _careerInterests.add(i.name);
+    for (int i = 0; i < _selectedCareerInterests!.length; i++) {
+      _careerInterestsMap = Map();
+
+      _careerInterestsMap.addAll({
+        'type' : 'career',
+        'interest' : '${_selectedCareerInterests![i].name}',
+        'color' : '${_selectedCareerInterests![i].color}'
+      });
+
+      _interestsList.add(_careerInterestsMap);
     }
 
-    for(var i in _selectedSportInterests!){
-      _sportInterests.add(i.name);
+    for (int i = 0; i < _selectedSportInterests!.length; i++) {
+      _sportInterestsMap = Map();
+
+      _sportInterestsMap.addAll({
+        'type' : 'sport',
+        'interest' : '${_selectedSportInterests![i].name}',
+        'color' : '${_selectedSportInterests![i].color}'
+      });
+
+      _interestsList.add(_sportInterestsMap);
     }
 
-    for(var i in _selectedTravelingInterests!){
-      _travelingInterests.add(i.name);
+    for (int i = 0; i < _selectedTravelingInterests!.length; i++) {
+      _travelingInterestsMap = Map();
+
+      _travelingInterestsMap.addAll({
+        'type' : 'traveling',
+        'interest' : '${_selectedTravelingInterests![i].name}',
+        'color' : '${_selectedTravelingInterests![i].color}'
+      });
+
+      _interestsList.add(_travelingInterestsMap);
     }
 
-    for(var i in _selectedGeneralInterests!){
-      _generalInterests.add(i.name);
+    for (int i = 0; i < _selectedGeneralInterests!.length; i++) {
+      _generalInterestsMap = Map();
+
+      _generalInterestsMap.addAll({
+        'type' : 'general',
+        'interest' : '${_selectedGeneralInterests![i].name}',
+        'color' : '${_selectedGeneralInterests![i].color}'
+      });
+
+      _interestsList.add(_generalInterestsMap);
     }
 
 
     var data = {
-      'interests' : jsonEncode(_familyInterests),
-      'type' : 'family'
+      'interests': jsonEncode(_interestsList),
     };
 
-   API.addInterests(token, data).whenComplete(() async {
-      data = {
-        'interests' : jsonEncode(_careerInterests),
-        'type' : 'career'
-      };
+    print(jsonEncode(_interestsList));
 
-      API.addInterests(token, data).whenComplete(() async {
-
-        data = {
-          'interests' : jsonEncode(_sportInterests),
-          'type' : 'sport'
-        };
-
-        API.addInterests(token, data).whenComplete(() async {
-
-          data = {
-            'interests' : jsonEncode(_sportInterests),
-            'type' : 'sport'
-          };
-
-          API.addInterests(token, data).whenComplete(() async {
-
-            data = {
-              'interests' : jsonEncode(_travelingInterests),
-              'type' : 'traveling'
-            };
-
-            API.addInterests(token, data).then((value){
-              print(value.body);
-
-              data = {
-                'interests' : jsonEncode(_generalInterests),
-                'type' : 'general'
-              };
-
-              API.addInterests(token, data).whenComplete((){
-                setState(() {
-                  _showLoading = false;
-                });
-
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserProfilePage()),
-                      (Route<dynamic> route) => false,
-                );
-              });
-            });
-          });
-        });
+    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).addInterests(token, data).whenComplete(() async {
+      setState(() {
+        _showLoading = false;
       });
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => UserProfilePage()),
+            (Route<dynamic> route) => false,
+      );
     });
   }
 }

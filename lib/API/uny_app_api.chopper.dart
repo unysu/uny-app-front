@@ -89,4 +89,28 @@ class _$UnyAPI extends UnyAPI {
         Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
     return client.send<dynamic, dynamic>($request);
   }
+
+  @override
+  Future<Response<dynamic>> editAboutMe(String token, dynamic data) {
+    final $url = '/user/update_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<AllUserDataModel>> getCurrentUser(String token) {
+    final $url = '/user/get_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
+    return client.send<AllUserDataModel, AllUserDataModel>($request);
+  }
 }

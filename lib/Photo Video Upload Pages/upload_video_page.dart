@@ -1,9 +1,6 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -263,7 +260,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                   var data = {
                     'media' : base64Video,
                     'mime' : mime,
-                    'description' : 'simple video'
+                    'filter' : '-'
                   };
 
                  await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete((){

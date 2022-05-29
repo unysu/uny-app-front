@@ -236,11 +236,21 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
 
                     String base64Img = base64Encode(imageBytes);
 
-                    var data = {
-                      'media' : base64Img,
-                      'mime' : mime,
-                      'description' : 'simple image'
-                    };
+                    var data;
+
+                    if(image == imagesList[0]){
+                      data = {
+                        'media' : base64Img,
+                        'mime' : mime,
+                        'filter' : 'main'
+                      };
+                    }else{
+                      data = {
+                        'media' : base64Img,
+                        'mime' : mime,
+                        'filter' : '-'
+                      };
+                    }
 
                     await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data);
                   }
@@ -248,6 +258,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   setState(() {
                     _showLoading = false;
                   });
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(

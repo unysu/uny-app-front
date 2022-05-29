@@ -20,4 +20,8 @@ class TokenData{
       return '';
     }
   }
+
+  static void clearToken(){
+    _sharedPreferences.clear();
+  }
 }

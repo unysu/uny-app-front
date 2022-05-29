@@ -34,12 +34,12 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons:
-  responsive_framework:
+  responsive_framework: ^0.2.0
   flutter_verification_code:
   universal_platform:
   intl:
   permission_handler:
-  photo_manager:
+  photo_manager: ^2.1.1
   image_picker:
   image_cropper:
   reorderable_grid_view:
@@ -54,11 +54,16 @@ dependencies:
   fluttertoast:
   floor: ^1.2.0
   shared_preferences: ^2.0.13
-  flutter_slidable: ^1.2.0
+  flutter_slidable: ^1.2.1
   json_annotation: ^4.4.0
   chopper: ^4.0.5
-  http: ^0.13.4
   mime: ^1.0.2
+  http: ^0.13.4
+  cached_network_image: ^3.2.1
+  cached_memory_image: ^1.2.1
+  chewie: ^1.3.3
+
+
 
 dev_dependencies:
   json_serializable: ^6.1.6

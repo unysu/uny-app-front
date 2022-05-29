@@ -127,7 +127,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
                           onTap: () {
                             Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => VideoPage())
+                                MaterialPageRoute(builder: (context) => VideoPage(base64Videos: null, videoIndex: null))
                             );
                           },
                           child: Container(

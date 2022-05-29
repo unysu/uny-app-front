@@ -49,7 +49,7 @@ class _ConfirmNewPhoneNumberPageState extends State<ConfirmNewPhoneNumberPage> {
 
     _fToast = FToast();
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fToast!.init(context);
     });
   }

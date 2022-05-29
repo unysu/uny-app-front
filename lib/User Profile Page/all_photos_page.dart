@@ -1,11 +1,20 @@
+import 'dart:convert';
+
+import 'package:cached_memory_image/cached_memory_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:sizer/sizer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/App%20Bar%20/sliding_app_bar.dart';
 
 class AllPhotosPage extends StatefulWidget {
+
+  List<String>? photos;
+
+  AllPhotosPage({required this.photos});
 
   @override
   _AllPhotosPageState createState() => _AllPhotosPageState();
@@ -21,6 +30,8 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
   bool _showAppBar = true;
   int _currentPic = 1;
 
+  StateSetter? picsState;
+  
   @override
   void initState() {
     super.initState();
@@ -29,6 +40,7 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
       vsync: this,
       duration: Duration(milliseconds: 400),
     );
+
   }
 
   @override
@@ -118,22 +130,20 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
                 enlargeCenterPage: true,
                 scrollPhysics: PageScrollPhysics(),
                 viewportFraction: 1,
+                enableInfiniteScroll: false,
+                disableCenter: false,
                 pageSnapping: true,
                 scrollDirection: Axis.horizontal,
                 onPageChanged: (index, reason){
-                  setState(() {
+                  picsState!(() {
                     _currentPic = index + 1;
                   });
                 }
             ),
-            items: List.generate(10, (index) {
-              return Container(
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/sample_user_pic.png'),
-                      fit: BoxFit.cover,
-                    )
-                ),
+            items: List.generate(widget.photos!.length, (index) {
+              return CachedNetworkImage(
+                imageUrl: widget.photos![index],
+                fit: BoxFit.contain,
               );
             }),
           ),
@@ -147,18 +157,23 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
                 child: child,
               );
             },
-            child: _showAppBar ? Container(
-                padding: EdgeInsets.only(top: 40),
-                child: Column(
-                  children: [
-                    Text('${_currentPic} из 10', style: TextStyle(fontSize: 17, color: Colors.white)),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: indicators(10, _currentPic),
-                    ),
-                  ],
-                )
+            child: _showAppBar ? StatefulBuilder(
+              builder: (context, setState){
+                picsState = setState;
+                return Container(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Column(
+                      children: [
+                        Text('${_currentPic} из ${widget.photos!.length}', style: TextStyle(fontSize: 17, color: Colors.white)),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: indicators(widget.photos!.length, _currentPic),
+                        ),
+                      ],
+                    )
+                );
+              },
             ) : null,
           )
         ],
@@ -214,7 +229,7 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
               title: Text('Удалить фотографию', style: TextStyle(color: Colors.red)),
               leading: Icon(Icons.delete_forever_outlined, color: Colors.red),
               trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
-              onTap: () => null,
+              onTap: () => null
             ),
           ],
         ),

@@ -66,7 +66,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _nameTextFocusNode = FocusNode();
     _secondNameTextFocusNode = FocusNode();
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fToast!.init(context);
     });
   }
@@ -326,6 +326,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textInputAction: TextInputAction.done,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.right,
+                    readOnly: true,
                     style: TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50),
@@ -674,6 +675,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount('Bearer ' + token);
 
                     if(response.body!.success == true){
+                      TokenData.clearToken();
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => AuthorizationPage()),
@@ -712,7 +714,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _containsSymbolsAndNumbersTextField1 = false;
         _containsSymbolsAndNumbersTextField2 = false;
       });
-      print('Good');
     }
   }
 

@@ -2,6 +2,8 @@ import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/API/uny_app_api.dart';
@@ -22,6 +24,10 @@ class AuthorizationInfoPage extends StatefulWidget{
 
 class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
+  FToast? _fToast;
+
+  final String _warningIconAsset = 'assets/warning_icon.svg';
+
   FocusNode? locationFieldFocusNode;
 
   TextEditingController? nameTextController;
@@ -34,6 +40,12 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   bool? isDateOfBirthFieldEmpty = false;
   bool? isLocationFieldEmpty = false;
 
+
+  bool? containsSymbolsName = false;
+  bool? containsSymbolsSurname = false;
+  bool? containsSymbolsLocation = false;
+  bool? isCorrectDate = true;
+
   DateTime _date = DateTime.now();
 
   late double mqHeight;
@@ -45,13 +57,18 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   void initState() {
     super.initState();
 
+    _fToast = FToast();
+
     nameTextController = TextEditingController();
     secondNameTextController = TextEditingController();
     dateOfBirthTextController = TextEditingController();
     locationTextController = TextEditingController();
 
-
     locationFieldFocusNode = FocusNode();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fToast!.init(context);
+    });
   }
 
   @override
@@ -149,22 +166,34 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               cursorColor: Colors.white,
               textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
+              maxLength: 40,
               decoration: InputDecoration(
+                counterText: "",
                 hintText: 'Имя',
-                hintStyle: TextStyle(fontSize: 17, color: isNameFieldEmpty != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(fontSize: 17, color: isNameFieldEmpty != true && containsSymbolsName != true ? Colors.white : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isNameFieldEmpty != true && containsSymbolsName != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
 
                 focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isNameFieldEmpty != true && containsSymbolsName != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
               onChanged: (value){
+                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+                  setState((){
+                    containsSymbolsName = true;
+                  });
+                }else{
+                  setState((){
+                    containsSymbolsName = false;
+                  });
+                }
+
                 setState(() {
                   isNameFieldEmpty = false;
                 });
@@ -177,24 +206,36 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             child: TextFormField(
               controller: secondNameTextController,
               cursorColor: Colors.white,
+              maxLength: 40,
               textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
+                counterText: "",
                 hintText: 'Фамилия',
-                hintStyle: TextStyle(fontSize: 17, color: isSecondNameFieldEmpty != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(fontSize: 17, color: isSecondNameFieldEmpty != true && containsSymbolsSurname != true ? Colors.white : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  && containsSymbolsSurname != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
 
                 focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  && containsSymbolsSurname != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
               onChanged: (value){
+                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+                  setState((){
+                    containsSymbolsSurname = true;
+                  });
+                }else{
+                  setState((){
+                    containsSymbolsSurname = false;
+                  });
+                }
+
                 setState(() {
                   isSecondNameFieldEmpty = false;
                 });
@@ -230,11 +271,6 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
-              onChanged: (value){
-                setState(() {
-                  isDateOfBirthFieldEmpty = false;
-                });
-              },
             ),
           ),
 
@@ -252,6 +288,19 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 Text('Поля не должны быть пустыми', style: TextStyle(color: Colors.red, fontSize: 15))
               ],
             ),
+          ) : containsSymbolsName! || containsSymbolsSurname! || containsSymbolsLocation! ? Padding(
+            padding: EdgeInsets.only(left: 30, top: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  child: Icon(Icons.error, color: Colors.red),
+                ),
+                const SizedBox(width: 3),
+                Text('Поля не должны содержать цифры и символы', style: TextStyle(color: Colors.red, fontSize: 15))
+              ],
+            ),
           ) : Container(),
           Container(
             padding: EdgeInsets.only(top: mqHeight * 0.04, left: mqWidth * 0.1, right: mqWidth * 0.5),
@@ -263,25 +312,37 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               controller: locationTextController,
               focusNode: locationFieldFocusNode,
               cursorColor: Colors.white,
+              maxLength: 40,
               textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
+                counterText: "",
                 hintText: 'Название города',
-                hintStyle: TextStyle(fontSize: 17, color: isLocationFieldEmpty != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(fontSize: 17, color: isLocationFieldEmpty != true && containsSymbolsLocation != true ? Colors.white : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 prefixIcon: Icon(Icons.search, color: Colors.white),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isLocationFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isLocationFieldEmpty != true && containsSymbolsLocation != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
 
                 focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isLocationFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isLocationFieldEmpty != true && containsSymbolsLocation != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
               onChanged: (value){
+                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+                  setState((){
+                    containsSymbolsLocation = true;
+                  });
+                }else{
+                  setState((){
+                    containsSymbolsLocation = false;
+                  });
+                }
+
                 setState(() {
                   isLocationFieldEmpty = false;
                 });
@@ -300,7 +361,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   onTap: () async {
                     validate();
 
-                    if(!isNameFieldEmpty! && !isSecondNameFieldEmpty! && !isDateOfBirthFieldEmpty! && !isLocationFieldEmpty!){
+                    if(!isNameFieldEmpty! && !isSecondNameFieldEmpty! && !isDateOfBirthFieldEmpty! && !isLocationFieldEmpty! && !containsSymbolsName! && !containsSymbolsSurname! && !containsSymbolsLocation!){
                       setState(() {
                         _showLoading = true;
                       });
@@ -441,16 +502,22 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                       width: 500,
                       padding: EdgeInsets.only(left: 24, right: 24, top: 20),
                       child: FloatingActionButton.extended(
-                        onPressed: (){
-                          setState(() {
-                            isDateOfBirthFieldEmpty = false;
-                          });
+                        onPressed: () {
+                          if(DateTime.now().year - (_date.year) < 18){
+                            _showToast();
+                          }else if(DateTime.now().year - (_date.year) > 100){
+                            _showToast();
+                          }else{
+                            setState(() {
+                              isDateOfBirthFieldEmpty = false;
+                            });
 
-                          var formatter = DateFormat('dd-MM-yyyy');
-                          var date = formatter.format(_date);
-                          dateOfBirthTextController!.value = dateOfBirthTextController!.value.copyWith(text: date);
+                            var formatter = DateFormat('dd-MM-yyyy');
+                            var date = formatter.format(_date);
+                            dateOfBirthTextController!.value = dateOfBirthTextController!.value.copyWith(text: date);
 
-                          Navigator.pop(context);
+                            Navigator.pop(context);
+                          }
                         },
                         label: Text('Готово', style: TextStyle(fontSize: 17, color: Colors.white)),
                         backgroundColor: Color.fromRGBO(145, 10, 251, 5),
@@ -488,5 +555,32 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   // Checking whether keyboard opened or closed
   bool isKeyboardClosed(){
     return MediaQuery.of(context).viewInsets.bottom == 0.0;
+  }
+
+  void _showToast() {
+    Widget toast = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        color: Colors.black,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Возраст должен быть от 18 до 100", style: TextStyle(color: Colors.white)),
+          Container(
+            height: 20,
+            width: 20,
+            child: Center(child: SvgPicture.asset(_warningIconAsset)),
+          )
+        ],
+      ),
+    );
+
+    _fToast!.showToast(
+      child: toast,
+      gravity: ToastGravity.TOP,
+      toastDuration: Duration(seconds: 2),
+    );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:chopper/chopper.dart';
-import 'package:http/http.dart' as http;
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
+import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Json%20Converter/json_converter.dart';
 
@@ -9,7 +9,6 @@ part 'uny_app_api.chopper.dart';
 
 @ChopperApi()
 abstract class UnyAPI extends ChopperService{
-
 
   @Post(path: '/auth')
   Future<Response<AuthModel>> auth(@Body() var data);
@@ -32,6 +31,12 @@ abstract class UnyAPI extends ChopperService{
   @Post(path: '/user/add_interests')
   Future<Response> addInterests(@Header('Authorization') String token, @Body() var data);
 
+  @Post(path: '/user/update_user')
+  Future<Response> editAboutMe(@Header('Authorization') String token, @Body() var data);
+
+  @Get(path: '/user/get_user')
+  Future<Response<AllUserDataModel>> getCurrentUser(@Header('Authorization') String token);
+
 
 
   static UnyAPI create(String converterCode){
@@ -49,6 +54,11 @@ abstract class UnyAPI extends ChopperService{
       case Constants.USER_DATA_MODEL_CONVERTER_CONSTANT:
         converter = JsonToTypeConverter({
           UserDataModel: (json) => UserDataModel.fromJson(json)
+        });
+        break;
+      case Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT:
+        converter = JsonToTypeConverter({
+          AllUserDataModel: (json) => AllUserDataModel.fromJson(json)
         });
         break;
     }

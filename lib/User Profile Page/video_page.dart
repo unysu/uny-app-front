@@ -1,11 +1,20 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:chewie/chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:video_player/video_player.dart';
 
 class VideoPage extends StatefulWidget{
+
+  List<String>? base64Videos;
+  int? videoIndex;
+
+  VideoPage({required this.base64Videos, required this.videoIndex});
 
   @override
   _VideoPageState createState() => _VideoPageState();
@@ -15,6 +24,38 @@ class _VideoPageState extends State<VideoPage>{
 
   late double height;
   late double width;
+
+  late VideoPlayerController _videoPlayerController;
+  late ChewieController _chewieController;
+
+  Future<VideoPlayerController>? _futureController;
+
+  Future<VideoPlayerController> createVideoPlayer() async {
+    final File file = File.fromRawPath(base64Decode(widget.base64Videos![widget.videoIndex!]));
+    final VideoPlayerController controller = VideoPlayerController.file(file);
+    await controller.initialize();
+    await controller.setLooping(true);
+
+    return controller;
+  }
+
+  @override
+  void initState(){
+
+    print('hahahha');
+    _futureController = createVideoPlayer();
+
+    super.initState();
+  }
+
+  @override
+  void dispose(){
+
+    _videoPlayerController.dispose();
+    _chewieController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +86,7 @@ class _VideoPageState extends State<VideoPage>{
                   )
                 ],
               ),
-              body: mainBody()
+              body: initVideoFutureBuilder()
           ),
           maxWidth: 800,
           minWidth: 450,
@@ -59,13 +100,34 @@ class _VideoPageState extends State<VideoPage>{
     );
   }
 
+  FutureBuilder initVideoFutureBuilder(){
+    return FutureBuilder(
+      future: _futureController,
+      builder: (context, snapshot){
+        if(snapshot.connectionState == ConnectionState.done){
+          _videoPlayerController = snapshot.data as VideoPlayerController;
+
+          _chewieController = ChewieController(
+            videoPlayerController: _videoPlayerController,
+            allowedScreenSleep: false,
+
+            autoPlay: true,
+          );
+
+          return mainBody();
+        }else{
+          return Center(
+            child: Text('Error while loading video'),
+          );
+        }
+      },
+    );
+  }
+
   Widget mainBody(){
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/video_sample_pic.png'),
-          fit: BoxFit.cover
-        )
+    return SizedBox.expand(
+      child: Chewie(
+        controller: _chewieController,
       ),
     );
   }

@@ -678,7 +678,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   controller: _allInterestsScrollController,
                   child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: Container (
+                      child: Container(
                         padding: EdgeInsets.only(left: 10),
                         width: width / 0.5,
                         child: Wrap(

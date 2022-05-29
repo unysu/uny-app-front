@@ -13,6 +13,7 @@ class FamilyInterestsModel{
 
   String? color;
 
+
   FamilyInterestsModel(this.id, this.name, this.color);
   FamilyInterestsModel._(this.name, this.color);
 

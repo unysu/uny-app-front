@@ -13,6 +13,7 @@ import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
+import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 
 class PhoneNumberConfirmationPage extends StatefulWidget{
 
@@ -195,7 +196,6 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                       showLoading = true;
                     });
 
-
                     final output = widget.phoneNumber!.replaceAll(RegExp(r"[^\s\w]"), '');
                     final number = output.replaceAll(' ', '');
 
@@ -207,7 +207,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                     Response<UserDataModel> response = await UnyAPI.create(Constants.USER_DATA_MODEL_CONVERTER_CONSTANT).confirmCode(data);
                     UserDataModel userData = response.body!;
 
-                    if(userData.success == true){
+                    if(userData.success == true && userData.firstName == null){
                       setState((){
                         isWrong = false;
                         showLoading = false;
@@ -216,6 +216,15 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                       TokenData.setUserToken(userData.token);
 
                       Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
+                    }else if(userData.success == true && userData.firstName != null){
+                      setState((){
+                        isWrong = false;
+                        showLoading = false;
+                      });
+
+                      TokenData.setUserToken(userData.token);
+
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfilePage()));
                     }else{
                       setState(() {
                         isWrong = true;
