@@ -17,6 +17,11 @@ class ShPreferences{
     return _sharedPreferences = await SharedPreferences.getInstance();
   }
 
+  static void setIsFirstRun(bool isFirstRun){
+    _sharedPreferences.setBool('isFirstRun', isFirstRun);
+  }
+
+
   static void setAllInterests(List<AllInterestsModel>? _allInterests){
     _sharedPreferences.setString('all_interests', jsonEncode(_allInterests));
   }
@@ -41,6 +46,9 @@ class ShPreferences{
     _sharedPreferences.setString('general_interests', jsonEncode(_generalInterests));
   }
 
+  static bool? getIsFirstRun(){
+    return _sharedPreferences.getBool('isFirstRun');
+  }
 
   static List<AllInterestsModel>?  getAllInterestsShPref() {
     if(_sharedPreferences.getString('all_interests') != null) {
@@ -51,7 +59,6 @@ class ShPreferences{
       return null;
     }
   }
-
 
   static List<FamilyInterestsModel>?  getFamilyInterestsShPref() {
     if(_sharedPreferences.getString('family_interests') != null) {
@@ -104,6 +111,11 @@ class ShPreferences{
   }
 
   static void clear() async {
-    await _sharedPreferences.clear();
+    await _sharedPreferences.remove('all_interests');
+    await _sharedPreferences.remove('family_interests');
+    await _sharedPreferences.remove('career_interests');
+    await _sharedPreferences.remove('sport_interests');
+    await _sharedPreferences.remove('traveling_interests');
+    await _sharedPreferences.remove('general_interests');
   }
 }

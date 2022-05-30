@@ -10,6 +10,9 @@ import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
+import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
+import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
+import 'package:uny_app/Global%20User%20Data/global_user_data.dart';
 import 'package:uny_app/Settings%20Page/change_phone_number_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
@@ -27,6 +30,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   late double height;
   late double width;
+
+  bool _showLoading = false;
 
   TextEditingController? _nameTextController;
   TextEditingController? _secondNameTextController;
@@ -49,9 +54,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool _containsSymbolsAndNumbersTextField1 = false;
   bool _containsSymbolsAndNumbersTextField2 = false;
 
+  UserDataModel? _userData;
+
   @override
   void initState() {
     super.initState();
+
+    _userData = GlobalUserData.getUserDataModel()!.user;
 
     _fToast = FToast();
 
@@ -65,6 +74,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     _nameTextFocusNode = FocusNode();
     _secondNameTextFocusNode = FocusNode();
+
+    _nameTextController!.value = _nameTextController!.value.copyWith(text: _userData!.firstName);
+    _secondNameTextController!.value = _secondNameTextController!.value.copyWith(text: _userData!.lastName);
+    _telephoneTextController!.value = _telephoneTextController!.value.copyWith(text: _userData!.phoneNumber);
+    _birthDateTextController!.value = _birthDateTextController!.value.copyWith(text: _userData!.dateOfBirth);
+    _locationTextController!.value = _locationTextController!.value.copyWith(text: _userData!.location);
+
+    _genderString = _userData!.gender;
+
+    _companyNameTextController!.value = _companyNameTextController!.value.copyWith(text: _userData!.jobCompany != null ? _userData!.jobCompany : '');
+    _positionTextController!.value = _positionTextController!.value.copyWith(text: _userData!.job != null ? _userData!.job : '');
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fToast!.init(context);
@@ -106,12 +126,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
              ),
              actions: [
                Center(
-                 child: TextButton(
+                 child: _showLoading
+                     ? Padding(
+                   padding: EdgeInsets.only(right: 10),
+                   child: Container(
+                     height: 25,
+                     width: 25,
+                     child: CircularProgressIndicator(
+                       strokeWidth: 2,
+                       color: Color.fromRGBO(145, 10, 251, 5),
+                     ),
+                   ),
+                 )
+                     : TextButton(
                    child: Text(
                        'Сохранить',
                        style: TextStyle(
                            color: Color.fromRGBO(145, 10, 251, 5),
-                         fontSize: 15
+                           fontSize: 15
                        )),
                    onPressed: (){
                      validate();
@@ -153,7 +185,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50),
+                      contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
                         child: Text('Имя:', style: TextStyle(
@@ -191,7 +223,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     style: TextStyle(color: Colors.black),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50),
+                      contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
                         child: Text('Фамилия:', style: TextStyle(
@@ -627,8 +659,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
               actions: [
                 CupertinoActionSheetAction(
                   onPressed: () async {
-                    String token = TokenData.getUserToken();
-                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount('Bearer ' + token);
+                    String? tokenValue = await TokenData.getUserToken();
+
+                    String token = 'Bearer ' + tokenValue;
+
+                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount(token);
 
                     if(response.body!.success == true){
                       Navigator.pushAndRemoveUntil(
@@ -671,8 +706,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               actions: [
                 TextButton(
                   onPressed: () async {
-                    String token = TokenData.getUserToken();
-                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount('Bearer ' + token);
+                    String? tokenValue = await TokenData.getUserToken();
+
+                    String token = 'Bearer ' + tokenValue;
+                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount(token);
 
                     if(response.body!.success == true){
                       TokenData.clearToken();
@@ -696,7 +733,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void validate() { 
+  void validate(){
     String _name = _nameTextController!.text;
     String _secondName = _secondNameTextController!.text;
     if(_name.contains(RegExp(r'[0-9]')) || _name.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
@@ -709,11 +746,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _containsSymbolsAndNumbersTextField2 = true;
       });
       _showToast(1);
+    }else if(_name == '' || _secondName == ''){
+      _showToast(2);
     }else{
       setState(() {
         _containsSymbolsAndNumbersTextField1 = false;
         _containsSymbolsAndNumbersTextField2 = false;
       });
+
+      _updateProfile();
     }
   }
 
@@ -729,7 +770,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         children: [
           index == 0 ?
           Text("Имя не может содержать цифры и символы", style: TextStyle(color: Colors.white))
-          : Text("Фамилия не может содержать цифры и символы", style: TextStyle(color: Colors.white)),
+          : index == 1
+          ?  Text("Фамилия не может содержать цифры и символы", style: TextStyle(color: Colors.white))
+          : index == 2
+          ? Text("Поля не должны быть пустыми", style: TextStyle(color: Colors.white)) : Container(),
           Container(
             height: 20,
             width: 20,
@@ -746,4 +790,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  void _updateProfile() async {
+
+    String token = 'Bearer ' + TokenData.getUserToken();
+
+    setState((){
+      _showLoading = true;
+    });
+
+    var data = {
+      'first_name' : _nameTextController!.text,
+      'last_name' : _secondNameTextController!.text,
+      'gender' : _genderString,
+      'phone_number' : _telephoneTextController!.text,
+      'date_of_birth' : _birthDateTextController!.text,
+      'location' : _locationTextController!.text,
+      'job_company' : _companyNameTextController!.text,
+      'job' : _positionTextController!.text
+    };
+
+    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).updateUser(token, data).whenComplete(() async {
+      _showLoading = false;
+
+      Navigator.pop(context);
+    });
+
+  }
 }

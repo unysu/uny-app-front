@@ -222,6 +222,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   : Colors.grey.withOpacity(0.5),
               child: InkWell(
                 onTap: imagesList.asMap().isEmpty ? null : () async {
+
                   String token = 'Bearer ' + TokenData.getUserToken();
 
                   setState(() {

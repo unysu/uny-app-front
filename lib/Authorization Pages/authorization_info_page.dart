@@ -372,6 +372,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                       String birthDay = dateOfBirthTextController!.text;
                       String location = locationTextController!.text;
                       String gender = widget.gender!;
+
                       String token = 'Bearer ' + TokenData.getUserToken();
 
                       var data = {

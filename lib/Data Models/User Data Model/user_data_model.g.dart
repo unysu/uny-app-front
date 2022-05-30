@@ -18,6 +18,13 @@ UserDataModel _$UserDataModelFromJson(Map<String, dynamic> json) =>
       dateOfBirth: json['date_of_birth'],
       aboutMe: json['about_me'],
       gender: json['gender'],
+      whoCanSee: json['who_can_see'],
+      job: json['job'],
+      jobCompany: json['job_company'],
+      muteNotifications: json['mute_notifications'],
+      muteMessagesNotifications: json['mute_messages_notifications'],
+      muteRequestMessagingNotifications:
+          json['mute_request_messaging_notifications'],
     );
 
 Map<String, dynamic> _$UserDataModelToJson(UserDataModel instance) =>
@@ -32,4 +39,11 @@ Map<String, dynamic> _$UserDataModelToJson(UserDataModel instance) =>
       'date_of_birth': instance.dateOfBirth,
       'about_me': instance.aboutMe,
       'gender': instance.gender,
+      'who_can_see': instance.whoCanSee,
+      'job': instance.job,
+      'job_company': instance.jobCompany,
+      'mute_notifications': instance.muteNotifications,
+      'mute_request_messaging_notifications':
+          instance.muteRequestMessagingNotifications,
+      'mute_messages_notifications': instance.muteMessagesNotifications,
     };

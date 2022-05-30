@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
@@ -11,6 +12,7 @@ import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
+import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
 
 class FilterInterestsVideoPage extends StatefulWidget{
 
@@ -79,6 +81,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
   @override
   void initState() {
+
     _allInterestsScrollController = ScrollController();
     _careerInterestsScrollController = ScrollController();
     _travelingInterestsScrollController = ScrollController();
@@ -150,7 +153,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     });
 
     
-    db = DatabaseObject.getDb;
+     db = DatabaseObject.getDb;
     _allInterestsFuture = db!.allInterestsDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString()).then((value) => _allInterestsFilteredList = value);
     _familyInterestsFuture = db!.familyInterestsDao.getFamilyInterestsByLimit(familyInterestsStart.toString(), end.toString()).then((value) => _familyFilteredList = value);
     _careerInterestsFuture = db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerFilteredList = value);
@@ -200,7 +203,6 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -208,88 +210,82 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         height = constraints.maxHeight;
         width = constraints.maxWidth;
         return ResponsiveWrapper.builder(
-            Scaffold(
-              appBar: AppBar(
-                elevation: 0,
-                automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
-                systemOverlayStyle: SystemUiOverlayStyle.dark,
-                leading: IconButton(
+          Scaffold(
+            appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.transparent,
+              systemOverlayStyle: SystemUiOverlayStyle.dark,
+              leading: IconButton(
                   icon: Icon(Icons.arrow_back, color: Colors.grey),
                   onPressed: (){
-                    int count = _selectedAllInterests!.length + _selectedFamilyInterests!.length
-                        + _selectedCareerInterests!.length
-                        + _selectedSportInterests!.length
-                        + _selectedTravelingInterests!.length
-                        + _selectedGeneralInterests!.length;
-
-                    Navigator.pop(context, count);
+                    Navigator.pop(context);
                   }
-                ),
-                title: Container(
-                  height: height / 23,
-                  padding: EdgeInsets.only(right: width / 20),
-                  child: TextFormField(
-                    cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(bottom: height / 50),
-                      filled: true,
-                      fillColor: Colors.grey.withOpacity(0.1),
-                      prefixIcon: _isSearching != true ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(CupertinoIcons.search, color: Colors.grey),
-                          Text('Поиск интересов', style: TextStyle(fontSize: 17, color: Colors.grey))
-                        ],
-                      ) : null,
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
-                    ),
-                    onTap: () {
+              ),
+              title: Container(
+                height: height / 23,
+                padding: EdgeInsets.only(right: width / 20),
+                child: TextFormField(
+                  cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.only(bottom: height / 50),
+                    filled: true,
+                    fillColor: Colors.grey.withOpacity(0.1),
+                    prefixIcon: _isSearching != true ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(CupertinoIcons.search, color: Colors.grey),
+                        Text('Поиск интересов', style: TextStyle(fontSize: 17, color: Colors.grey))
+                      ],
+                    ) : null,
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  },
+
+                  onChanged: (value) async {
+                    if(_isAllSelected){
+                      _allInterestsFilteredList = _allInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                    } else if(_isFamilySelected){
+                      _familyFilteredList = _familyInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                    }else if(_isCareerSelected){
+                      _careerFilteredList = _careerInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                    }else if(_isSportSelected){
+                      _sportFilteredList = _sportInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                    }else if(_isTravelingSelected){
+                      _travelingFilteredList = _travelingInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                    }else{
+                      _generalFilteredList = _generalInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                    }
+
+                    setState(() {});
+
+
+                    if (value.length == 0) {
+                      setState(() {
+                        _isSearching = false;
+                      });
+                    } else {
                       setState(() {
                         _isSearching = true;
                       });
-                    },
-
-                    onChanged: (value) async {
-                      if(_isAllSelected){
-                        _allInterestsFilteredList = _allInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                      } else if(_isFamilySelected){
-                        _familyFilteredList = _familyInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                      }else if(_isCareerSelected){
-                        _careerFilteredList = _careerInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                      }else if(_isSportSelected){
-                        _sportFilteredList = _sportInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                      }else if(_isTravelingSelected){
-                        _travelingFilteredList = _travelingInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                      }else{
-                        _generalFilteredList = _generalInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                      }
-
-                      setState(() {});
-
-
-                      if (value.length == 0) {
-                        setState(() {
-                          _isSearching = false;
-                        });
-                      } else {
-                        setState(() {
-                          _isSearching = true;
-                        });
-                      }
-                    },
-                  ),
+                    }
+                  },
                 ),
-                centerTitle: true,
               ),
-              body: mainBody(),
+              centerTitle: true,
             ),
+            body: mainBody(),
+          ),
           maxWidth: 800,
           minWidth: 450,
           defaultScale: true,
@@ -537,6 +533,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _allInterestsList = List.from(snapshot.data!.toList());
 
+
           return allInterestsGridView();
         }else{
           return Center(
@@ -692,6 +689,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                     _allInterestsFilteredList!.removeAt(index);
 
+                                    Provider.of<InterestsCounterProvider>(context, listen: false).incrementCounter();
+
                                     setState(() {});
                                   },
                                   borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -776,6 +775,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                 child: InkWell(
                                   onTap: () {
                                     _selectedFamilyInterests!.add(_familyFilteredList![index]);
+
+                                    Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
                                     _familyFilteredList!.removeAt(index);
 
@@ -868,6 +869,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                         _careerFilteredList!.removeAt(index);
 
+                                        Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
+
                                         setState((){});
                                       },
                                       borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -955,6 +958,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                         _selectedSportInterests!.add(_sportFilteredList![index]);
 
                                         _sportFilteredList!.removeAt(index);
+
+                                        Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
                                         setState((){});
                                       },
@@ -1045,6 +1050,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                         _travelingFilteredList!.removeAt(index);
 
+                                        Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
+
                                         setState((){});
                                       },
                                       borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -1133,6 +1140,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                         _selectedGeneralInterests!.add(_generalFilteredList![index]);
 
                                         _generalFilteredList!.removeAt(index);
+
+                                        Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
                                         setState((){});
                                       },
@@ -1229,6 +1238,9 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                               _allInterestsFilteredList!.insert(indx, _selectedAllInterests![index]);
 
                               _selectedAllInterests!.removeAt(index);
+
+                              Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
+
                               setState((){});
                             },
                           ),
@@ -1292,6 +1304,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                               _selectedFamilyInterests!.removeAt(index);
 
+                              Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
+
                               setState((){});
                             },
                           ),
@@ -1353,6 +1367,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                               _careerFilteredList!.insert(indx, _selectedCareerInterests![index]);
 
                               _selectedCareerInterests!.removeAt(index);
+
+                              Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 
                               setState((){});
                             },
@@ -1416,6 +1432,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                               _selectedSportInterests!.removeAt(index);
 
+                              Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
+
                               setState((){});
                             },
                           ),
@@ -1477,6 +1495,9 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                               _travelingFilteredList!.insert(indx, _selectedTravelingInterests![index]);
 
                               _selectedTravelingInterests!.removeAt(index);
+
+                              Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
+
                               setState((){});
                             },
                           ),
@@ -1538,6 +1559,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                               _generalFilteredList!.insert(indx, _selectedGeneralInterests![index]);
 
                               _selectedGeneralInterests!.removeAt(index);
+
+                              Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 
                               setState((){});
                             },

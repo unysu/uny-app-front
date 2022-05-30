@@ -25,6 +25,7 @@ class _InterestsPageState extends State<InterestsPage> {
 
   late InterestsDatabase? db;
 
+  ScrollController? _interestsStepsScrollController;
   ScrollController? _allInterestsScrollController;
   ScrollController? _careerInterestsScrollController;
   ScrollController? _travelingInterestsScrollController;
@@ -103,6 +104,7 @@ class _InterestsPageState extends State<InterestsPage> {
     addNewInterestFieldFocusNode = FocusNode();
     newInterestFieldTextController = TextEditingController();
 
+    _interestsStepsScrollController = ScrollController();
     _allInterestsScrollController = ScrollController();
     _careerInterestsScrollController = ScrollController();
     _travelingInterestsScrollController = ScrollController();
@@ -297,6 +299,7 @@ class _InterestsPageState extends State<InterestsPage> {
             padding: EdgeInsets.only(
                 top: height / 7, left: width / 20, bottom: height / 30),
             child: SingleChildScrollView(
+              controller: _interestsStepsScrollController,
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -648,6 +651,11 @@ class _InterestsPageState extends State<InterestsPage> {
 
                     _isFamilyEnabled = false;
                   });
+                  
+                  _interestsStepsScrollController!.animateTo(
+                      width / 3,
+                      duration: Duration(seconds: 1),
+                      curve: Curves.fastOutSlowIn);
                 } : null,
                 child: Container(
                   height: 50,
@@ -877,6 +885,12 @@ class _InterestsPageState extends State<InterestsPage> {
 
                     _isCareerEnabled = false;
                   });
+
+                  _interestsStepsScrollController!.animateTo(
+                      _interestsStepsScrollController!.position.maxScrollExtent * 0.7,
+                      duration: Duration(seconds: 1),
+                      curve: Curves.fastOutSlowIn);
+
                 } : null,
                 child: Container(
                   height: 50,
@@ -1103,6 +1117,11 @@ class _InterestsPageState extends State<InterestsPage> {
                     _isTravelingEnabled = true;
                     _isTravelingIconEnabled = true;
                   });
+
+                  _interestsStepsScrollController!.animateTo(
+                      _interestsStepsScrollController!.position.maxScrollExtent,
+                      duration: Duration(seconds: 1),
+                      curve: Curves.fastOutSlowIn);
                 } : null,
                 child: Container(
                   height: 50,
@@ -1326,6 +1345,7 @@ class _InterestsPageState extends State<InterestsPage> {
                     _isGeneralEnabled = true;
                     _isGeneralIconEnabled= true;
                   });
+
                 } : null,
                 child: Container(
                   height: 50,
@@ -2212,8 +2232,6 @@ class _InterestsPageState extends State<InterestsPage> {
     var data = {
       'interests': jsonEncode(_interestsList),
     };
-
-    print(jsonEncode(_interestsList));
 
     await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).addInterests(token, data).whenComplete(() async {
       setState(() {

@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
-import 'package:sizer/sizer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Chats%20Page/messages_page.dart';
@@ -19,6 +18,7 @@ import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_mo
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
+import 'package:uny_app/Global%20User%20Data/global_user_data.dart';
 import 'package:uny_app/Timeline%20Page/time_line_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
@@ -27,7 +27,6 @@ import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import '../Settings Page/settings_page.dart';
 
 class UserProfilePage extends StatefulWidget{
@@ -38,8 +37,8 @@ class UserProfilePage extends StatefulWidget{
 
 class _UserProfilePageState extends State<UserProfilePage>{
 
-
   late String token;
+
   late double height;
   late double width;
   
@@ -84,12 +83,13 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   void initState() {
+
     token = 'Bearer ' + TokenData.getUserToken();
+
+    _allUserDataModelFuture = UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
 
     bioTextFocusNode = FocusNode();
     bioTextController = TextEditingController();
-
-    _allUserDataModelFuture = UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
 
     _pageController = PageController(
       initialPage: _bottomNavBarIndex
@@ -97,6 +97,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
     super.initState();
   }
+
 
   @override
   void dispose() {
@@ -111,7 +112,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   Widget build(BuildContext context) {
-    print("Token: ${TokenData.getUserToken()}");
+    GlobalUserData.getUserDataModel() != null ? _allUserDataModel = GlobalUserData.getUserDataModel() : null;
     return LayoutBuilder(
       builder: (context, constraints) {
         height = constraints.maxHeight;
@@ -123,8 +124,10 @@ class _UserProfilePageState extends State<UserProfilePage>{
              appBar: AppBar(
                elevation: 0,
                automaticallyImplyLeading: false,
-               systemOverlayStyle: _bottomNavBarIndex == 1 ?
-               SystemUiOverlayStyle.light : _bottomNavBarIndex == 4 || _bottomNavBarIndex == 2 ? SystemUiOverlayStyle.dark : _bottomNavBarIndex == 0 ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
+               systemOverlayStyle:
+               _bottomNavBarIndex == 0 ||
+               _bottomNavBarIndex == 2 ||
+               _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : null,
                backgroundColor: Colors.transparent,
                toolbarHeight: 0,
              ),
@@ -141,9 +144,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                      child: _allUserDataModel != null ? mainBody() : getUserData()
                    ),
                    strokeWidth: 1,
-                   onRefresh: () async {
-                     await getUserData();
-                   },
+                   onRefresh: fetchData
                  ),
                  TimeLinePage(),
                  VideoSearchPage(),
@@ -152,76 +153,72 @@ class _UserProfilePageState extends State<UserProfilePage>{
              ),
              bottomNavigationBar: Container(
                height: height / 10,
-               child: StatefulBuilder(
-                 builder: (context, setState){
-                   return BottomNavigationBar(
-                     type: BottomNavigationBarType.fixed,
-                     selectedItemColor: _bottomNavBarIndex == 3 ? Colors.white : Color.fromRGBO(145, 10, 251, 5),
-                     unselectedItemColor: Colors.grey,
-                     backgroundColor: _bottomNavBarIndex == 3 ? Colors.black87 : Colors.white,
-                     selectedFontSize: 10,
-                     unselectedFontSize: 9,
-                     currentIndex: _bottomNavBarIndex,
-                     items: [
-                       BottomNavigationBarItem(
-                           label: 'Чаты',
-                           icon: LayoutBuilder(
-                             builder: (context, constraints) {
-                               return Stack(
-                                 children: [
-                                   SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 20, width: 20),
-                                   Positioned(
-                                     left: constraints.maxWidth / 2.2,
-                                     bottom: 5,
-                                     child:  Container(
-                                       padding: EdgeInsets.all(1),
-                                       decoration:  BoxDecoration(
-                                         color: Colors.red,
-                                         borderRadius: BorderRadius.circular(6),
-                                       ),
-                                       constraints: BoxConstraints(
-                                         minWidth: 15,
-                                         minHeight: 15,
-                                       ),
-                                       child: Text(
-                                         '3',
-                                         style: TextStyle(
-                                           color: Colors.white,
-                                           fontSize: 10,
-                                         ),
-                                         textAlign: TextAlign.center,
-                                       ),
+               child: BottomNavigationBar(
+                 type: BottomNavigationBarType.fixed,
+                 selectedItemColor: _bottomNavBarIndex == 3 ? Colors.white : Color.fromRGBO(145, 10, 251, 5),
+                 unselectedItemColor: Colors.grey,
+                 backgroundColor: _bottomNavBarIndex == 3 ? Colors.black87 : Colors.white,
+                 selectedFontSize: 10,
+                 unselectedFontSize: 9,
+                 currentIndex: _bottomNavBarIndex,
+                 items: [
+                   BottomNavigationBarItem(
+                       label: 'Чаты',
+                       icon: LayoutBuilder(
+                         builder: (context, constraints) {
+                           return Stack(
+                             children: [
+                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 20, width: 20),
+                               Positioned(
+                                 left: constraints.maxWidth / 2.2,
+                                 bottom: 5,
+                                 child:  Container(
+                                   padding: EdgeInsets.all(1),
+                                   decoration:  BoxDecoration(
+                                     color: Colors.red,
+                                     borderRadius: BorderRadius.circular(6),
+                                   ),
+                                   constraints: BoxConstraints(
+                                     minWidth: 15,
+                                     minHeight: 15,
+                                   ),
+                                   child: Text(
+                                     '3',
+                                     style: TextStyle(
+                                       color: Colors.white,
+                                       fontSize: 10,
                                      ),
-                                   )
-                                 ],
-                               );
-                             },
-                           )
-                       ),
-                       BottomNavigationBarItem(
-                           label: 'Профиль',
-                           icon: SvgPicture.asset(_profileButtonAsset, color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
-                       ),
-                       BottomNavigationBarItem(
-                         label: '',
-                         icon: SvgPicture.asset(_mainButtonAsset),
-                       ),
-                       BottomNavigationBarItem(
-                           label: 'Видеопоиск',
-                           icon: SvgPicture.asset(_videoSearchButtonAsset, color: _bottomNavBarIndex == 3 ? Colors.white : Colors.grey)
-                       ),
-                       BottomNavigationBarItem(
-                           label: 'Ещё',
-                           icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
+                                     textAlign: TextAlign.center,
+                                   ),
+                                 ),
+                               )
+                             ],
+                           );
+                         },
                        )
-                     ],
-                     onTap: (index) {
-                       setState(() {
-                         _bottomNavBarIndex = index;
-                       });
-                       _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
-                     },
-                   );
+                   ),
+                   BottomNavigationBarItem(
+                       label: 'Профиль',
+                       icon: SvgPicture.asset(_profileButtonAsset, color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
+                   ),
+                   BottomNavigationBarItem(
+                     label: '',
+                     icon: SvgPicture.asset(_mainButtonAsset),
+                   ),
+                   BottomNavigationBarItem(
+                       label: 'Видеопоиск',
+                       icon: SvgPicture.asset(_videoSearchButtonAsset, color: _bottomNavBarIndex == 3 ? Colors.white : Colors.grey)
+                   ),
+                   BottomNavigationBarItem(
+                       label: 'Ещё',
+                       icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
+                   )
+                 ],
+                 onTap: (index) {
+                   setState(() {
+                     _bottomNavBarIndex = index;
+                   });
+                   _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
                  },
                )
              )
@@ -533,7 +530,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 mainAxisSpacing: 10,
                 physics: const ClampingScrollPhysics(),
                 scrollDirection: Axis.horizontal,
-                children: List.generate(_videosUrls!.length + 1, (index) {
+                children: List.generate(_base64Videos!.length + 1, (index) {
                   if(index == 0){
                     return ClipRRect(
                       borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -574,7 +571,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                           ) : CachedMemoryImage(
                             height: 100,
                             width: 100,
-                            uniqueKey: 'app://content/video/${index - 1}',
+                            uniqueKey: 'app://content/video/${index}',
                             base64: _base64Videos![index - 1],
                             fit: BoxFit.cover,
                           )
@@ -696,7 +693,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     ],
                   ),
                 ),
-                SizedBox(height: 10),
                 Container(
                   padding: EdgeInsets.only(left: 15, right: 20),
                   child: Text(
@@ -772,77 +768,82 @@ class _UserProfilePageState extends State<UserProfilePage>{
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        alignment: Alignment.center,
-                        width: 180,
-                        height: 48,
-                        child: Material(
-                          borderRadius: BorderRadius.circular(11),
-                          color: Colors.white,
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Container(
-                              height: height * 0.10,
-                              child: Center(
-                                  child: Text('Отмена',
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 17))),
-                            ),
-                          ),
-                        ),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(11),
-                            border: Border.all(color: Colors.grey, width: 0.5)),
-                      ),
-                      SizedBox(width: 12),
-                      Container(
+                      Flexible(
+                        child: Container(
                           alignment: Alignment.center,
                           width: 180,
                           height: 48,
                           child: Material(
                             borderRadius: BorderRadius.circular(11),
-                            color: Color.fromRGBO(145, 10, 251, 5),
+                            color: Colors.white,
                             child: InkWell(
-                              onTap: () async {
-                                bioState((){
-                                  _showEditBioLoading = true;
-                                });
-
-                                var data = {
-                                  'about_me' : bioTextController!.text
-                                };
-
-                                await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).editAboutMe(token, data).whenComplete((){
-                                  _showEditBioLoading = false;
-
-                                  Navigator.pop(context);
-
-                                  _bioState!((){
-                                    _aboutMe = bioTextController!.text;
-                                  });
-                                });
+                              onTap: () {
+                                Navigator.pop(context);
                               },
                               child: Container(
                                 height: height * 0.10,
                                 child: Center(
-                                    child: _showEditBioLoading
-                                        ? Container(
-                                             height: 30,
-                                             width: 30,
-                                             child: CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2,
-                                              ),
-                                          )
-                                        : Text('Сохранить',
+                                    child: Text('Отмена',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 17))
-                                ),
+                                            color: Colors.black, fontSize: 17))),
                               ),
                             ),
-                          ))
+                          ),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(11),
+                              border: Border.all(color: Colors.grey, width: 0.5)),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Flexible(
+                        child: Container(
+                            alignment: Alignment.center,
+                            width: 180,
+                            height: 48,
+                            child: Material(
+                              borderRadius: BorderRadius.circular(11),
+                              color: Color.fromRGBO(145, 10, 251, 5),
+                              child: InkWell(
+                                onTap: () async {
+                                  bioState((){
+                                    _showEditBioLoading = true;
+                                  });
+
+                                  var data = {
+                                    'about_me' : bioTextController!.text
+                                  };
+
+                                  await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).editAboutMe(token, data).whenComplete((){
+                                    _showEditBioLoading = false;
+
+                                    Navigator.pop(context);
+
+                                    _bioState!((){
+                                      _aboutMe = bioTextController!.text;
+                                    });
+                                  });
+                                },
+                                child: Container(
+                                  height: height * 0.10,
+                                  child: Center(
+                                      child: _showEditBioLoading
+                                          ? Container(
+                                        height: 30,
+                                        width: 30,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                          : Text('Сохранить',
+                                          style: TextStyle(
+                                              color: Colors.white, fontSize: 17))
+                                  ),
+                                ),
+                              ),
+                            )
+                        ),
+                      )
                     ],
                   ),
                 ),
@@ -888,6 +889,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
             }
           }
 
+          GlobalUserData.updateModel(_allUserDataModel);
           cacheVideos();
 
           return mainBody();
@@ -901,6 +903,40 @@ class _UserProfilePageState extends State<UserProfilePage>{
     );
   }
 
+  Future fetchData() async {
+    Response response = await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
+
+    _allUserDataModel = response.body;
+    _photos = List.from(_allUserDataModel!.media!.toList());
+    _user = _allUserDataModel!.user;
+
+    _interests = _allUserDataModel!.interests;
+
+    _aboutMe = _user!.aboutMe;
+
+    GlobalUserData.updateModel(_allUserDataModel);
+
+    for(var images in _photos!) {
+      if(images.type.startsWith('image') && images.filter == 'main'){
+        if(!(_profilePicturesUrls!.contains(images.url))){
+          _profilePicturesUrls!.add(images.url);
+        }
+      }else if(images.type.startsWith('image') && images.filter == '-'){
+        if(!(_userPhotosUrls!.contains(images.url))){
+          _userPhotosUrls!.add(images.url);
+        }
+      }else if(images.type.startsWith('video')){
+        if(!(_videosUrls!.contains(images.url))){
+          _videosUrls!.add(images.url);
+        }
+      }
+    }
+
+    setState((){});
+
+    cacheVideos();
+  }
+
   Future cacheVideos() async {
 
     for(var url in _videosUrls!){
@@ -911,8 +947,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
       });
 
       final bytes = response.bodyBytes;
-
-      debugPrint(base64Encode(bytes), wrapWidth: 2000);
 
       if(!(_base64Videos!.contains(base64Encode(bytes)))){
         _base64Videos!.add(base64Encode(bytes));
@@ -929,7 +963,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
           }
       );
     }else if(UniversalPlatform.isAndroid){
-      showModalBottomSheet(
+      showCupertinoModalPopup(
           context: context,
           builder: (context){
             return editBioWidget(context);

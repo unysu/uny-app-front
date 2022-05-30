@@ -35,6 +35,24 @@ class UserDataModel{
   @JsonKey(name: 'gender')
   var gender;
 
+  @JsonKey(name: 'who_can_see')
+  var whoCanSee;
+
+  @JsonKey(name: 'job')
+  var job;
+
+  @JsonKey(name: 'job_company')
+  var jobCompany;
+
+  @JsonKey(name: 'mute_notifications')
+  var muteNotifications;
+
+  @JsonKey(name: 'mute_request_messaging_notifications')
+  var muteRequestMessagingNotifications;
+
+  @JsonKey(name: 'mute_messages_notifications')
+  var muteMessagesNotifications;
+
   UserDataModel({
      this.success,
      this.token,
@@ -46,6 +64,12 @@ class UserDataModel{
      this.dateOfBirth,
      this.aboutMe,
      this.gender,
+     this.whoCanSee,
+     this.job,
+     this.jobCompany,
+     this.muteNotifications,
+     this.muteMessagesNotifications,
+     this.muteRequestMessagingNotifications
   });
 
 

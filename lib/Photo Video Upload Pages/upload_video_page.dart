@@ -242,6 +242,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
             color: Color.fromRGBO(145, 10, 251, 5),
             child: InkWell(
               onTap: () async {
+
                 String token = 'Bearer ' + TokenData.getUserToken();
 
                 setState(() {

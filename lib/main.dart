@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:random_color/random_color.dart';
+import 'package:sizer/sizer.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
@@ -21,6 +23,7 @@ import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
+import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
 import 'Interests Model/career_interests.dart';
 
 
@@ -29,9 +32,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ShPreferences.init();
   await TokenData.init();
-  runApp(MaterialApp(
-    home: SplashScreenPage(),
-  ));
+  runApp(ChangeNotifierProvider<InterestsCounterProvider>(
+    create: (_) => InterestsCounterProvider(),
+    builder: (context, child){
+      return MaterialApp(
+        home: SplashScreenPage(),
+      );
+    }
+   )
+  );
 }
 
 class SplashScreenPage extends StatefulWidget{
@@ -75,7 +84,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     _travelingInterestsList = travelingInterests.getTravellingInterests();
     _generalInterestsList = generalInterests.getGeneralInterests();
 
+
     addInterestsToDb().whenComplete(() {
+      ShPreferences.setIsFirstRun(false);
       if(TokenData.getUserToken() != ''){
         Navigator.pushReplacement(
             context,
@@ -109,7 +120,25 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             Scaffold(
                 backgroundColor: Colors.white,
                 body: Center(
-                  child: SizedBox(
+                  child: ShPreferences.getIsFirstRun() == null ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                          width: 150,
+                          height: 150,
+                          child: Image.asset('assets/splash_icon.png')
+                      ),
+                      SizedBox(height: 50),
+                      CircularProgressIndicator(
+                        strokeWidth: 1,
+                        color: Color.fromRGBO(145, 10, 251, 5),
+                      ),
+                      SizedBox(height: 10),
+                      Container(
+                        child: Text('Первый запуск...  Может занять несколько секунд', maxLines: 2),
+                      )
+                    ],
+                  ) : SizedBox(
                       width: 150,
                       height: 150,
                       child: Image.asset('assets/splash_icon.png')
