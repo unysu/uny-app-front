@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_memory_image/cached_memory_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,7 +13,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:sizer/sizer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Chats%20Page/messages_page.dart';
@@ -18,8 +29,9 @@ import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_mo
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
-import 'package:uny_app/Global%20User%20Data/global_user_data.dart';
-import 'package:uny_app/Timeline%20Page/time_line_page.dart';
+import 'package:uny_app/Photo%20Search%20Page/photo_search_page.dart';
+import 'package:uny_app/Providers/user_data_provider.dart';
+import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
@@ -27,6 +39,8 @@ import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
+import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import '../Settings Page/settings_page.dart';
 
 class UserProfilePage extends StatefulWidget{
@@ -41,6 +55,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   late double height;
   late double width;
+
+  final ImagePicker _picker = ImagePicker();
   
   final String _mainButtonAsset = 'assets/bnm_main_icon.svg';
   final String _chatButtonAsset = 'assets/chat_icon.svg';
@@ -50,21 +66,23 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   StateSetter? _bioState;
 
-  Widget? userInterface;
+  Widget? _zodiacSignWidget;
 
   bool _showImageLoading = true;
   bool _showEditBioLoading = false;
+  bool _showLoading = false;
 
   Future<Response<AllUserDataModel>>? _allUserDataModelFuture;
 
   AllUserDataModel? _allUserDataModel;
-  List<MediaDataModel>? _photos;
+
+  MediaDataModel? _media;
+
+  List<MediaModel>? _photos;
+  List<MediaModel>? _videos;
   List<InterestsDataModel>? _interests;
 
-  List<String>? _profilePicturesUrls = [];
-  List<String>? _userPhotosUrls = [];
-  List<String>? _videosUrls = [];
-
+  List<String>? _videoThumbnails = [];
   List<String>? _base64Videos = [];
 
   UserDataModel? _user;
@@ -112,7 +130,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   Widget build(BuildContext context) {
-    GlobalUserData.getUserDataModel() != null ? _allUserDataModel = GlobalUserData.getUserDataModel() : null;
     return LayoutBuilder(
       builder: (context, constraints) {
         height = constraints.maxHeight;
@@ -125,9 +142,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
                elevation: 0,
                automaticallyImplyLeading: false,
                systemOverlayStyle:
-               _bottomNavBarIndex == 0 ||
-               _bottomNavBarIndex == 2 ||
-               _bottomNavBarIndex == 4 ? SystemUiOverlayStyle.dark : null,
+               (_bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light) ||
+               (_bottomNavBarIndex == 2 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light) ||
+                   (_bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light) ? SystemUiOverlayStyle.dark : null,
                backgroundColor: Colors.transparent,
                toolbarHeight: 0,
              ),
@@ -136,17 +153,30 @@ class _UserProfilePageState extends State<UserProfilePage>{
                controller: _pageController,
                children: [
                  ChatsPage(),
-                 RefreshIndicator(
-                   color: Color.fromRGBO(145, 10, 251, 5),
-                   child: SingleChildScrollView(
-                     scrollDirection: Axis.vertical,
-                     physics: BouncingScrollPhysics(),
-                     child: _allUserDataModel != null ? mainBody() : getUserData()
-                   ),
-                   strokeWidth: 1,
-                   onRefresh: fetchData
+                 Stack(
+                   children: [
+                     Container(
+                       child: _allUserDataModel != null ? mainBody() : getUserData(),
+                     ),
+                     _showLoading ? Center(
+                       heightFactor: 50,
+                       child: ClipRRect(
+                         borderRadius: BorderRadius.all(Radius.circular(15)),
+                         child: Container(
+                           padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                           height: 80,
+                           width: 80,
+                           color: Colors.black.withOpacity(0.7),
+                           child: CircularProgressIndicator(
+                             strokeWidth: 2,
+                             color: Colors.white,
+                           ),
+                         ),
+                       ),
+                     ) : Container()
+                   ],
                  ),
-                 TimeLinePage(),
+                 PhotoSearchPage(),
                  VideoSearchPage(),
                  SettingsPage(),
                ],
@@ -155,9 +185,27 @@ class _UserProfilePageState extends State<UserProfilePage>{
                height: height / 10,
                child: BottomNavigationBar(
                  type: BottomNavigationBarType.fixed,
-                 selectedItemColor: _bottomNavBarIndex == 3 ? Colors.white : Color.fromRGBO(145, 10, 251, 5),
+                 selectedItemColor: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
+                                    ? Colors.white
+                                    : _bottomNavBarIndex == 1 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
+                                    ? Colors.white
+                                    : _bottomNavBarIndex == 2 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
+                                    ? Colors.white
+                                    : _bottomNavBarIndex == 3
+                                    ? Colors.white
+                                    : _bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
+                                    ? Colors.white : Color.fromRGBO(145, 10, 251, 5),
                  unselectedItemColor: Colors.grey,
-                 backgroundColor: _bottomNavBarIndex == 3 ? Colors.black87 : Colors.white,
+                 backgroundColor: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                                  ? Colors.white
+                                  : _bottomNavBarIndex == 1 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                                  ? Colors.white
+                                  : _bottomNavBarIndex == 2 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                                  ? Colors.white
+                                  : _bottomNavBarIndex == 3
+                                  ? Colors.black87
+                                  : _bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                                  ? Colors.white : null,
                  selectedFontSize: 10,
                  unselectedFontSize: 9,
                  currentIndex: _bottomNavBarIndex,
@@ -168,7 +216,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                          builder: (context, constraints) {
                            return Stack(
                              children: [
-                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey, height: 20, width: 20),
+                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 0 ? Colors.grey : Colors.white, height: 20, width: 20),
                                Positioned(
                                  left: constraints.maxWidth / 2.2,
                                  bottom: 5,
@@ -199,7 +247,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                    ),
                    BottomNavigationBarItem(
                        label: 'Профиль',
-                       icon: SvgPicture.asset(_profileButtonAsset, color: _bottomNavBarIndex == 1 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
+                       icon: SvgPicture.asset(_profileButtonAsset, color: _bottomNavBarIndex == 1 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 1 ? Colors.grey : Colors.white)
                    ),
                    BottomNavigationBarItem(
                      label: '',
@@ -211,7 +259,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                    ),
                    BottomNavigationBarItem(
                        label: 'Ещё',
-                       icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)
+                       icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 4 ? Colors.grey : Colors.white,)
                    )
                  ],
                  onTap: (index) {
@@ -240,112 +288,107 @@ class _UserProfilePageState extends State<UserProfilePage>{
       physics: BouncingScrollPhysics(),
       child: Column(
         children: [
-          Container(
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(20),
-                    bottomLeft: Radius.circular(20)
-                ),
-                child: Container(
-                    height: height / 4.8,
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color.fromRGBO(165, 21, 215, 5),
-                              Color.fromRGBO(38, 78, 215, 5)
-                            ]
-                        )
+          Stack(
+            children: [
+              Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                        bottomRight: Radius.circular(20),
+                        bottomLeft: Radius.circular(20)
                     ),
-                    child: Container (
-                      padding: EdgeInsets.only(left: width / 20, top: height / 20),
-                      child: Row(
-                        children: [
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              return Container(
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.transparent
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: _profilePicturesUrls![0],
-                                        fadeOutDuration: Duration(seconds: 0),
-                                        fadeInDuration: Duration(seconds: 0),
-                                        imageBuilder: (context, imageProvider) => Container(
-                                          width: 81,
-                                          height: 81,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                          ),
+                    child: Container(
+                        height: height / 4.8,
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color.fromRGBO(145, 10, 251, 5),
+                                  Color.fromRGBO(29, 105, 218, 5)
+                                ]
+                            )
+                        ),
+                        child: Container (
+                          padding: EdgeInsets.only(left: width / 20, top: height / 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Consumer<UserDataProvider>(
+                                builder: (context, viewModel, child){
+                                  return  Container(
+                                    height: height / 9,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Container(
+                                          width: 150,
+                                          child: Text('${viewModel.userDataModel!.firstName} ${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 2)
                                         ),
-                                      ),
-                                      Positioned(
-                                          top: 50,
-                                          left: 57,
-                                          child: InkWell(
-                                            onTap: () {
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) => ProfilePhotosPage()
-                                                  )
-                                              );
-                                            },
-                                            child: Container(
-                                              height: constraints.maxHeight * 0.2,
-                                              child: Icon(
-                                                  Icons.add,
-                                                  color: Colors.white,
-                                                  size: 24
-                                              ),
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.blue,
-                                              ),
+                                        viewModel.userDataModel!.job != null
+                                            ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                              Center(
+                                widthFactor: 0.2,
+                                child: Container(
+                                    child: Consumer<UserDataProvider>(
+                                      builder: (context, viewModel, child) {
+                                        MediaModel? mainPhoto = viewModel.mediaDataModel!.mainPhoto;
+                                        return mainPhoto != null ? CachedNetworkImage(
+                                          imageUrl: mainPhoto.url,
+                                          fadeOutDuration: Duration(seconds: 0),
+                                          fadeInDuration: Duration(seconds: 0),
+                                          imageBuilder: (context, imageProvider) => Container(
+                                            width: 100,
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.white.withOpacity(0.4),
+                                                  spreadRadius: 10,
+                                                  blurRadius: 7,
+                                                ),
+                                              ],
                                             ),
-                                          )
-                                      )
-                                    ],
-                                  )
-                              );
-                            },
-                          ),
-                          SizedBox(width: 10),
-                          Container(
-                            height: height / 9,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text('Мой профиль', style: TextStyle(color: Colors.white, fontSize: 17)),
-                                    SizedBox(width: width / 2.45),
-                                    IconButton(
-                                      icon: Icon(Icons.settings, color: Colors.white),
-                                      onPressed: () {
-                                        setState(() {
-                                          _bottomNavBarIndex = 4;
-                                        });
-                                        _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
+                                          ),
+                                        ) : Container(
+                                          width: 100,
+                                          height: 100,
+                                          child: Center(
+                                            child: Icon(Icons.account_circle_rounded, size: 85, color: Colors.grey),
+                                          ),
+                                          decoration: BoxDecoration(
+                                              shape: BoxShape.circle
+                                          ),
+                                        );
                                       },
                                     ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Container(
+                                padding: EdgeInsets.only(right: 10),
+                                height: 100,
+                                child: Column(
+                                  children: [
+                                    Container(height: 67),
+                                    _zodiacSignWidget!
                                   ],
                                 ),
-                                Text('${_user!.firstName} ${_user!.lastName}   ${DateTime.now().year - (int.parse(_user!.dateOfBirth.split('-')[0]))}', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    )
-                ),
-              )
+                              )
+                            ],
+                          ),
+                        )
+                    ),
+                  )
+              ),
+            ],
           ),
           SizedBox(height: height / 25),
           Column(
@@ -355,7 +398,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Мои интересы', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                    Text('Мои интересы', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                     InkWell(
                       onTap: () {
                         Navigator.push(
@@ -365,7 +408,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             )
                         );
                       },
-                      child: Text('Редактировать', style: TextStyle(fontSize: 17, color: Color.fromRGBO(145, 10, 251, 5))),
+                      child: Text('Редактировать', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent)),
                     )
                   ],
                 ),
@@ -375,44 +418,48 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Container(
-                    padding: EdgeInsets.only(left: 10),
-                    width: width * 3,
-                    height: 100,
-                    child: Wrap(
-                      spacing: 7.0,
-                      runSpacing: 9.0,
-                      children: List.generate(_interests!.length, (index) {
-                        return Material(
-                          child: InkWell(
-                              borderRadius: const BorderRadius.all(Radius.circular(30)),
-                              child: Container(
-                                height: 40,
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: Center(
-                                  widthFactor: 1,
-                                  child: Text(
-                                    _interests![index].interest!,
-                                    style: const TextStyle(color: Colors.white),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                decoration: BoxDecoration(
+                    padding: EdgeInsets.only(left: 10, bottom: 5),
+                    width: width * 2,
+                    child: Consumer<UserDataProvider>(
+                      builder: (context, viewModel, child){
+                        _interests = viewModel.interestsDataModel;
+                        return Wrap(
+                            spacing: 7.0,
+                            runSpacing: 9.0,
+                            children: List.generate(_interests!.length, (index) {
+                              return Material(
+                                child: InkWell(
                                     borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                    color: Color(int.parse('0x' + _interests![index].color!)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: Color(int.parse('0x' + _interests![index].color!)).withOpacity(0.7),
-                                          offset: const Offset(3, 3),
-                                          blurRadius: 0,
-                                          spreadRadius: 0
-                                      )
-                                    ]
+                                    child: Container(
+                                      height: 40,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      child: Center(
+                                        widthFactor: 1,
+                                        child: Text(
+                                          _interests![index].interest!,
+                                          style: const TextStyle(color: Colors.white),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                      decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                          color: Color(int.parse('0x' + _interests![index].color!)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Color(int.parse('0x' + _interests![index].color!)).withOpacity(0.7),
+                                                offset: const Offset(3, 3),
+                                                blurRadius: 0,
+                                                spreadRadius: 0
+                                            )
+                                          ]
+                                      ),
+                                    )
                                 ),
-                              )
-                          ),
+                              );
+                            })
                         );
-                      })
-                    ),
+                      },
+                    )
                   )
                 )
               )
@@ -431,7 +478,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('О себе', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                Text('О себе', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 Container(
                   height: 30,
                   width: 110,
@@ -440,8 +487,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Icon(Icons.edit, color: Color.fromRGBO(145, 10, 251, 5), size: 20),
-                        Text('Изменить', style: TextStyle(fontSize: 15, color: Colors.black))
+                        Icon(Icons.edit, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent, size: 20),
+                        Text('Изменить', style: TextStyle(fontSize: 15))
                       ],
                     ),
                   ),
@@ -471,7 +518,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             width: 500,
                             child: Text(
                               _aboutMe != null ? '$_aboutMe' : 'Напишите о себе',
-                              style: TextStyle(fontSize: 15, color: Colors.black),
+                              style: TextStyle(fontSize: 15),
                               overflow: TextOverflow.fade,
                               maxLines: 3,
                             )
@@ -483,8 +530,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               onTap: () => showFullBio(),
                               child: Row(
                                 children: [
-                                  Text('Ещё', style: TextStyle(fontSize: 15, color: Color.fromRGBO(145, 10, 251, 5))),
-                                  Icon(Icons.arrow_drop_down, color: Color.fromRGBO(145, 10, 251, 5))
+                                  Text('Ещё', style: TextStyle(fontSize: 15, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent)),
+                                  Icon(Icons.arrow_drop_down, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent)
                                 ],
                               ),
                             )
@@ -515,7 +562,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         MaterialPageRoute(builder: (context) => AllVideosPage())
                     );
                   },
-                  child: Text('Все', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5), fontSize: 17)),
+                  child: Text('Все', style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent, fontSize: 17)),
                 )
               ],
             ),
@@ -524,63 +571,68 @@ class _UserProfilePageState extends State<UserProfilePage>{
           Container(
               height: 200,
               padding: EdgeInsets.only(left: 20),
-              child: GridView.count(
-                crossAxisCount: 1,
-                childAspectRatio: 16 / 8,
-                mainAxisSpacing: 10,
-                physics: const ClampingScrollPhysics(),
-                scrollDirection: Axis.horizontal,
-                children: List.generate(_base64Videos!.length + 1, (index) {
-                  if(index == 0){
-                    return ClipRRect(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                      child: Container(
-                        height: height / 5,
-                        width: width / 4.5,
-                        color: Colors.grey.withOpacity(0.3),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
-                            SizedBox(height: 3),
-                            Text('Загрузить видео',
-                              style: TextStyle(fontSize: 15, color: Colors.grey),
-                              textAlign: TextAlign.center,
-                            )
-                          ],
-                        ),
-                      ),
-                    );
-                  }else{
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => VideoPage(base64Videos: _base64Videos, videoIndex: (index - 1))
-                            )
+              child: Consumer<UserDataProvider>(
+                builder: (context, viewModel, child){
+                  _videos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+                  return GridView.count(
+                    crossAxisCount: 1,
+                    childAspectRatio: 16 / 8,
+                    mainAxisSpacing: 10,
+                    physics: const ClampingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    children: List.generate(_videos!.length + 1, (index) {
+                      if(index == 0){
+                        return ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                          child: Container(
+                            height: height / 5,
+                            width: width / 4.5,
+                            color: Colors.grey.withOpacity(0.3),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                SizedBox(height: 3),
+                                Text('Загрузить видео',
+                                  style: TextStyle(fontSize: 15, color: Colors.grey),
+                                  textAlign: TextAlign.center,
+                                )
+                              ],
+                            ),
+                          ),
                         );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                        child: Container(
-                          child: _base64Videos!.isEmpty ? Center(
-                            heightFactor: 1,
-                            widthFactor: 1,
-                            child: CircularProgressIndicator(color: Color.fromRGBO(145, 10, 251, 5), strokeWidth: 1)
-                          ) : CachedMemoryImage(
-                            height: 100,
-                            width: 100,
-                            uniqueKey: 'app://content/video/${index}',
-                            base64: _base64Videos![index - 1],
-                            fit: BoxFit.cover,
-                          )
-                        ),
-                      ),
-                    );
-                  }
-                }),
-              ),
+                      }else{
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => VideoPage(videoIndex: index - 1)
+                                )
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            child: Container(
+                                child: CachedNetworkImage(
+                                  placeholder: (context, url) => Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.white,
+                                    child: Container(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  imageUrl: _videos![index - 1].thumbnail,
+                                  fit: BoxFit.cover,
+                                )
+                            ),
+                          ),
+                        );
+                      }
+                    }),
+                  );
+                },
+              )
           ),
           SizedBox(height: 20),
           Container(
@@ -588,71 +640,80 @@ class _UserProfilePageState extends State<UserProfilePage>{
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Фото', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                Text('Фото', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 Container()
               ],
             ),
           ),
           SizedBox(height: 10),
-          Container(
-              height: 200,
-              width: 430,
-              padding: EdgeInsets.only(left: 10),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 10,
-                shrinkWrap: true,
-                physics: const ClampingScrollPhysics(),
-                scrollDirection: Axis.horizontal,
-                children: List.generate(_userPhotosUrls!.length + 1, (index){
-                  if(index == 0){
-                    return InkWell(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                        child: Container(
-                          height: 100,
-                          width: 100,
-                          color: Colors.grey.withOpacity(0.3),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
-                              SizedBox(height: 3),
-                              Text('Загрузить фото',
-                                style: TextStyle(fontSize: 15, color: Colors.grey),
-                                textAlign: TextAlign.center,
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }else{
-                    return InkWell(
-                      onTap: (){
-                        Navigator.push(
-                            context,
-                              MaterialPageRoute(
-                                  builder: (context) => AllPhotosPage(photos: _userPhotosUrls)
-                              )
-                           );
-                      },
-                       child: ClipRRect(
-                         borderRadius: BorderRadius.all(Radius.circular(15)),
-                         child: Container(
-                           child: CachedNetworkImage(
-                             imageUrl: _userPhotosUrls![index - 1],
-                             width: 100,
-                             height: 100,
-                             fit: BoxFit.cover,
-                           ),
-                         ),
-                       ),
-                    );
-                  }
-                }),
-              )
+          Consumer<UserDataProvider>(
+            builder: (context, viewModel, child){
+              _photos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => (element.filter.toString().startsWith("-") && element.type.toString().startsWith("image"))).toList();
+              return Padding(
+                padding: EdgeInsets.only(bottom: 10),
+                child: Container(
+                    height: _photos!.length > 4 ? 200 : 100,
+                    width: 430,
+                    padding: EdgeInsets.only(left: 10),
+                    child: GridView.count(
+                      crossAxisCount:  _photos!.length > 5 ? 2 : 1,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 10,
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      scrollDirection: Axis.horizontal,
+                      children: List.generate(_photos!.length + 1, (index){
+                        if(index == 0){
+                          return InkWell(
+                            onTap: () => showBottomSheet(),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                              child: Container(
+                                color: Colors.grey.withOpacity(0.3),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                    SizedBox(height: 3),
+                                    Text('Загрузить фото',
+                                      style: TextStyle(fontSize: 15, color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }else{
+                          return InkWell(
+                            onTap: (){
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AllPhotosPage()
+                                  )
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                              child: Container(
+                                child: Consumer<UserDataProvider>(
+                                  builder: (context, viewModel, child){
+                                    return CachedNetworkImage(
+                                      imageUrl: _photos![index-1].url,
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      }),
+                    )
+                ),
+              );
+            },
           )
         ],
       ),
@@ -670,7 +731,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
             padding: EdgeInsets.only(top: 10),
             height: bioTextFocusNode!.hasFocus ? height / 1.3 : height / 1.8,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.black12 : Colors.white,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(35), topRight: Radius.circular(35)),
             ),
@@ -682,9 +743,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(width: width / 8),
-                      Text('О себе',
-                          style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text('О себе', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       IconButton(
                         icon: Icon(CupertinoIcons.clear_thick_circled),
                         color: Colors.grey.withOpacity(0.5),
@@ -699,7 +758,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     'Напишите пару слов о себе и ваших постоянных увлечениях',
                     maxLines: 2,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 17, color: Colors.grey),
+                    style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.white : Colors.grey),
                   ),
                 ),
                 SizedBox(height: 15),
@@ -709,7 +768,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                       controller: bioTextController,
                       focusNode: bioTextFocusNode,
                       cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.white : Colors.black),
                       textInputAction: TextInputAction.done,
                       maxLines: 10,
                       decoration: InputDecoration(
@@ -858,7 +917,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
   FutureBuilder<Response<AllUserDataModel>> getUserData() {
     return FutureBuilder<Response<AllUserDataModel>>(
       future: _allUserDataModelFuture,
-      builder: (context, snapshot) {
+      builder: (futureBuilderContext, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
           return Container();
         }
@@ -866,31 +925,31 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _allUserDataModel = snapshot.data!.body;
-          _photos = _allUserDataModel!.media;
           _user = _allUserDataModel!.user;
+
+          _media = _allUserDataModel!.media!;
+          _videos = _allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
 
           _interests = _allUserDataModel!.interests;
 
           _aboutMe = _user!.aboutMe;
 
-          for(var images in _photos!) {
-            if(images.type.startsWith('image') && images.filter == 'main'){
-              if(!(_profilePicturesUrls!.contains(images.url))){
-                _profilePicturesUrls!.add(images.url);
-              }
-            }else if(images.type.startsWith('image') && images.filter == '-'){
-              if(!(_userPhotosUrls!.contains(images.url))){
-                _userPhotosUrls!.add(images.url);
-              }
-            }else if(images.type.startsWith('video')){
-              if(!(_videosUrls!.contains(images.url))){
-                _videosUrls!.add(images.url);
-              }
-            }
-          }
+          String birthDayString = _user!.dateOfBirth;
+          int year = int.parse(birthDayString.split('-')[0]);
+          int month = int.parse(birthDayString.split('-')[1]);
+          int day = int.parse(birthDayString.split('-')[2]);
 
-          GlobalUserData.updateModel(_allUserDataModel);
-          cacheVideos();
+          DateTime birthDay = DateTime(year, month, day);
+
+          _zodiacSignWidget = ZodiacSigns.getZodiacSign(birthDay, 1);
+
+          Provider.of<UserDataProvider>(context, listen: false)
+            ..setUserDataModel(_user)
+            ..setMediaDataModel(_media)
+            ..setInterestsDataModel(_interests);
+
+
+          Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(_media!.otherPhotosList);
 
           return mainBody();
         }else{
@@ -901,57 +960,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
         }
       },
     );
-  }
-
-  Future fetchData() async {
-    Response response = await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
-
-    _allUserDataModel = response.body;
-    _photos = List.from(_allUserDataModel!.media!.toList());
-    _user = _allUserDataModel!.user;
-
-    _interests = _allUserDataModel!.interests;
-
-    _aboutMe = _user!.aboutMe;
-
-    GlobalUserData.updateModel(_allUserDataModel);
-
-    for(var images in _photos!) {
-      if(images.type.startsWith('image') && images.filter == 'main'){
-        if(!(_profilePicturesUrls!.contains(images.url))){
-          _profilePicturesUrls!.add(images.url);
-        }
-      }else if(images.type.startsWith('image') && images.filter == '-'){
-        if(!(_userPhotosUrls!.contains(images.url))){
-          _userPhotosUrls!.add(images.url);
-        }
-      }else if(images.type.startsWith('video')){
-        if(!(_videosUrls!.contains(images.url))){
-          _videosUrls!.add(images.url);
-        }
-      }
-    }
-
-    setState((){});
-
-    cacheVideos();
-  }
-
-  Future cacheVideos() async {
-
-    for(var url in _videosUrls!){
-      http.Response response = await http.get(Uri.parse(url)).whenComplete((){
-        setState((){
-          _showImageLoading = false;
-        });
-      });
-
-      final bytes = response.bodyBytes;
-
-      if(!(_base64Videos!.contains(base64Encode(bytes)))){
-        _base64Videos!.add(base64Encode(bytes));
-      }
-    }
   }
 
   void openEditBioSheet(){
@@ -989,5 +997,233 @@ class _UserProfilePageState extends State<UserProfilePage>{
         );
       }
     );
+  }
+
+  void showBottomSheet() async {
+    try{
+      List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(onlyAll: true, type: RequestType.image);
+      List<AssetEntity> media = await albums[0].getAssetListPaged(page: 0, size: 60);
+
+      if(UniversalPlatform.isIOS){
+        showCupertinoModalPopup(
+            context: context,
+            builder: (context) {
+              return CupertinoActionSheet(
+                actions: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        height: 150,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: media.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            return Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    media[index].file.then((file) {
+                                      _cropImage(file!.path);
+                                    });
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.all(
+                                        Radius.circular(8)),
+                                    child: AssetEntityImage(
+                                      media[index],
+                                      isOriginal: false,
+                                      thumbnailFormat: ThumbnailFormat.png,
+                                      height: 100,
+                                      width: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 5),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      CupertinoActionSheetAction(
+                        child: Text(
+                            'Выбрать из библиотеки', textAlign: TextAlign.center),
+                        onPressed: () async {
+                          XFile? image = await _picker.pickImage(
+                              source: ImageSource.gallery);
+                          _cropImage(image!.path);
+                        },
+                      )
+                    ],
+                  )
+                ],
+                cancelButton: CupertinoActionSheetAction(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Отмена'),
+                ),
+              );
+            }
+        );
+      }else if(UniversalPlatform.isAndroid){
+        showModalBottomSheet(
+            context: context,
+            builder: (context){
+              return Wrap(
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        height: 150,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: media.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            return Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    media[index].file.then((file) {
+                                      _cropImage(file!.path);
+                                    });
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.all(
+                                        Radius.circular(8)),
+                                    child: AssetEntityImage(
+                                      media[index],
+                                      isOriginal: false,
+                                      thumbnailFormat: ThumbnailFormat.png,
+                                      height: 100,
+                                      width: 100,
+                                      fit: BoxFit.fill,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 5),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      ListTile(
+                        title: Text('Выбрать из библиотеки'),
+                        onTap: () async {
+                          XFile? image = await _picker.pickImage(
+                              source: ImageSource.gallery);
+                          _cropImage(image!.path);
+                        },
+                      ),
+                      ListTile(
+                          title: Text('Отмена'),
+                          onTap: () => Navigator.pop(context)
+                      ),
+                    ],
+                  )
+                ],
+              );
+            }
+        );
+      }
+    }on RangeError catch(_){
+      if(UniversalPlatform.isIOS){
+        showCupertinoDialog(
+            context: context,
+            builder: (context) {
+              return CupertinoAlertDialog(
+                title: Text('Нет фото'),
+                content: Center(
+                  child: Text(
+                      'У вас нет фотографий'),
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    child: Text('Закрыть'),
+                    isDestructiveAction: true,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              );
+            }
+        );
+      }else if(UniversalPlatform.isAndroid){
+        Widget _closeButton = TextButton(
+            child: const Text(
+                'Закрыть', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+            onPressed: () {
+              Navigator.pop(context);
+            });
+
+        AlertDialog dialog = AlertDialog(
+            title: const Text('Нет фото'),
+            content: const Text('У вас нет фотографий'),
+            actions: [_closeButton]);
+
+        showDialog(
+            context: context,
+            builder: (context) {
+              return dialog;
+            });
+      }
+    }
+  }
+
+  void _cropImage(String? filePath) async {
+
+    setState((){
+      _showLoading = true;
+    });
+
+    File? croppedFile = await ImageCropper().cropImage(
+        sourcePath: filePath!,
+        androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Загрузить фото',
+          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+          hideBottomControls: true,
+        ),
+        iosUiSettings: IOSUiSettings(
+          title: 'Загрузить фото',
+          showCancelConfirmationDialog: true,
+          cancelButtonTitle: 'Закрыть',
+          doneButtonTitle: 'Сохранить',
+          rotateButtonsHidden: true,
+          aspectRatioPickerButtonHidden: true,
+          rotateClockwiseButtonHidden: true,
+          resetButtonHidden: true,
+          rectX: 100,
+          rectY: 100,
+          aspectRatioLockEnabled: false,
+        )
+    );
+
+    Uint8List bytes = croppedFile!.readAsBytesSync();
+
+    String? mime = lookupMimeType(croppedFile.path);
+
+    var data = {
+      'media' : base64Encode(bytes),
+      'mime' : mime,
+      'filter' : '-'
+    };
+    
+    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete(() async {
+      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+        Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+
+        setState((){
+          _showLoading = true;
+        });
+
+        Navigator.pop(context);
+        Navigator.pop(context);
+      });
+    });
   }
 }

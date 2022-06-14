@@ -53,6 +53,12 @@ class UserDataModel{
   @JsonKey(name: 'mute_messages_notifications')
   var muteMessagesNotifications;
 
+  @JsonKey(name: 'show_zodiac_sign')
+  var showZodiacSign;
+
+  @JsonKey(name: 'zodiac_sign')
+  var zodiacSign;
+
   UserDataModel({
      this.success,
      this.token,
@@ -69,7 +75,9 @@ class UserDataModel{
      this.jobCompany,
      this.muteNotifications,
      this.muteMessagesNotifications,
-     this.muteRequestMessagingNotifications
+     this.muteRequestMessagingNotifications,
+     this.showZodiacSign,
+     this.zodiacSign
   });
 
 

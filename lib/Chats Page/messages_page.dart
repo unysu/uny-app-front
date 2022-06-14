@@ -1,3 +1,4 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 import 'package:uny_app/Chats%20Page/chat_page.dart';
 
 class ChatsPage extends StatefulWidget{
@@ -108,8 +110,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
         SizedBox(height: 10),
         TabBar(
           controller: _tabController,
-          indicatorColor: Color.fromRGBO(145, 10, 251, 5),
-          labelColor: Color.fromRGBO(145, 10, 251, 5),
+          indicatorColor: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.purpleAccent : Color.fromRGBO(145, 10, 251, 5),
+          labelColor: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.purpleAccent : Color.fromRGBO(145, 10, 251, 5),
           unselectedLabelColor: Colors.grey,
           padding: EdgeInsets.symmetric(horizontal: width / 10),
           tabs: [
@@ -201,11 +203,11 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                        child: Stack(
                          alignment: Alignment.centerLeft,
                          children: [
-                           Align(
-                             alignment: Alignment.centerLeft,
+                           Positioned(
+                             left: 3.9,
                              child: Container(
-                               height: height / 10,
-                               width: width / 7,
+                               height: 52,
+                               width: 52,
                                decoration: BoxDecoration(
                                    color: Colors.white,
                                    shape: BoxShape.circle,
@@ -213,23 +215,43 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                        image: AssetImage('assets/video_search_sample_pic.png'),
                                        fit: BoxFit.cover,
                                        filterQuality: FilterQuality.high
-                                   ),
-                                   border: Border.all(
-                                     color: Colors.deepOrange,
-                                     width: 3,
                                    )
                                ),
                              ),
                            ),
+                           Positioned(
+                             child: Container(
+                               height: 60,
+                               width: 60,
+                               child: SimpleCircularProgressBar(
+                                 valueNotifier: ValueNotifier(40),
+                                 backColor: Colors.grey,
+                                 animationDuration: 0,
+                                 mergeMode: true,
+                                 backStrokeWidth: 5,
+                                 progressStrokeWidth: 5,
+                                 startAngle: 210,
+                                 progressColors: [
+                                   Colors.deepOrange,
+                                   Colors.yellowAccent,
+                                   Colors.green
+                                 ],
+                               ),
+                             ),
+                           ),
                            Padding(
-                             padding: EdgeInsets.symmetric(horizontal: 12),
+                             padding: EdgeInsets.symmetric(horizontal: 8),
                              child: Align(
                                alignment: Alignment.bottomLeft,
-                               heightFactor: 5,
                                child: Container(
+                                 height: 20,
+                                 width: 45,
                                  padding: EdgeInsets.symmetric(horizontal: 3),
-                                 child: Text('31 %', style: TextStyle(
-                                     color: Colors.white)),
+                                 child: Center(
+                                   widthFactor: 1,
+                                   child: Text('31 %', style: TextStyle(
+                                       color: Colors.white)),
+                                 ),
                                  decoration: BoxDecoration(
                                    color: Colors.deepOrange,
                                    borderRadius: BorderRadius.all(
@@ -335,11 +357,11 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                     child: Stack(
                       alignment: Alignment.centerLeft,
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
+                        Positioned(
+                          left: 3.3,
                           child: Container(
-                            height: height / 10,
-                            width: width / 7,
+                            height: 53,
+                            width: 53,
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 shape: BoxShape.circle,
@@ -348,15 +370,31 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                     fit: BoxFit.cover,
                                     filterQuality: FilterQuality.high
                                 ),
-                                border: Border.all(
-                                  color: Colors.green,
-                                  width: 3,
-                                )
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          child: Container(
+                            height: 60,
+                            width: 60,
+                            child: SimpleCircularProgressBar(
+                              valueNotifier: ValueNotifier(64),
+                              backColor: Colors.grey,
+                              animationDuration: 0,
+                              mergeMode: true,
+                              backStrokeWidth: 5,
+                              progressStrokeWidth: 5,
+                              startAngle: 210,
+                              progressColors: [
+                                Colors.deepOrange,
+                                Colors.yellowAccent,
+                                Colors.green
+                              ],
                             ),
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 13.1),
+                          padding: EdgeInsets.symmetric(horizontal: 10),
                           child: Align(
                             alignment: Alignment.bottomLeft,
                             heightFactor: 5,

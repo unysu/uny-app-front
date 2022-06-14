@@ -5,16 +5,17 @@ import 'package:chewie/chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPage extends StatefulWidget{
 
-  List<String>? base64Videos;
   int? videoIndex;
 
-  VideoPage({required this.base64Videos, required this.videoIndex});
+  VideoPage({required this.videoIndex});
 
   @override
   _VideoPageState createState() => _VideoPageState();
@@ -25,25 +26,16 @@ class _VideoPageState extends State<VideoPage>{
   late double height;
   late double width;
 
-  late VideoPlayerController _videoPlayerController;
-  late ChewieController _chewieController;
+  bool _showIcon = false;
 
-  Future<VideoPlayerController>? _futureController;
-
-  Future<VideoPlayerController> createVideoPlayer() async {
-    final File file = File.fromRawPath(base64Decode(widget.base64Videos![widget.videoIndex!]));
-    final VideoPlayerController controller = VideoPlayerController.file(file);
-    await controller.initialize();
-    await controller.setLooping(true);
-
-    return controller;
-  }
+  List<VideoPlayerController>? _videoPlayerControllersList;
 
   @override
   void initState(){
 
-    print('hahahha');
-    _futureController = createVideoPlayer();
+    _videoPlayerControllersList = Provider.of<VideoControllerProvider>(context, listen: false).videoPlayerControllersList;
+
+    _videoPlayerControllersList![widget.videoIndex!].play();
 
     super.initState();
   }
@@ -51,8 +43,7 @@ class _VideoPageState extends State<VideoPage>{
   @override
   void dispose(){
 
-    _videoPlayerController.dispose();
-    _chewieController.dispose();
+    _videoPlayerControllersList = [];
 
     super.dispose();
   }
@@ -70,23 +61,61 @@ class _VideoPageState extends State<VideoPage>{
               appBar: AppBar(
                 elevation: 0,
                 automaticallyImplyLeading: false,
-                systemOverlayStyle: SystemUiOverlayStyle.dark,
+                systemOverlayStyle: SystemUiOverlayStyle.light,
                 backgroundColor: Colors.transparent,
                 title: Text('Видеозапись', style: TextStyle(fontSize: 17, color: Colors.white)),
                 leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: (){
+                    _videoPlayerControllersList = [];
+
+                    _videoPlayerControllersList![widget.videoIndex!].dispose();
+
+                    Navigator.pop(context);
+                  },
                   icon: Icon(Icons.arrow_back, color: Colors.white),
                 ),
                 actions: [
                   Center(
                     child: IconButton(
                       icon: Icon(CupertinoIcons.delete),
-                      onPressed: () => showDeleteVideoDialog(),
+                      onPressed: () => showDeleteVideoDialog()
                     ),
                   )
                 ],
               ),
-              body: initVideoFutureBuilder()
+              body: GestureDetector(
+                onTap: (){
+                  _videoPlayerControllersList![widget.videoIndex!].value.isPlaying
+                      ? setState((){
+                          _videoPlayerControllersList![widget.videoIndex!].pause();
+                          _showIcon = true;
+                       }) : setState((){
+                          _videoPlayerControllersList![widget.videoIndex!].play();
+                          _showIcon = false;
+                       });
+                },
+                child: Stack(
+                  children: [
+                    mainBody(),
+                    Center(
+                        child: AnimatedOpacity(
+                          opacity: _showIcon ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 150),
+                          child: IconButton(
+                              icon: Icon(CupertinoIcons.play_fill, size: 60, color: Colors.white),
+                              onPressed: (){
+                                _videoPlayerControllersList![widget.videoIndex!].play();
+
+                                setState((){
+                                  _showIcon = false;
+                                });
+                              }
+                          ),
+                        )
+                    )
+                  ],
+                )
+              )
           ),
           maxWidth: 800,
           minWidth: 450,
@@ -100,35 +129,12 @@ class _VideoPageState extends State<VideoPage>{
     );
   }
 
-  FutureBuilder initVideoFutureBuilder(){
-    return FutureBuilder(
-      future: _futureController,
-      builder: (context, snapshot){
-        if(snapshot.connectionState == ConnectionState.done){
-          _videoPlayerController = snapshot.data as VideoPlayerController;
-
-          _chewieController = ChewieController(
-            videoPlayerController: _videoPlayerController,
-            allowedScreenSleep: false,
-
-            autoPlay: true,
-          );
-
-          return mainBody();
-        }else{
-          return Center(
-            child: Text('Error while loading video'),
-          );
-        }
-      },
-    );
-  }
-
   Widget mainBody(){
     return SizedBox.expand(
-      child: Chewie(
-        controller: _chewieController,
-      ),
+      child: _videoPlayerControllersList![widget.videoIndex!].value.isInitialized ? AspectRatio(
+        aspectRatio: 1,
+        child: VideoPlayer(_videoPlayerControllersList![widget.videoIndex!]),
+      ) : Container(),
     );
   }
 
@@ -204,5 +210,4 @@ class _VideoPageState extends State<VideoPage>{
       );
     }
   }
-
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,10 +49,10 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                 appBar: AppBar(
                   elevation: 0,
                   automaticallyImplyLeading: false,
-                  systemOverlayStyle: SystemUiOverlayStyle.dark,
+                  systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
                   backgroundColor: Colors.transparent,
                   leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.grey),
+                    icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
@@ -82,7 +83,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
               Text(
                   'Загрузи первое видео',
                   style: TextStyle(fontSize: 24,
-                      color: Colors.black,
+                      color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white,
                       fontWeight: FontWeight.bold)),
               SizedBox(height: 6),
               SizedBox(
@@ -205,7 +206,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                       SvgPicture.asset(_newMediaImageAsset),
                       SizedBox(width: 5),
                       Text('Загрузить из медиатеки', style: TextStyle(
-                          color: Colors.black, fontSize: 17))
+                          color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontSize: 17))
                     ],
                   )
               ),

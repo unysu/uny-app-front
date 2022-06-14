@@ -22,6 +22,6 @@ class TokenData{
   }
 
   static void clearToken(){
-    _sharedPreferences.clear();
+    _sharedPreferences.remove('user_token');
   }
 }

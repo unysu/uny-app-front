@@ -61,17 +61,7 @@ class _$InterestsDatabase extends InterestsDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
-  AllInterestsDao? _allInterestsDaoInstance;
-
-  FamilyInterestsDao? _familyInterestsDaoInstance;
-
-  CareerInterestsDao? _careerInterestsDaoInstance;
-
-  SportInterestsDao? _sportInterestsDaoInstance;
-
-  TravelingInterestsDao? _travelingInterestsDaoInstance;
-
-  GeneralInterestsDao? _generalInterestsDaoInstance;
+  InterestsDao? _interestsModelDaoInstance;
 
   Future<sqflite.Database> open(String path, List<Migration> migrations,
       [Callback? callback]) async {
@@ -92,17 +82,7 @@ class _$InterestsDatabase extends InterestsDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `AllInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `FamilyInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `CareerInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `SportInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `TravellingInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `GeneralInterestsModel` (`id` INTEGER, `name` TEXT, `color` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `InterestsModel` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `type` TEXT, `color` TEXT)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -111,51 +91,22 @@ class _$InterestsDatabase extends InterestsDatabase {
   }
 
   @override
-  AllInterestsDao get allInterestsDao {
-    return _allInterestsDaoInstance ??=
-        _$AllInterestsDao(database, changeListener);
-  }
-
-  @override
-  FamilyInterestsDao get familyInterestsDao {
-    return _familyInterestsDaoInstance ??=
-        _$FamilyInterestsDao(database, changeListener);
-  }
-
-  @override
-  CareerInterestsDao get careerInterestsDao {
-    return _careerInterestsDaoInstance ??=
-        _$CareerInterestsDao(database, changeListener);
-  }
-
-  @override
-  SportInterestsDao get sportInterestsDao {
-    return _sportInterestsDaoInstance ??=
-        _$SportInterestsDao(database, changeListener);
-  }
-
-  @override
-  TravelingInterestsDao get travelingInterestsDao {
-    return _travelingInterestsDaoInstance ??=
-        _$TravelingInterestsDao(database, changeListener);
-  }
-
-  @override
-  GeneralInterestsDao get generalInterestsDao {
-    return _generalInterestsDaoInstance ??=
-        _$GeneralInterestsDao(database, changeListener);
+  InterestsDao get interestsModelDao {
+    return _interestsModelDaoInstance ??=
+        _$InterestsDao(database, changeListener);
   }
 }
 
-class _$AllInterestsDao extends AllInterestsDao {
-  _$AllInterestsDao(this.database, this.changeListener)
+class _$InterestsDao extends InterestsDao {
+  _$InterestsDao(this.database, this.changeListener)
       : _queryAdapter = QueryAdapter(database),
-        _allInterestsModelInsertionAdapter = InsertionAdapter(
+        _interestsModelInsertionAdapter = InsertionAdapter(
             database,
-            'AllInterestsModel',
-            (AllInterestsModel item) => <String, Object?>{
+            'InterestsModel',
+            (InterestsModel item) => <String, Object?>{
                   'id': item.id,
                   'name': item.name,
+                  'type': item.type,
                   'color': item.color
                 });
 
@@ -165,277 +116,106 @@ class _$AllInterestsDao extends AllInterestsDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<AllInterestsModel> _allInterestsModelInsertionAdapter;
+  final InsertionAdapter<InterestsModel> _interestsModelInsertionAdapter;
 
   @override
-  Future<List<AllInterestsModel>> getAllInterestsByLimit(
+  Future<List<InterestsModel>> getAllInterestsByLimit(
       String start, String end) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM AllInterestsModel LIMIT ?1, ?2',
-        mapper: (Map<String, Object?> row) =>
-            AllInterestsModel(row['name'] as String?, row['color'] as String?),
+    return _queryAdapter.queryList('SELECT * FROM InterestsModel LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?),
         arguments: [start, end]);
   }
 
   @override
-  Future<List<AllInterestsModel>> filterInterest(String name) async {
+  Future<List<InterestsModel>> getTravelingInterestsByLimit(
+      String start, String end) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM AllInterestsModel WHERE name LIKE %?1%',
-        mapper: (Map<String, Object?> row) =>
-            AllInterestsModel(row['name'] as String?, row['color'] as String?),
+        'SELECT * FROM InterestsModel WHERE type = \'traveling\' LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?),
+        arguments: [start, end]);
+  }
+
+  @override
+  Future<List<InterestsModel>> getGeneralInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InterestsModel WHERE type = \'general\' LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?),
+        arguments: [start, end]);
+  }
+
+  @override
+  Future<List<InterestsModel>> getCareerInterestsByLimit(
+      String start, String end) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InterestsModel WHERE type = \'career\' LIMIT ?1, ?2',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?),
+        arguments: [start, end]);
+  }
+
+  @override
+  Future<List<InterestsModel>> getFamilyInterestsByLimit() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InterestsModel WHERE type = \'family\'',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?));
+  }
+
+  @override
+  Future<List<InterestsModel>> getSportInterestsByLimit() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InterestsModel WHERE type = \'sport\'',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?));
+  }
+
+  @override
+  Future<List<InterestsModel>> filterInterests(String name) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM InterestsModel WHERE name LIKE %?1%',
+        mapper: (Map<String, Object?> row) => InterestsModel(
+            row['id'] as int?,
+            row['name'] as String?,
+            row['type'] as String?,
+            row['color'] as String?),
         arguments: [name]);
   }
 
   @override
-  Future<List<AllInterestsModel>> getAllInterests() async {
-    return _queryAdapter.queryList('SELECT * FROM AllInterestsModel',
-        mapper: (Map<String, Object?> row) =>
-            AllInterestsModel(row['name'] as String?, row['color'] as String?));
-  }
-
-  @override
-  Future<void> insertAllInterests(AllInterestsModel allInterestsModel) async {
-    await _allInterestsModelInsertionAdapter.insert(
-        allInterestsModel, OnConflictStrategy.replace);
-  }
-}
-
-class _$FamilyInterestsDao extends FamilyInterestsDao {
-  _$FamilyInterestsDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
-        _familyInterestsModelInsertionAdapter = InsertionAdapter(
-            database,
-            'FamilyInterestsModel',
-            (FamilyInterestsModel item) => <String, Object?>{
-                  'id': item.id,
-                  'name': item.name,
-                  'color': item.color
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<FamilyInterestsModel>
-      _familyInterestsModelInsertionAdapter;
-
-  @override
-  Future<List<FamilyInterestsModel>> getFamilyInterestsByLimit(
-      String start, String end) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM FamilyInterestsModel LIMIT ?1, ?2',
-        mapper: (Map<String, Object?> row) => FamilyInterestsModel(
-            row['id'] as int?, row['name'] as String?, row['color'] as String?),
-        arguments: [start, end]);
-  }
-
-  @override
-  Future<List<FamilyInterestsModel>> getFamilyInterests() async {
-    return _queryAdapter.queryList('SELECT * FROM FamilyInterestsModel',
-        mapper: (Map<String, Object?> row) => FamilyInterestsModel(
+  Future<List<InterestsModel>> getAllInterests() async {
+    return _queryAdapter.queryList('SELECT * FROM InterestsModel',
+        mapper: (Map<String, Object?> row) => InterestsModel(
             row['id'] as int?,
             row['name'] as String?,
+            row['type'] as String?,
             row['color'] as String?));
   }
 
   @override
-  Future<void> insertFamilyInterest(
-      FamilyInterestsModel familyInterestsModel) async {
-    await _familyInterestsModelInsertionAdapter.insert(
-        familyInterestsModel, OnConflictStrategy.replace);
-  }
-}
-
-class _$CareerInterestsDao extends CareerInterestsDao {
-  _$CareerInterestsDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
-        _careerInterestsModelInsertionAdapter = InsertionAdapter(
-            database,
-            'CareerInterestsModel',
-            (CareerInterestsModel item) => <String, Object?>{
-                  'id': item.id,
-                  'name': item.name,
-                  'color': item.color
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<CareerInterestsModel>
-      _careerInterestsModelInsertionAdapter;
-
-  @override
-  Future<List<CareerInterestsModel>> getCareerInterestsByLimit(
-      String start, String end) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM CareerInterestsModel LIMIT ?1, ?2',
-        mapper: (Map<String, Object?> row) => CareerInterestsModel(
-            row['id'] as int?, row['name'] as String?, row['color'] as String?),
-        arguments: [start, end]);
-  }
-
-  @override
-  Future<List<CareerInterestsModel>> getCareerInterests() async {
-    return _queryAdapter.queryList('SELECT * FROM CareerInterestsModel',
-        mapper: (Map<String, Object?> row) => CareerInterestsModel(
-            row['id'] as int?,
-            row['name'] as String?,
-            row['color'] as String?));
-  }
-
-  @override
-  Future<void> insertCareerInterests(
-      CareerInterestsModel careerInterestsModel) async {
-    await _careerInterestsModelInsertionAdapter.insert(
-        careerInterestsModel, OnConflictStrategy.replace);
-  }
-}
-
-class _$SportInterestsDao extends SportInterestsDao {
-  _$SportInterestsDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
-        _sportInterestsModelInsertionAdapter = InsertionAdapter(
-            database,
-            'SportInterestsModel',
-            (SportInterestsModel item) => <String, Object?>{
-                  'id': item.id,
-                  'name': item.name,
-                  'color': item.color
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<SportInterestsModel>
-      _sportInterestsModelInsertionAdapter;
-
-  @override
-  Future<List<SportInterestsModel>> getSportInterestsByLimit(
-      String start, String end) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM SportInterestsModel LIMIT ?1, ?2',
-        mapper: (Map<String, Object?> row) => SportInterestsModel(
-            row['id'] as int?, row['name'] as String?, row['color'] as String?),
-        arguments: [start, end]);
-  }
-
-  @override
-  Future<List<SportInterestsModel>> getSportInterests() async {
-    return _queryAdapter.queryList('SELECT * FROM SportInterestsModel',
-        mapper: (Map<String, Object?> row) => SportInterestsModel(
-            row['id'] as int?,
-            row['name'] as String?,
-            row['color'] as String?));
-  }
-
-  @override
-  Future<void> insertSportInterests(
-      SportInterestsModel sportInterestsModel) async {
-    await _sportInterestsModelInsertionAdapter.insert(
-        sportInterestsModel, OnConflictStrategy.replace);
-  }
-}
-
-class _$TravelingInterestsDao extends TravelingInterestsDao {
-  _$TravelingInterestsDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
-        _travellingInterestsModelInsertionAdapter = InsertionAdapter(
-            database,
-            'TravellingInterestsModel',
-            (TravellingInterestsModel item) => <String, Object?>{
-                  'id': item.id,
-                  'name': item.name,
-                  'color': item.color
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<TravellingInterestsModel>
-      _travellingInterestsModelInsertionAdapter;
-
-  @override
-  Future<List<TravellingInterestsModel>> getTravelingInterestsByLimit(
-      String start, String end) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM TravellingInterestsModel LIMIT ?1, ?2',
-        mapper: (Map<String, Object?> row) => TravellingInterestsModel(
-            row['id'] as int?, row['name'] as String?, row['color'] as String?),
-        arguments: [start, end]);
-  }
-
-  @override
-  Future<List<TravellingInterestsModel>> getTravelingInterests() async {
-    return _queryAdapter.queryList('SELECT * FROM TravellingInterestsModel',
-        mapper: (Map<String, Object?> row) => TravellingInterestsModel(
-            row['id'] as int?,
-            row['name'] as String?,
-            row['color'] as String?));
-  }
-
-  @override
-  Future<void> insertTravelingInterests(
-      TravellingInterestsModel travellingInterestsModel) async {
-    await _travellingInterestsModelInsertionAdapter.insert(
-        travellingInterestsModel, OnConflictStrategy.replace);
-  }
-}
-
-class _$GeneralInterestsDao extends GeneralInterestsDao {
-  _$GeneralInterestsDao(this.database, this.changeListener)
-      : _queryAdapter = QueryAdapter(database),
-        _generalInterestsModelInsertionAdapter = InsertionAdapter(
-            database,
-            'GeneralInterestsModel',
-            (GeneralInterestsModel item) => <String, Object?>{
-                  'id': item.id,
-                  'name': item.name,
-                  'color': item.color
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<GeneralInterestsModel>
-      _generalInterestsModelInsertionAdapter;
-
-  @override
-  Future<List<GeneralInterestsModel>> getGeneralInterestsByLimit(
-      String start, String end) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM GeneralInterestsModel LIMIT ?1, ?2',
-        mapper: (Map<String, Object?> row) => GeneralInterestsModel(
-            row['id'] as int?, row['name'] as String?, row['color'] as String?),
-        arguments: [start, end]);
-  }
-
-  @override
-  Future<List<GeneralInterestsModel>> getGeneralInterests() async {
-    return _queryAdapter.queryList('SELECT * FROM GeneralInterestsModel',
-        mapper: (Map<String, Object?> row) => GeneralInterestsModel(
-            row['id'] as int?,
-            row['name'] as String?,
-            row['color'] as String?));
-  }
-
-  @override
-  Future<void> insertGeneralInterests(
-      GeneralInterestsModel generalInterestsModel) async {
-    await _generalInterestsModelInsertionAdapter.insert(
-        generalInterestsModel, OnConflictStrategy.replace);
+  Future<void> insertInterest(List<InterestsModel> interestsModel) async {
+    await _interestsModelInsertionAdapter.insertList(
+        interestsModel, OnConflictStrategy.replace);
   }
 }

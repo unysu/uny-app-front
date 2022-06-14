@@ -5,6 +5,30 @@ part 'media_data_model.g.dart';
 @JsonSerializable()
 class MediaDataModel{
 
+  @JsonKey(name: 'main+')
+  MediaModel? mainPhoto;
+
+  @JsonKey(name: 'main')
+  List<MediaModel>? mainPhotosList;
+
+  @JsonKey(name: 'other')
+  List<MediaModel>? otherPhotosList;
+
+  MediaDataModel({
+    this.mainPhoto,
+    this.mainPhotosList,
+    this.otherPhotosList
+  });
+
+  factory MediaDataModel.fromJson(Map<String, dynamic> json) => _$MediaDataModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MediaDataModelToJson(this);
+}
+
+
+@JsonSerializable()
+class MediaModel{
+
   @JsonKey(name: 'id')
   var id;
 
@@ -17,18 +41,18 @@ class MediaDataModel{
   @JsonKey(name: 'filter')
   var filter;
 
-  @JsonKey(name: 'updated_at')
-  var updatedAt;
+  @JsonKey(name: 'thumbnail')
+  var thumbnail;
 
-  MediaDataModel({
+  MediaModel({
     this.id,
     this.url,
     this.type,
     this.filter,
-    this.updatedAt
+    this.thumbnail
   });
 
-  factory MediaDataModel.fromJson(Map<String, dynamic> json) => _$MediaDataModelFromJson(json);
+  factory MediaModel.fromJson(Map<String, dynamic> json) => _$MediaModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MediaDataModelToJson(this);
+  Map<String, dynamic> toJson() => _$MediaModelToJson(this);
 }

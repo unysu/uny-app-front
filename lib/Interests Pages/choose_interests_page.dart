@@ -1,18 +1,16 @@
 import 'dart:convert';
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
-import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 
@@ -21,9 +19,16 @@ class InterestsPage extends StatefulWidget {
   _InterestsPageState createState() => _InterestsPageState();
 }
 
-class _InterestsPageState extends State<InterestsPage> {
+class _InterestsPageState extends State<InterestsPage>{
 
   late InterestsDatabase? db;
+
+  late double height;
+  late double width;
+
+
+  FocusNode? addNewInterestFieldFocusNode;
+  TextEditingController? newInterestFieldTextController;
 
   ScrollController? _interestsStepsScrollController;
   ScrollController? _allInterestsScrollController;
@@ -44,32 +49,31 @@ class _InterestsPageState extends State<InterestsPage> {
   int _travelingInterestsCounter = 0;
   int _generalInterestsCounter = 0;
 
-  late double height;
-  late double width;
+  Future<List<InterestsModel>>? _familyInterestsFuture;
+  Future<List<InterestsModel>>? _careerInterestsFuture;
+  Future<List<InterestsModel>>? _sportInterestsFuture;
+  Future<List<InterestsModel>>? _travellingInterestsFuture;
+  Future<List<InterestsModel>>? _generalInterestsFuture;
 
-  Future<List<FamilyInterestsModel>>? familyInterestsFuture;
-  Future<List<CareerInterestsModel>>? careerInterestsFuture;
-  Future<List<SportInterestsModel>>? sportInterestsFuture;
-  Future<List<TravellingInterestsModel>>? travellingInterestsFuture;
-  Future<List<GeneralInterestsModel>>? generalInterestsFuture;
+  List<InterestsModel>? _familyInterestsList = [];
+  List<InterestsModel>? _familyFilteredList = [];
+  List<InterestsModel>? _selectedFamilyInterests = [];
 
-  List<FamilyInterestsModel>? _familyInterestsList = [];
-  List<CareerInterestsModel>? _careerInterestsList = [];
-  List<SportInterestsModel>? _sportInterestsList = [];
-  List<TravellingInterestsModel>? _travelingInterestsList = [];
-  List<GeneralInterestsModel>? _generalInterestsList = [];
+  List<InterestsModel>? _careerInterestsList = [];
+  List<InterestsModel>? _careerFilteredList = [];
+  List<InterestsModel>? _selectedCareerInterests = [];
 
-  List<FamilyInterestsModel>? _familyFilteredList = [];
-  List<CareerInterestsModel>? _careerFilteredList = [];
-  List<SportInterestsModel>? _sportFilteredList = [];
-  List<TravellingInterestsModel>? _travelingFilteredList = [];
-  List<GeneralInterestsModel>? _generalFilteredList = [];
+  List<InterestsModel>? _sportInterestsList = [];
+  List<InterestsModel>? _sportFilteredList = [];
+  List<InterestsModel>? _selectedSportInterests = [];
 
-  List<FamilyInterestsModel>? _selectedFamilyInterests = [];
-  List<CareerInterestsModel>? _selectedCareerInterests = [];
-  List<SportInterestsModel>? _selectedSportInterests = [];
-  List<TravellingInterestsModel>? _selectedTravelingInterests = [];
-  List<GeneralInterestsModel>? _selectedGeneralInterests = [];
+  List<InterestsModel>? _travelingInterestsList = [];
+  List<InterestsModel>? _travelingFilteredList = [];
+  List<InterestsModel>? _selectedTravelingInterests = [];
+
+  List<InterestsModel>? _generalInterestsList = [];
+  List<InterestsModel>? _generalFilteredList = [];
+  List<InterestsModel>? _selectedGeneralInterests = [];
 
   double _selectedFamilyInterestsValue = 0.0;
   double _selectedCareerInterestsValue = 0.0;
@@ -92,8 +96,11 @@ class _InterestsPageState extends State<InterestsPage> {
 
   bool _showLoading = false;
 
-  FocusNode? addNewInterestFieldFocusNode;
-  TextEditingController? newInterestFieldTextController;
+  bool _showFamilyToolTip = true;
+  bool _showCareerTooltip = true;
+  bool _showSportTooltip = true;
+  bool _showTravelingTooltip = true;
+  bool _showGeneralTooltip = true;
 
 
   @override
@@ -110,17 +117,12 @@ class _InterestsPageState extends State<InterestsPage> {
     _travelingInterestsScrollController = ScrollController();
     _generalInterestsScrollController = ScrollController();
 
-    familyInterestsFuture = db!.familyInterestsDao.getFamilyInterestsByLimit(familyInterestsStart.toString(), end.toString()).then((value) => _familyFilteredList = value);
-    careerInterestsFuture = db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerFilteredList = value);
-    sportInterestsFuture = db!.sportInterestsDao.getSportInterestsByLimit(sportInterestsStart.toString(), end.toString()).then((value) => _sportFilteredList = value);
-    travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString()).then((value) => _travelingFilteredList = value);
-    generalInterestsFuture = db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalFilteredList = value);
 
     _careerInterestsScrollController!.addListener(() async {
       if(_careerInterestsScrollController!.position.atEdge) {
         if(_careerFilteredList!.length < 1619){
           careerInterestsStart += 150;
-          List<CareerInterestsModel> allInterests = await db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString());
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString());
           setState(() {
             _careerFilteredList!.addAll(allInterests);
           });
@@ -136,7 +138,7 @@ class _InterestsPageState extends State<InterestsPage> {
       if(_travelingInterestsScrollController!.position.atEdge) {
         if(_travelingFilteredList!.length < 1415){
           travelingInterestsStart += 150;
-          List<TravellingInterestsModel> allInterests = await db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString());
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString());
           setState(() {
             _travelingFilteredList!.addAll(allInterests);
           });
@@ -152,7 +154,7 @@ class _InterestsPageState extends State<InterestsPage> {
       if(_generalInterestsScrollController!.position.atEdge) {
         if(_generalFilteredList!.length < 3446){
           generalInterestsStart += 80;
-          List<GeneralInterestsModel> allInterests = await db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString());
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString());
           setState(() {
             _generalFilteredList!.addAll(allInterests);
           });
@@ -163,6 +165,15 @@ class _InterestsPageState extends State<InterestsPage> {
         }
       }
     });
+
+
+    db = DatabaseObject.getDb;
+    _sportInterestsFuture = db!.interestsModelDao.getSportInterestsByLimit().then((value) => _sportFilteredList = value);
+    _familyInterestsFuture = db!.interestsModelDao.getFamilyInterestsByLimit().then((value) => _familyFilteredList = value);
+    _careerInterestsFuture = db!.interestsModelDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerFilteredList = value);
+    _travellingInterestsFuture = db!.interestsModelDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString()).then((value) => _travelingFilteredList = value);
+    _generalInterestsFuture = db!.interestsModelDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalFilteredList = value);
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (UniversalPlatform.isIOS) {
@@ -211,7 +222,7 @@ class _InterestsPageState extends State<InterestsPage> {
                 elevation: 0,
                 automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent,
-                systemOverlayStyle: SystemUiOverlayStyle.dark,
+                systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
                 leading: IconButton(
                   icon: Icon(Icons.arrow_back, color: Colors.grey),
                   onPressed: () => Navigator.pop(context),
@@ -278,7 +289,344 @@ class _InterestsPageState extends State<InterestsPage> {
                 ),
                 centerTitle: true,
               ),
-              body: mainBody(),
+              body: Stack(
+                children: [
+                  mainBody(),
+                  _isFamilyEnabled ? AnimatedPositioned(
+                    right: _showFamilyToolTip ? 0 : -450,
+                    top: 120,
+                    duration: Duration(milliseconds: 450),
+                    child: Stack(
+                      children: [
+                        Material(
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              bottomLeft: Radius.circular(15)
+                          ),
+                          elevation: 20,
+                          child: Container(
+                            height: 250,
+                            width: 370,
+                            decoration: BoxDecoration(
+                                color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                backgroundBlendMode: BlendMode.plus,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(15),
+                                    bottomLeft: Radius.circular(15)
+                                )
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 5,
+                          right: 5,
+                          child: IconButton(
+                            icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                            splashRadius: 1,
+                            onPressed: (){
+                              setState((){
+                                _showFamilyToolTip = false;
+                              });
+                            }
+                          ),
+                        ),
+                        Positioned(
+                          top: 50,
+                          left: 45,
+                          child: Container(
+                            width: 300,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Stack(
+                                  children: [
+                                    Container(
+                                      height: 87,
+                                      width: 85,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                          image: AssetImage('assets/tooltips_image.png'),
+                                          fit: BoxFit.cover,
+                                        )
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 1,
+                                      child: Container(
+                                        height: 83,
+                                        width: 83,
+                                        child: SimpleCircularProgressBar(
+                                          valueNotifier: ValueNotifier(60),
+                                          backColor: Colors.grey,
+                                          animationDuration: 0,
+                                          mergeMode: true,
+                                          backStrokeWidth: 6,
+                                          progressStrokeWidth: 6,
+                                          startAngle: 210,
+                                          progressColors: [
+                                            Colors.deepOrange,
+                                            Colors.yellowAccent,
+                                            Colors.lightGreen
+                                          ],
+                                        )
+                                      )
+                                    ),
+                                    Positioned(
+                                      top: 57,
+                                      left: 12,
+                                      child: Container(
+                                        height: 30,
+                                        width: 60,
+                                        padding: EdgeInsets.symmetric(horizontal: 6),
+                                        child: Center(
+                                          child: Text('64 %', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.deepOrange,
+                                              Colors.orange,
+                                            ]
+                                          )
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                    'Выбери свои интересы, чем больше интересов ты добавишь, тем быстрее мы подберем для тебя пару и просчитаем совместимость.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                )
+                              ],
+                            ),
+                          )
+                        )
+                      ],
+                    )
+                  )
+                      : _isCareerEnabled ? AnimatedPositioned(
+                      right: _showCareerTooltip ? 0 : -450,
+                      top: 120,
+                      duration: Duration(milliseconds: 450),
+                      child: Stack(
+                        children: [
+                          Material(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                bottomLeft: Radius.circular(15)
+                            ),
+                            elevation: 20,
+                            child: Container(
+                              height: 80,
+                              width: 250,
+                              decoration: BoxDecoration(
+                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                  backgroundBlendMode: BlendMode.plus,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      bottomLeft: Radius.circular(15)
+                                  )
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: IconButton(
+                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                splashRadius: 1,
+                                onPressed: (){
+                                  setState((){
+                                    _showCareerTooltip = false;
+                                  });
+                                }
+                            ),
+                          ),
+                          Positioned(
+                              top: 25,
+                              left: 50,
+                              child: Container(
+                                width: 120,
+                                child: Text(
+                                  'Расскажи о своей карьере',
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                )
+                              )
+                          )
+                        ],
+                      )
+                  )
+                      : _isSportEnabled ? AnimatedPositioned(
+                      right: _showSportTooltip ? 0 : -450,
+                      top: 120,
+                      duration: Duration(milliseconds: 450),
+                      child: Stack(
+                        children: [
+                          Material(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                bottomLeft: Radius.circular(15)
+                            ),
+                            elevation: 20,
+                            child: Container(
+                              height: 80,
+                              width: 250,
+                              decoration: BoxDecoration(
+                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                  backgroundBlendMode: BlendMode.plus,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      bottomLeft: Radius.circular(15)
+                                  )
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: IconButton(
+                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                splashRadius: 1,
+                                onPressed: (){
+                                  setState((){
+                                    _showSportTooltip = false;
+                                  });
+                                }
+                            ),
+                          ),
+                          Positioned(
+                              top: 25,
+                              left: 50,
+                              child: Container(
+                                  width: 120,
+                                  child: Text(
+                                    'Какой спорт ты предпочитаешь?',
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  )
+                              )
+                          )
+                        ],
+                      )
+                  )
+                      : _isTravelingEnabled ? AnimatedPositioned(
+                      right: _showTravelingTooltip ? 0 : -450,
+                      top: 120,
+                      duration: Duration(milliseconds: 450),
+                      child: Stack(
+                        children: [
+                          Material(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                bottomLeft: Radius.circular(15)
+                            ),
+                            elevation: 20,
+                            child: Container(
+                              height: 100,
+                              width: 350,
+                              decoration: BoxDecoration(
+                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                  backgroundBlendMode: BlendMode.plus,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      bottomLeft: Radius.circular(15)
+                                  )
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: IconButton(
+                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                splashRadius: 1,
+                                onPressed: (){
+                                  setState((){
+                                    _showTravelingTooltip = false;
+                                  });
+                                }
+                            ),
+                          ),
+                          Positioned(
+                              top: 25,
+                              left: 45,
+                              child: Container(
+                                  width: 250,
+                                  child: Text(
+                                    'Любишь ли ты путешествовать и какой формат путешествий ты предпочитаешь?',
+                                    maxLines: 3,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  )
+                              )
+                          )
+                        ],
+                      )
+                  )
+                      : _isGeneralEnabled ? AnimatedPositioned(
+                      right: _showGeneralTooltip ? 0 : -450,
+                      top: 120,
+                      duration: Duration(milliseconds: 450),
+                      child: Stack(
+                        children: [
+                          Material(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                bottomLeft: Radius.circular(15)
+                            ),
+                            elevation: 20,
+                            child: Container(
+                              height: 100,
+                              width: 350,
+                              decoration: BoxDecoration(
+                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                  backgroundBlendMode: BlendMode.plus,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      bottomLeft: Radius.circular(15)
+                                  )
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: IconButton(
+                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                splashRadius: 1,
+                                onPressed: (){
+                                  setState((){
+                                    _showGeneralTooltip = false;
+                                  });
+                                }
+                            ),
+                          ),
+                          Positioned(
+                              top: 25,
+                              left: 45,
+                              child: Container(
+                                  width: 250,
+                                  child: Text(
+                                    'Почти готово, посмотри последний список интересов и добавь свои интересы',
+                                    maxLines: 3,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  )
+                              )
+                          )
+                        ],
+                      )
+                  ) : Container()
+                ],
+              )
             ),
           maxWidth: 800,
           minWidth: 450,
@@ -291,6 +639,7 @@ class _InterestsPageState extends State<InterestsPage> {
       },
     );
   }
+
 
   Widget mainBody() {
     return Wrap(
@@ -478,30 +827,30 @@ class _InterestsPageState extends State<InterestsPage> {
               ),
             )),
         Container(
-          child: _isCareerEnabled
-              ? careerInterestsGridView()
-              : _isSportEnabled
-              ? sportInterestsGridView()
-              : _isTravelingEnabled
-              ? travelingInterestsGridView()
-              : _isGeneralEnabled
-              ? generalInterestsGridView()
-              : _isFamilyEnabled
-              ? familyInterestsGridView()
-              : null
+            child: _isCareerEnabled
+                ? careerInterestsGridView()
+                : _isSportEnabled
+                ? sportInterestsGridView()
+                : _isTravelingEnabled
+                ? travelingInterestsGridView()
+                : _isGeneralEnabled
+                ? generalInterestsGridView()
+                : _isFamilyEnabled
+                ? familyInterestsGridView()
+            : null
         ),
       ],
     );
   }
 
 
-  FutureBuilder<List<FamilyInterestsModel>> familyInterestsFutureBuilder(){
-    return FutureBuilder<List<FamilyInterestsModel>>(
-      future: familyInterestsFuture,
+  FutureBuilder<List<InterestsModel>> familyInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
+      future: _familyInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
           return const Center(
-            child: CircularProgressIndicator(color: Colors.green)
+              child: CircularProgressIndicator(color: Colors.green)
           );
         }
 
@@ -518,9 +867,9 @@ class _InterestsPageState extends State<InterestsPage> {
     );
   }
 
-  FutureBuilder<List<CareerInterestsModel>> careerInterestsFutureBuilder(){
-    return FutureBuilder<List<CareerInterestsModel>>(
-      future: careerInterestsFuture,
+  FutureBuilder<List<InterestsModel>> careerInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
+      future: _careerInterestsFuture,
       builder: (context, snapshot) {
 
         while(snapshot.connectionState == ConnectionState.waiting){
@@ -541,9 +890,9 @@ class _InterestsPageState extends State<InterestsPage> {
     );
   }
 
-  FutureBuilder<List<SportInterestsModel>> sportInterestsFutureBuilder(){
-    return FutureBuilder<List<SportInterestsModel>>(
-      future: sportInterestsFuture,
+  FutureBuilder<List<InterestsModel>> sportInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
+      future: _sportInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
           return Center(
@@ -564,9 +913,9 @@ class _InterestsPageState extends State<InterestsPage> {
     );
   }
 
-  FutureBuilder<List<TravellingInterestsModel>> travellingInterestsFutureBuilder(){
-    return FutureBuilder<List<TravellingInterestsModel>>(
-      future: travellingInterestsFuture,
+  FutureBuilder<List<InterestsModel>> travellingInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
+      future: _travellingInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
           return Center(
@@ -587,9 +936,9 @@ class _InterestsPageState extends State<InterestsPage> {
     );
   }
 
-  FutureBuilder<List<GeneralInterestsModel>> generalInterestsFutureBuilder(){
-    return FutureBuilder<List<GeneralInterestsModel>>(
-      future: generalInterestsFuture,
+  FutureBuilder<List<InterestsModel>> generalInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
+      future: _generalInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
           return Center(
@@ -651,7 +1000,7 @@ class _InterestsPageState extends State<InterestsPage> {
 
                     _isFamilyEnabled = false;
                   });
-                  
+
                   _interestsStepsScrollController!.animateTo(
                       width / 3,
                       duration: Duration(seconds: 1),
@@ -685,8 +1034,7 @@ class _InterestsPageState extends State<InterestsPage> {
             ],
           ),
           SizedBox(height: height / 100),
-          _selectedFamilyInterests!.isEmpty
-              ? Center(
+          _selectedFamilyInterests!.isEmpty ? Center(
             child: Text(
               'Выберите минимум один интерес для продолжения',
               style: TextStyle(
@@ -777,41 +1125,41 @@ class _InterestsPageState extends State<InterestsPage> {
                             children: List.generate(_familyFilteredList!.length, (index) {
                               return Material(
                                 child: InkWell(
-                                  onTap: () {
-                                    _selectedFamilyInterests!.add(_familyFilteredList![index]);
+                                    onTap: () {
+                                      _selectedFamilyInterests!.add(_familyFilteredList![index]);
 
-                                    _familyFilteredList!.removeAt(index);
+                                      _familyFilteredList!.removeAt(index);
 
-                                    _selectedFamilyInterestsValue += 0.01;
-                                    ++_familyInterestsCounter;
+                                      _selectedFamilyInterestsValue += 0.01;
+                                      ++_familyInterestsCounter;
 
-                                    setState(() {});
-                                  },
-                                  borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                  child: Container(
-                                    height: 40,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: Center(
-                                      widthFactor: 1,
-                                      child: Text(
-                                        _familyFilteredList![index].name!,
-                                        style: const TextStyle(color: Colors.white),
-                                        textAlign: TextAlign.center,
+                                      setState(() {});
+                                    },
+                                    borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                    child: Container(
+                                      height: 40,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      child: Center(
+                                        widthFactor: 1,
+                                        child: Text(
+                                          _familyFilteredList![index].name!,
+                                          style: const TextStyle(color: Colors.white),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                      color: Color(int.parse('0x' + _familyFilteredList![index].color!)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Colors.green[800]!,
-                                            offset: const Offset(3, 3),
-                                            blurRadius: 0,
-                                            spreadRadius: 0
-                                        )
-                                      ]
-                                    ),
-                                  )
+                                      decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                          color: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Colors.green[800]!,
+                                                offset: const Offset(3, 3),
+                                                blurRadius: 0,
+                                                spreadRadius: 0
+                                            )
+                                          ]
+                                      ),
+                                    )
                                 ),
                               );
                             })
@@ -845,7 +1193,7 @@ class _InterestsPageState extends State<InterestsPage> {
   }
 
   Widget careerInterestsGridView(){
-    if(_careerInterestsList!.isNotEmpty){
+    if(_careerInterestsList!.isNotEmpty) {
       return Column(
         children: [
           Row(
@@ -859,7 +1207,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       borderRadius: const BorderRadius.all(Radius.circular(15)),
                       child: Stack(
                         children: [
-                           SizedBox(
+                          SizedBox(
                             height: height,
                             child: LinearProgressIndicator(
                               backgroundColor: Colors.blue[100],
@@ -872,13 +1220,14 @@ class _InterestsPageState extends State<InterestsPage> {
                             padding: EdgeInsets.only(right: 10),
                             child: Text(
                               '$_careerInterestsCounter',
-                              style: const TextStyle(fontSize: 15, color: Color.fromRGBO(1, 188, 248, 5)),
+                              style: const TextStyle(fontSize: 15, color: Color
+                                  .fromRGBO(1, 188, 248, 5)),
                             ),
                           )
                         ],
                       ))),
               InkWell(
-                onTap: _selectedCareerInterests!.isNotEmpty ? (){
+                onTap: _selectedCareerInterests!.isNotEmpty ? () {
                   setState(() {
                     _isSportEnabled = true;
                     _isSportIconEnabled = true;
@@ -887,10 +1236,10 @@ class _InterestsPageState extends State<InterestsPage> {
                   });
 
                   _interestsStepsScrollController!.animateTo(
-                      _interestsStepsScrollController!.position.maxScrollExtent * 0.7,
+                      _interestsStepsScrollController!.position
+                          .maxScrollExtent * 0.7,
                       duration: Duration(seconds: 1),
                       curve: Curves.fastOutSlowIn);
-
                 } : null,
                 child: Container(
                   height: 50,
@@ -908,8 +1257,11 @@ class _InterestsPageState extends State<InterestsPage> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            _selectedCareerInterests!.isNotEmpty ? Colors.deepPurpleAccent : Colors.grey,
-                            _selectedCareerInterests!.isNotEmpty ? Colors.blueAccent : Colors.grey])),
+                            _selectedCareerInterests!.isNotEmpty ? Colors
+                                .deepPurpleAccent : Colors.grey,
+                            _selectedCareerInterests!.isNotEmpty ? Colors
+                                .blueAccent : Colors.grey
+                          ])),
                 ),
               )
             ],
@@ -931,7 +1283,8 @@ class _InterestsPageState extends State<InterestsPage> {
               child: Wrap(
                 spacing: 6.0,
                 runSpacing: 6.0,
-                children: List.generate(_selectedCareerInterests!.length, (index) {
+                children: List.generate(
+                    _selectedCareerInterests!.length, (index) {
                   return Material(
                     child: InkWell(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
@@ -950,17 +1303,19 @@ class _InterestsPageState extends State<InterestsPage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: IconButton(
-                                  icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
-                                  onPressed: (){
-
-                                    int indx = _careerInterestsList!.indexOf(_selectedCareerInterests![index]);
-                                    _careerFilteredList!.insert(indx, _selectedCareerInterests![index]);
+                                  icon: const Icon(CupertinoIcons.clear_circled,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    int indx = _careerInterestsList!.indexOf(
+                                        _selectedCareerInterests![index]);
+                                    _careerFilteredList!.insert(
+                                        indx, _selectedCareerInterests![index]);
 
                                     _selectedCareerInterests!.removeAt(index);
                                     _selectedCareerInterestsValue -= 0.01;
                                     --_careerInterestsCounter;
 
-                                    setState((){});
+                                    setState(() {});
                                   },
                                 ),
                               )
@@ -968,8 +1323,10 @@ class _InterestsPageState extends State<InterestsPage> {
                           ),
                         ),
                         decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                            color: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)),
+                            color: Color(int.parse('0x' +
+                                _selectedCareerInterests![index].color!)),
                             boxShadow: [
                               BoxShadow(
                                   color: Colors.blue[600]!,
@@ -1010,40 +1367,47 @@ class _InterestsPageState extends State<InterestsPage> {
                                     (index) {
                                   return Material(
                                     child: InkWell(
-                                      onTap: () {
-                                        _selectedCareerInterests!.add(_careerFilteredList![index]);
-                                        _careerFilteredList!.removeAt(index);
+                                        onTap: () {
+                                          _selectedCareerInterests!.add(
+                                              _careerFilteredList![index]);
+                                          _careerFilteredList!.removeAt(index);
 
-                                        _selectedCareerInterestsValue += 0.01;
-                                        ++_careerInterestsCounter;
+                                          _selectedCareerInterestsValue += 0.01;
+                                          ++_careerInterestsCounter;
 
-                                        setState((){});
-                                      },
-                                      borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                      child: Container(
-                                        height: 40,
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: Center(
-                                          widthFactor: 1,
-                                          child: Text(
-                                            _careerFilteredList![index].name!,
-                                            style: const TextStyle(color: Colors.white),
-                                            textAlign: TextAlign.center,
+                                          setState(() {});
+                                        },
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(30)),
+                                        child: Container(
+                                          height: 40,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20),
+                                          child: Center(
+                                            widthFactor: 1,
+                                            child: Text(
+                                              _careerFilteredList![index].name!,
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
                                           ),
-                                        ),
-                                        decoration: BoxDecoration(
-                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                            color: Color(int.parse('0x' + _careerFilteredList![index].color!)),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.blue[600]!,
-                                                  offset: const Offset(3, 3),
-                                                  blurRadius: 0,
-                                                  spreadRadius: 0
-                                              )
-                                            ]
-                                        ),
-                                      )
+                                          decoration: BoxDecoration(
+                                              borderRadius: const BorderRadius
+                                                  .all(Radius.circular(30)),
+                                              color: Color(int.parse('0x' +
+                                                  _careerFilteredList![index]
+                                                      .color!)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.blue[600]!,
+                                                    offset: const Offset(3, 3),
+                                                    blurRadius: 0,
+                                                    spreadRadius: 0
+                                                )
+                                              ]
+                                          ),
+                                        )
                                     ),
                                   );
                                 })
@@ -1053,7 +1417,7 @@ class _InterestsPageState extends State<InterestsPage> {
               )) : AnimatedPadding(
               duration: const Duration(milliseconds: 150),
               padding: EdgeInsets.symmetric(
-                  vertical:  height / 5,
+                  vertical: height / 5,
                   horizontal: width / 10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1077,7 +1441,7 @@ class _InterestsPageState extends State<InterestsPage> {
   }
 
   Widget sportInterestsGridView() {
-    if(_sportInterestsList!.isNotEmpty){
+    if(_sportInterestsList!.isNotEmpty) {
       return Column(
         children: [
           Row(
@@ -1094,7 +1458,8 @@ class _InterestsPageState extends State<InterestsPage> {
                           SizedBox(
                             height: height,
                             child: LinearProgressIndicator(
-                              backgroundColor: Colors.blueAccent.withOpacity(0.3),
+                              backgroundColor: Colors.blueAccent.withOpacity(
+                                  0.3),
                               color: Colors.blueAccent,
                               value: _selectedSportInterestsValue,
                             ),
@@ -1104,13 +1469,14 @@ class _InterestsPageState extends State<InterestsPage> {
                             padding: const EdgeInsets.only(right: 10),
                             child: Text(
                               '$_sportInterestsCounter',
-                              style: TextStyle(fontSize: 15, color: Colors.blueAccent),
+                              style: TextStyle(
+                                  fontSize: 15, color: Colors.blueAccent),
                             ),
                           )
                         ],
                       ))),
               InkWell(
-                onTap: _selectedSportInterests!.isNotEmpty ? (){
+                onTap: _selectedSportInterests!.isNotEmpty ? () {
                   setState(() {
                     _isSportEnabled = false;
 
@@ -1139,8 +1505,10 @@ class _InterestsPageState extends State<InterestsPage> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            _selectedSportInterests!.isNotEmpty ? Colors.deepPurpleAccent : Colors.grey,
-                            _selectedSportInterests!.isNotEmpty ? Colors.blueAccent : Colors.grey
+                            _selectedSportInterests!.isNotEmpty ? Colors
+                                .deepPurpleAccent : Colors.grey,
+                            _selectedSportInterests!.isNotEmpty ? Colors
+                                .blueAccent : Colors.grey
                           ])),
                 ),
               )
@@ -1155,65 +1523,70 @@ class _InterestsPageState extends State<InterestsPage> {
                   fontSize: 15, color: Colors.grey.withOpacity(0.7)),
             ),
           ) : Container(
-            width: width * 2,
+              width: width * 2,
               height: height / 18,
-            padding: const EdgeInsets.only(left: 5, right: 5),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Wrap(
-                spacing: 6.0,
-                runSpacing: 6.0,
-                children: List.generate(_selectedSportInterests!.length, (index) {
-                  return Material(
-                    child: Container(
-                      height: 40,
-                      padding: const EdgeInsets.only(left: 10),
-                      child: IntrinsicWidth(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              _selectedSportInterests![index].name!,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: IconButton(
-                                icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
-                                onPressed: (){
-
-                                  int indx = _sportInterestsList!.indexOf(_selectedSportInterests![index]);
-                                  _sportFilteredList!.insert(indx, _selectedSportInterests![index]);
-
-                                  _selectedSportInterests!.removeAt(index);
-                                  _selectedSportInterestsValue -= 0.01;
-                                  --_sportInterestsCounter;
-
-                                  setState((){});
-                                },
+              padding: const EdgeInsets.only(left: 5, right: 5),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Wrap(
+                  spacing: 6.0,
+                  runSpacing: 6.0,
+                  children: List.generate(
+                      _selectedSportInterests!.length, (index) {
+                    return Material(
+                      child: Container(
+                        height: 40,
+                        padding: const EdgeInsets.only(left: 10),
+                        child: IntrinsicWidth(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _selectedSportInterests![index].name!,
+                                style: const TextStyle(color: Colors.white),
                               ),
-                            )
-                          ],
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: IconButton(
+                                  icon: const Icon(CupertinoIcons.clear_circled,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    int indx = _sportInterestsList!.indexOf(
+                                        _selectedSportInterests![index]);
+                                    _sportFilteredList!.insert(
+                                        indx, _selectedSportInterests![index]);
+
+                                    _selectedSportInterests!.removeAt(index);
+                                    _selectedSportInterestsValue -= 0.01;
+                                    --_sportInterestsCounter;
+
+                                    setState(() {});
+                                  },
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)),
+                            color: Color(int.parse(
+                                '0x' + _selectedSportInterests![index].color!)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.blue[600]!,
+                                  offset: const Offset(3, 3),
+                                  blurRadius: 0,
+                                  spreadRadius: 0
+                              )
+                            ]
                         ),
                       ),
-                      decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(Radius.circular(30)),
-                          color: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.blue[600]!,
-                                offset: const Offset(3, 3),
-                                blurRadius: 0,
-                                spreadRadius: 0
-                            )
-                          ]
-                      ),
-                    ),
-                  );
-                }).reversed.toList(),
-              ),
-            )
+                    );
+                  }).reversed.toList(),
+                ),
+              )
           ),
           SizedBox(height: height / 100),
           Divider(
@@ -1238,40 +1611,47 @@ class _InterestsPageState extends State<InterestsPage> {
                                     (index) {
                                   return Material(
                                     child: InkWell(
-                                      onTap: () {
-                                        _selectedSportInterests!.add(_sportFilteredList![index]);
-                                        _sportFilteredList!.removeAt(index);
+                                        onTap: () {
+                                          _selectedSportInterests!.add(
+                                              _sportFilteredList![index]);
+                                          _sportFilteredList!.removeAt(index);
 
-                                        _selectedSportInterestsValue += 0.01;
-                                        ++_sportInterestsCounter;
+                                          _selectedSportInterestsValue += 0.01;
+                                          ++_sportInterestsCounter;
 
-                                        setState((){});
-                                      },
-                                      borderRadius: BorderRadius.all(Radius.circular(30)),
-                                      child: Container(
-                                        height: 40,
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: Center(
-                                          widthFactor: 1,
-                                          child: Text(
-                                            _sportFilteredList![index].name!,
-                                            style: const TextStyle(color: Colors.white),
-                                            textAlign: TextAlign.center,
+                                          setState(() {});
+                                        },
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)),
+                                        child: Container(
+                                          height: 40,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20),
+                                          child: Center(
+                                            widthFactor: 1,
+                                            child: Text(
+                                              _sportFilteredList![index].name!,
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
                                           ),
-                                        ),
-                                        decoration: BoxDecoration(
-                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                            color: Color(int.parse('0x' + _sportFilteredList![index].color!)),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.blue[300]!,
-                                                  offset: const Offset(3, 3),
-                                                  blurRadius: 0,
-                                                  spreadRadius: 0
-                                              )
-                                            ]
-                                        ),
-                                      )
+                                          decoration: BoxDecoration(
+                                              borderRadius: const BorderRadius
+                                                  .all(Radius.circular(30)),
+                                              color: Color(int.parse('0x' +
+                                                  _sportFilteredList![index]
+                                                      .color!)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.blue[300]!,
+                                                    offset: const Offset(3, 3),
+                                                    blurRadius: 0,
+                                                    spreadRadius: 0
+                                                )
+                                              ]
+                                          ),
+                                        )
                                     ),
                                   );
                                 })
@@ -1281,7 +1661,7 @@ class _InterestsPageState extends State<InterestsPage> {
               )) : AnimatedPadding(
               duration: Duration(milliseconds: 150),
               padding: EdgeInsets.symmetric(
-                  vertical:  height / 5,
+                  vertical: height / 5,
                   horizontal: width / 10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1305,7 +1685,7 @@ class _InterestsPageState extends State<InterestsPage> {
   }
 
   Widget travelingInterestsGridView() {
-    if(_travelingInterestsList!.length != 0){
+    if(_travelingInterestsList!.isNotEmpty) {
       return Column(
         children: [
           Row(
@@ -1332,20 +1712,20 @@ class _InterestsPageState extends State<InterestsPage> {
                             padding: EdgeInsets.only(right: 10),
                             child: Text(
                               '${_travelingInterestsCounter}',
-                              style: TextStyle(fontSize: 15, color: Colors.orange),
+                              style: TextStyle(
+                                  fontSize: 15, color: Colors.orange),
                             ),
                           )
                         ],
                       ))),
               InkWell(
-                onTap: _selectedTravelingInterests!.length != 0 ? (){
+                onTap: _selectedTravelingInterests!.length != 0 ? () {
                   setState(() {
                     _isTravelingEnabled = false;
 
                     _isGeneralEnabled = true;
-                    _isGeneralIconEnabled= true;
+                    _isGeneralIconEnabled = true;
                   });
-
                 } : null,
                 child: Container(
                   height: 50,
@@ -1363,8 +1743,10 @@ class _InterestsPageState extends State<InterestsPage> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            _selectedTravelingInterests!.isNotEmpty ? Colors.deepPurpleAccent : Colors.grey,
-                            _selectedTravelingInterests!.isNotEmpty ? Colors.blueAccent : Colors.grey
+                            _selectedTravelingInterests!.isNotEmpty ? Colors
+                                .deepPurpleAccent : Colors.grey,
+                            _selectedTravelingInterests!.isNotEmpty ? Colors
+                                .blueAccent : Colors.grey
                           ])),
                 ),
               )
@@ -1387,7 +1769,8 @@ class _InterestsPageState extends State<InterestsPage> {
                 child: Wrap(
                   spacing: 6.0,
                   runSpacing: 6.0,
-                  children: List.generate(_selectedTravelingInterests!.length, (index) {
+                  children: List.generate(
+                      _selectedTravelingInterests!.length, (index) {
                     return Material(
                       child: Container(
                         height: 40,
@@ -1404,18 +1787,21 @@ class _InterestsPageState extends State<InterestsPage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: IconButton(
-                                  icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
-                                  onPressed: (){
+                                  icon: const Icon(CupertinoIcons.clear_circled,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    int indx = _travelingInterestsList!.indexOf(
+                                        _selectedTravelingInterests![index]);
+                                    _travelingFilteredList!.insert(indx,
+                                        _selectedTravelingInterests![index]);
 
-                                    int indx = _travelingInterestsList!.indexOf(_selectedTravelingInterests![index]);
-                                    _travelingFilteredList!.insert(indx, _selectedTravelingInterests![index]);
 
-
-                                    _selectedTravelingInterests!.removeAt(index);
+                                    _selectedTravelingInterests!.removeAt(
+                                        index);
                                     _selectedTravelingInterestsValue -= 0.01;
                                     --_travelingInterestsCounter;
 
-                                    setState((){});
+                                    setState(() {});
                                   },
                                 ),
                               )
@@ -1423,8 +1809,10 @@ class _InterestsPageState extends State<InterestsPage> {
                           ),
                         ),
                         decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                            color: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)),
+                            color: Color(int.parse('0x' +
+                                _selectedTravelingInterests![index].color!)),
                             boxShadow: [
                               BoxShadow(
                                   color: Colors.orange[800]!,
@@ -1460,45 +1848,56 @@ class _InterestsPageState extends State<InterestsPage> {
                         child: Wrap(
                             spacing: 8.0,
                             runSpacing: 10.0,
-                            children: List.generate(_travelingFilteredList!.length,
+                            children: List.generate(
+                                _travelingFilteredList!.length,
                                     (index) {
                                   return Material(
                                     child: InkWell(
-                                      onTap: () {
-                                        _selectedTravelingInterests!.add(_travelingFilteredList![index]);
-                                        _travelingFilteredList!.removeAt(index);
+                                        onTap: () {
+                                          _selectedTravelingInterests!.add(
+                                              _travelingFilteredList![index]);
+                                          _travelingFilteredList!.removeAt(
+                                              index);
 
 
-                                        _selectedTravelingInterestsValue += 0.01;
-                                        ++_travelingInterestsCounter;
+                                          _selectedTravelingInterestsValue +=
+                                          0.01;
+                                          ++_travelingInterestsCounter;
 
-                                        setState((){});
-                                      },
-                                      borderRadius: BorderRadius.all(Radius.circular(30)),
-                                      child: Container(
-                                        height: 40,
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: Center(
-                                          widthFactor: 1,
-                                          child: Text(
-                                            _travelingFilteredList![index].name!,
-                                            style: const TextStyle(color: Colors.white),
-                                            textAlign: TextAlign.center,
+                                          setState(() {});
+                                        },
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)),
+                                        child: Container(
+                                          height: 40,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20),
+                                          child: Center(
+                                            widthFactor: 1,
+                                            child: Text(
+                                              _travelingFilteredList![index]
+                                                  .name!,
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
                                           ),
-                                        ),
-                                        decoration: BoxDecoration(
-                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                            color: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.orange[800]!,
-                                                  offset: const Offset(3, 3),
-                                                  blurRadius: 0,
-                                                  spreadRadius: 0
-                                              )
-                                            ]
-                                        ),
-                                      )
+                                          decoration: BoxDecoration(
+                                              borderRadius: const BorderRadius
+                                                  .all(Radius.circular(30)),
+                                              color: Color(int.parse('0x' +
+                                                  _travelingFilteredList![index]
+                                                      .color!)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.orange[800]!,
+                                                    offset: const Offset(3, 3),
+                                                    blurRadius: 0,
+                                                    spreadRadius: 0
+                                                )
+                                              ]
+                                          ),
+                                        )
                                     ),
                                   );
                                 })
@@ -1509,7 +1908,7 @@ class _InterestsPageState extends State<InterestsPage> {
               )) : AnimatedPadding(
               duration: Duration(milliseconds: 150),
               padding: EdgeInsets.symmetric(
-                  vertical:  height / 5,
+                  vertical: height / 5,
                   horizontal: width / 10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1533,7 +1932,7 @@ class _InterestsPageState extends State<InterestsPage> {
   }
 
   Widget generalInterestsGridView() {
-    if(_generalInterestsList!.isNotEmpty){
+    if(_generalInterestsList!.isNotEmpty) {
       return Column(
         children: [
           Row(
@@ -1550,7 +1949,8 @@ class _InterestsPageState extends State<InterestsPage> {
                           Container(
                             height: height,
                             child: LinearProgressIndicator(
-                              backgroundColor: Colors.deepPurpleAccent.withOpacity(0.3),
+                              backgroundColor: Colors.deepPurpleAccent
+                                  .withOpacity(0.3),
                               color: Colors.deepPurpleAccent,
                               value: _selectedGeneralInterestsValue,
                             ),
@@ -1560,13 +1960,14 @@ class _InterestsPageState extends State<InterestsPage> {
                             padding: EdgeInsets.only(right: 10),
                             child: Text(
                               '${_generalInterestsCounter}',
-                              style: TextStyle(fontSize: 15, color: Colors.deepPurpleAccent),
+                              style: TextStyle(
+                                  fontSize: 15, color: Colors.deepPurpleAccent),
                             ),
                           )
                         ],
                       ))),
               InkWell(
-                onTap: _selectedGeneralInterests!.length != 0 ? (){
+                onTap: _selectedGeneralInterests!.length != 0 ? () {
                   setState(() {
                     _showLoading = true;
                   });
@@ -1576,17 +1977,17 @@ class _InterestsPageState extends State<InterestsPage> {
                   height: 50,
                   width: 100,
                   child: Center(
-                    child: !_showLoading
-                    ? Text('Готово',
-                        style: TextStyle(fontSize: 15, color: Colors.white))
-                    : Container(
-                      height: 30,
-                      width: 30,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
+                      child: !_showLoading
+                          ? Text('Готово',
+                          style: TextStyle(fontSize: 15, color: Colors.white))
+                          : Container(
+                        height: 30,
+                        width: 30,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                   ),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.only(
@@ -1597,8 +1998,10 @@ class _InterestsPageState extends State<InterestsPage> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            _selectedGeneralInterests!.length != 0 ? Colors.deepPurpleAccent : Colors.grey,
-                            _selectedGeneralInterests!.length != 0 ? Colors.blueAccent : Colors.grey
+                            _selectedGeneralInterests!.length != 0 ? Colors
+                                .deepPurpleAccent : Colors.grey,
+                            _selectedGeneralInterests!.length != 0 ? Colors
+                                .blueAccent : Colors.grey
                           ])),
                 ),
               )
@@ -1612,7 +2015,7 @@ class _InterestsPageState extends State<InterestsPage> {
               style: TextStyle(
                   fontSize: 15, color: Colors.grey.withOpacity(0.7)),
             ),
-          ): Container(
+          ) : Container(
               width: width * 2,
               height: height / 18,
               padding: const EdgeInsets.only(left: 5, right: 5),
@@ -1621,7 +2024,8 @@ class _InterestsPageState extends State<InterestsPage> {
                 child: Wrap(
                   spacing: 6.0,
                   runSpacing: 6.0,
-                  children: List.generate(_selectedGeneralInterests!.length, (index) {
+                  children: List.generate(
+                      _selectedGeneralInterests!.length, (index) {
                     return Material(
                       child: Container(
                         height: 40,
@@ -1638,16 +2042,19 @@ class _InterestsPageState extends State<InterestsPage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: IconButton(
-                                  icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
-                                  onPressed: (){
-                                    int indx = _generalInterestsList!.indexOf(_selectedGeneralInterests![index]);
-                                    _generalFilteredList!.insert(indx, _selectedGeneralInterests![index]);
+                                  icon: const Icon(CupertinoIcons.clear_circled,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    int indx = _generalInterestsList!.indexOf(
+                                        _selectedGeneralInterests![index]);
+                                    _generalFilteredList!.insert(indx,
+                                        _selectedGeneralInterests![index]);
 
                                     _selectedGeneralInterests!.removeAt(index);
                                     _selectedGeneralInterestsValue -= 0.01;
                                     --_generalInterestsCounter;
 
-                                    setState((){});
+                                    setState(() {});
                                   },
                                 ),
                               )
@@ -1655,8 +2062,10 @@ class _InterestsPageState extends State<InterestsPage> {
                           ),
                         ),
                         decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                            color: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)),
+                            color: Color(int.parse('0x' +
+                                _selectedGeneralInterests![index].color!)),
                             boxShadow: const [
                               BoxShadow(
                                   color: Colors.deepPurple,
@@ -1692,44 +2101,54 @@ class _InterestsPageState extends State<InterestsPage> {
                         child: Wrap(
                             spacing: 8.0,
                             runSpacing: 10.0,
-                            children: List.generate(_generalFilteredList!.length,
+                            children: List.generate(
+                                _generalFilteredList!.length,
                                     (index) {
                                   return Material(
                                     child: InkWell(
-                                      onTap: () {
-                                        _selectedGeneralInterests!.add(_generalFilteredList![index]);
-                                        _generalFilteredList!.removeAt(index);
+                                        onTap: () {
+                                          _selectedGeneralInterests!.add(
+                                              _generalFilteredList![index]);
+                                          _generalFilteredList!.removeAt(index);
 
-                                        _selectedGeneralInterestsValue += 0.01;
-                                        ++_generalInterestsCounter;
+                                          _selectedGeneralInterestsValue +=
+                                          0.01;
+                                          ++_generalInterestsCounter;
 
-                                        setState((){});
-                                      },
-                                      borderRadius: BorderRadius.all(Radius.circular(30)),
-                                      child: Container(
-                                        height: 40,
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: Center(
-                                          widthFactor: 1,
-                                          child:  Text(
-                                            _generalFilteredList![index].name!,
-                                            style: const TextStyle(color: Colors.white),
-                                            textAlign: TextAlign.center,
+                                          setState(() {});
+                                        },
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)),
+                                        child: Container(
+                                          height: 40,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20),
+                                          child: Center(
+                                            widthFactor: 1,
+                                            child: Text(
+                                              _generalFilteredList![index]
+                                                  .name!,
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
                                           ),
-                                        ),
-                                        decoration: BoxDecoration(
-                                            borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                            color: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                                            boxShadow: const [
-                                              BoxShadow(
-                                                  color: Colors.deepPurple,
-                                                  offset: const Offset(3, 3),
-                                                  blurRadius: 0,
-                                                  spreadRadius: 0
-                                              )
-                                            ]
-                                        ),
-                                      )
+                                          decoration: BoxDecoration(
+                                              borderRadius: const BorderRadius
+                                                  .all(Radius.circular(30)),
+                                              color: Color(int.parse('0x' +
+                                                  _generalFilteredList![index]
+                                                      .color!)),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                    color: Colors.deepPurple,
+                                                    offset: const Offset(3, 3),
+                                                    blurRadius: 0,
+                                                    spreadRadius: 0
+                                                )
+                                              ]
+                                          ),
+                                        )
                                     ),
                                   );
                                 })
@@ -1739,7 +2158,7 @@ class _InterestsPageState extends State<InterestsPage> {
               )) : AnimatedPadding(
               duration: Duration(milliseconds: 150),
               padding: EdgeInsets.symmetric(
-                  vertical:  height / 5,
+                  vertical: height / 5,
                   horizontal: width / 10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1761,7 +2180,6 @@ class _InterestsPageState extends State<InterestsPage> {
       return generalInterestsFutureBuilder();
     }
   }
-
 
 
   Widget popup18PlusAttentionWidget() {
@@ -2045,35 +2463,35 @@ class _InterestsPageState extends State<InterestsPage> {
   void addNewInterest(String value){
     if(_isFamilyEnabled){
       setState(() {
-        _selectedFamilyInterests!.add(FamilyInterestsModel(null, value, Colors.green.value.toRadixString(16)));
+        _selectedFamilyInterests!.add(InterestsModel.ForDB(value, 'family', Colors.green.value.toRadixString(16)));
         _selectedFamilyInterestsValue += 0.01;
 
         ++_familyInterestsCounter;
       });
     }else if(_isCareerEnabled){
       setState(() {
-        _selectedCareerInterests!.add(CareerInterestsModel(null, value, Colors.lightBlueAccent.value.toRadixString(16)));
+        _selectedCareerInterests!.add(InterestsModel.ForDB(value, 'career', Colors.lightBlueAccent.value.toRadixString(16)));
         _selectedCareerInterestsValue += 0.01;
 
         ++_careerInterestsCounter;
       });
     }else if(_isSportEnabled){
       setState(() {
-        _selectedSportInterests!.add(SportInterestsModel(null, value, Colors.blueAccent[800]!.value.toRadixString(16)));
+        _selectedSportInterests!.add(InterestsModel.ForDB(value, 'sport', Colors.blueAccent[800]!.value.toRadixString(16)));
         _selectedSportInterestsValue += 0.01;
 
         ++_sportInterestsCounter;
       });
     }else if(_isTravelingEnabled){
       setState(() {
-        _selectedTravelingInterests!.add(TravellingInterestsModel(null, value, Colors.deepOrangeAccent.value.toRadixString(16)));
+        _selectedTravelingInterests!.add(InterestsModel.ForDB(value, 'traveling', Colors.deepOrangeAccent.value.toRadixString(16)));
         _selectedTravelingInterestsValue += 0.01;
 
         ++_travelingInterestsCounter;
       });
     }else if(_isGeneralEnabled){
       setState(() {
-        _selectedGeneralInterests!.add(GeneralInterestsModel(null, value, Colors.purpleAccent.value.toRadixString(16)));
+        _selectedGeneralInterests!.add(InterestsModel.ForDB(value, 'general', Colors.purpleAccent.value.toRadixString(16)));
         _selectedGeneralInterestsValue += 0.01;
 
         ++_generalInterestsCounter;
@@ -2153,7 +2571,6 @@ class _InterestsPageState extends State<InterestsPage> {
       _isFamilyEnabled = false;
     });
   }
-
 
 
   void addInterestsToServer() async {
@@ -2246,3 +2663,4 @@ class _InterestsPageState extends State<InterestsPage> {
     });
   }
 }
+

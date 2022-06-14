@@ -1,18 +1,20 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
-import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
-import 'package:uny_app/Global%20User%20Data/global_user_data.dart';
+import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Settings%20Page/change_phone_number_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
@@ -60,7 +62,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
 
-    _userData = GlobalUserData.getUserDataModel()!.user;
+    _userData = Provider.of<UserDataProvider>(context, listen: false).userDataModel;
 
     _fToast = FToast();
 
@@ -80,11 +82,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _telephoneTextController!.value = _telephoneTextController!.value.copyWith(text: _userData!.phoneNumber);
     _birthDateTextController!.value = _birthDateTextController!.value.copyWith(text: _userData!.dateOfBirth);
     _locationTextController!.value = _locationTextController!.value.copyWith(text: _userData!.location);
+    _showZodiacSign = _userData!.showZodiacSign;
 
     _genderString = _userData!.gender;
 
     _companyNameTextController!.value = _companyNameTextController!.value.copyWith(text: _userData!.jobCompany != null ? _userData!.jobCompany : '');
     _positionTextController!.value = _positionTextController!.value.copyWith(text: _userData!.job != null ? _userData!.job : '');
+
+    _iAmNotWorking = _positionTextController!.value.text == '';
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fToast!.init(context);
@@ -117,12 +122,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
          Scaffold(
            appBar: AppBar(
              elevation: 0,
+             systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
              centerTitle: false,
              backgroundColor: Colors.grey.withOpacity(0),
-             title: Text('Редактировать профиль', style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
+             title: Text('Редактировать профиль', style: TextStyle(fontSize: 20, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
              leading: IconButton(
                onPressed: () => Navigator.pop(context),
-               icon: Icon(Icons.arrow_back, color: Colors.grey),
+               icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
              ),
              actions: [
                Center(
@@ -142,7 +148,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                    child: Text(
                        'Сохранить',
                        style: TextStyle(
-                           color: Color.fromRGBO(145, 10, 251, 5),
+                           color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
                            fontSize: 15
                        )),
                    onPressed: (){
@@ -172,7 +178,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: ListView(
         physics: BouncingScrollPhysics(),
         children: [
-          Text('Основная информация', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+          Text('Основная информация', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
           Container(
               padding: EdgeInsets.only(top: height / 50),
               child: Column(
@@ -181,7 +187,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     controller: _nameTextController,
                     focusNode: _nameTextFocusNode,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
                     decoration: InputDecoration(
@@ -190,7 +196,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         padding: EdgeInsets.only(left: 10),
                         child: Text('Имя:', style: TextStyle(
                             fontSize: 17,
-                            color: _nameTextFocusNode!.hasFocus ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)),
+                            color: _nameTextFocusNode!.hasFocus ? Color.fromRGBO(145, 10, 251, 5) : AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
                       ),
                       prefixIconConstraints: BoxConstraints(minWidth: 10, minHeight: 10),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
@@ -221,14 +227,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
                         child: Text('Фамилия:', style: TextStyle(
                             fontSize: 17,
-                            color: _secondNameTextFocusNode!.hasFocus ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey)),
+                            color: _secondNameTextFocusNode!.hasFocus ? Color.fromRGBO(145, 10, 251, 5) : AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
                       ),
                       prefixIconConstraints: BoxConstraints(minWidth: 10, minHeight: 10),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
@@ -257,31 +263,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textInputAction: TextInputAction.done,
                     readOnly: true,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Пол:', style: TextStyle(fontSize: 17, color: Colors.grey)),
+                        child: Text('Пол:', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
                       ),
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 10),
                         child: DropdownButton<String>(
                           value: _genderString,
-                          icon: Icon(Icons.keyboard_arrow_down_sharp, color: Colors.grey),
+                          icon: Icon(Icons.keyboard_arrow_down_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
                           underline: Container(),
                           items: [
                             DropdownMenuItem(
                               value: 'Мужской',
-                              child: Text('Мужской', style: TextStyle(fontSize: 17, color: Colors.black)),
+                              child: Text('Мужской', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
                             ),
                             DropdownMenuItem(
                               value: 'Женский',
-                              child:  Text('Женский', style: TextStyle(fontSize: 17, color: Colors.black)),
+                              child:  Text('Женский', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
                             ),
                             DropdownMenuItem(
                               value: 'Другое',
-                              child:  Text('Другое', style: TextStyle(fontSize: 17, color: Colors.black)),
+                              child:  Text('Другое', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
                             )
                           ],
                           onChanged: (value){
@@ -316,7 +322,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.right,
                     readOnly: true,
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50),
                       suffixIcon: Container(
@@ -332,7 +338,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Телефон:', style: TextStyle(fontSize: 17, color: Colors.grey)),
+                        child: Text('Телефон:', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
                       ),
                       prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
                       suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
@@ -359,16 +365,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.right,
                     readOnly: true,
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.calendar_today_outlined, color: Color.fromRGBO(145, 10, 251, 5)),
+                        icon: Icon(Icons.calendar_today_outlined, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent),
                         onPressed: () => showDatePicker(),
                       ),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Дата рождения:', style: TextStyle(fontSize: 17, color: Colors.grey)),
+                        child: Text('Дата рождения:', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
                       ),
                       prefixIconConstraints: BoxConstraints(minWidth: 10, minHeight: 10),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
@@ -395,7 +401,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               Text('Отображать знак зодиака', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               Switch.adaptive(
-                activeColor: Color.fromRGBO(145, 10, 251, 5),
+                activeColor: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
                 value: _showZodiacSign,
                 onChanged: (value){
                   setState(() {
@@ -418,7 +424,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SizedBox(height: 10),
           Text(
             'Местоположение',
-            style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
           TextFormField(
@@ -445,7 +451,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           Divider(thickness: 1),
           Text(
             'Карьера',
-            style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
           Row(
@@ -453,7 +459,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               Text('Я не работаю', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               Switch.adaptive(
-                activeColor: Color.fromRGBO(145, 10, 251, 5),
+                activeColor: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
                 value: _iAmNotWorking,
                 onChanged: (value){
                   setState(() {
@@ -472,7 +478,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: _companyNameTextController,
                   textInputAction: TextInputAction.done,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: width / 15),
                     hintText: 'Название компании',
@@ -496,7 +502,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: _positionTextController,
                   textInputAction: TextInputAction.done,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: width / 15),
                     hintText: 'Должность в компании',
@@ -523,7 +529,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SizedBox(height: 10),
           Text(
             'Удаление аккаунта',
-            style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
           Text(
@@ -543,8 +549,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     children: [
                       SvgPicture.asset(_deleteAccountAsset),
                       SizedBox(width: 10),
-                      Text('Удалить аккаунт Uny', style: TextStyle(
-                          color: Colors.black, fontSize: 17))
+                      Text('Удалить аккаунт Uny', style: TextStyle(fontSize: 17))
                     ],
                   )
               ),
@@ -805,14 +810,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
       'phone_number' : _telephoneTextController!.text,
       'date_of_birth' : _birthDateTextController!.text,
       'location' : _locationTextController!.text,
-      'job_company' : _companyNameTextController!.text,
-      'job' : _positionTextController!.text
+      'job_company' : _iAmNotWorking ? '' : _companyNameTextController!.text,
+      'job' : _iAmNotWorking ? '' : _positionTextController!.text,
+      'show_zodiac_sign' : _showZodiacSign.toString()
     };
 
-    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).updateUser(token, data).whenComplete(() async {
+    await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).updateUser(token, data).whenComplete(() async {
       _showLoading = false;
 
-      Navigator.pop(context);
+      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+        Provider.of<UserDataProvider>(context, listen: false).setUserDataModel(value.body!.user);
+
+        Navigator.pop(context);
+      });
     });
 
   }

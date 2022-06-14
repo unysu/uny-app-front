@@ -166,6 +166,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               cursorColor: Colors.white,
               textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
+              textCapitalization: TextCapitalization.sentences,
               maxLength: 40,
               decoration: InputDecoration(
                 counterText: "",
@@ -208,6 +209,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               cursorColor: Colors.white,
               maxLength: 40,
               textInputAction: TextInputAction.done,
+              textCapitalization: TextCapitalization.sentences,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 counterText: "",
@@ -314,6 +316,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               cursorColor: Colors.white,
               maxLength: 40,
               textInputAction: TextInputAction.done,
+              textCapitalization: TextCapitalization.sentences,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 counterText: "",

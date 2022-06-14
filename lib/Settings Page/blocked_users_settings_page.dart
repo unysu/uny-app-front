@@ -1,5 +1,7 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class BlockedUsersSettingsPage extends StatefulWidget{
@@ -24,11 +26,12 @@ class _BlockedUsersSettingsPageState extends State<BlockedUsersSettingsPage>{
             appBar: AppBar(
               elevation: 0,
               centerTitle: false,
+              systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
               backgroundColor: Colors.grey.withOpacity(0),
-              title: Text('Черный список', style: TextStyle(fontSize: 24, color: Colors.black, fontWeight: FontWeight.bold)),
+              title: Text('Черный список', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               leading: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.arrow_back, color: Colors.grey),
+                icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
               ),
             ),
             body: mainBody(),
@@ -62,13 +65,12 @@ class _BlockedUsersSettingsPageState extends State<BlockedUsersSettingsPage>{
                       color: Colors.blue
                   ),
                 ),
-                Text('Анастасия К.', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                Text('Анастасия К.', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 Container(
                   height: height / 24,
                   width: width / 3,
                   child: Center(
-                    child: Text('Разблокировать', style: TextStyle(
-                        color: Colors.black, fontSize: 15)),
+                    child: Text('Разблокировать', style: TextStyle(fontSize: 15)),
                   ),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(11),

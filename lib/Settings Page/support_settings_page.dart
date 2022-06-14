@@ -1,5 +1,7 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class SupportPage extends StatefulWidget{
@@ -47,11 +49,12 @@ class _SupportPageState extends State<SupportPage>{
             appBar: AppBar(
               elevation: 0,
               centerTitle: false,
+              systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
               backgroundColor: Colors.grey.withOpacity(0),
-              title: Text('Оставить обращение', style: TextStyle(fontSize: 24, color: Colors.black, fontWeight: FontWeight.bold)),
+              title: Text('Оставить обращение', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               leading: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.arrow_back, color: Colors.grey),
+                icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
               ),
             ),
             body: SingleChildScrollView(
@@ -80,7 +83,7 @@ class _SupportPageState extends State<SupportPage>{
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Основная информация', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                Text('Основная информация', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 Container(
                     padding: EdgeInsets.only(top: height / 50),
                     child: Column(
@@ -88,7 +91,7 @@ class _SupportPageState extends State<SupportPage>{
                         TextFormField(
                           controller: _topicTextController,
                           cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                           textInputAction: TextInputAction.done,
                           decoration: InputDecoration(
                             hintText: 'Тема обращения',
@@ -112,7 +115,7 @@ class _SupportPageState extends State<SupportPage>{
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.done,
                           cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                           decoration: InputDecoration(
                             hintText: 'Ваш email',
                             hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
@@ -133,14 +136,14 @@ class _SupportPageState extends State<SupportPage>{
                     )
                 ),
                 SizedBox(height: height / 30),
-                Text('Основная информация', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                Text('Основная информация', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 SizedBox(height: height / 80),
                 Container(
                   child: TextFormField(
                     controller: _problemTextController,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textInputAction: TextInputAction.done,
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     maxLines: 15,
                     decoration: InputDecoration(
                       hintText: 'Опишите здесь вашу проблему',
@@ -166,8 +169,7 @@ class _SupportPageState extends State<SupportPage>{
                         children: [
                           Icon(Icons.attach_file, color: Color.fromRGBO(145, 10, 251, 5)),
                           SizedBox(width: 5),
-                          Text('Прикрепить файл', style: TextStyle(
-                              color: Colors.black, fontSize: 17))
+                          Text('Прикрепить файл', style: TextStyle(fontSize: 17))
                         ],
                       )
                   ),
@@ -187,7 +189,7 @@ class _SupportPageState extends State<SupportPage>{
                     child: Container(
                         width: 400,
                         height: 50,
-                        color: Color.fromRGBO(145, 10, 251, 5),
+                        color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
                         child: Center(
                           child: Text('Отправить', style: TextStyle(
                               color: Colors.white, fontSize: 17)),
@@ -199,7 +201,6 @@ class _SupportPageState extends State<SupportPage>{
                 Text.rich(
                   TextSpan(
                     text: 'Нажимая "Отправить", вы подтверждаете согласие с ',
-                    style: TextStyle(color: Colors.black),
                     children: [
                       TextSpan(
                           text: 'условиями использования UnyApp',

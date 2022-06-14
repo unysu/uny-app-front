@@ -30,7 +30,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
 
     _fToast = FToast();
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fToast!.init(context);
       _reports = Reports.init();
     });
@@ -159,7 +159,6 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                             ),
                           ),
                           SizedBox(width: 10),
-                          ZodiacSigns.getLevSign()
                         ],
                       ),
                     ),

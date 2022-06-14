@@ -25,6 +25,8 @@ UserDataModel _$UserDataModelFromJson(Map<String, dynamic> json) =>
       muteMessagesNotifications: json['mute_messages_notifications'],
       muteRequestMessagingNotifications:
           json['mute_request_messaging_notifications'],
+      showZodiacSign: json['show_zodiac_sign'],
+      zodiacSign: json['zodiac_sign'],
     );
 
 Map<String, dynamic> _$UserDataModelToJson(UserDataModel instance) =>
@@ -46,4 +48,6 @@ Map<String, dynamic> _$UserDataModelToJson(UserDataModel instance) =>
       'mute_request_messaging_notifications':
           instance.muteRequestMessagingNotifications,
       'mute_messages_notifications': instance.muteMessagesNotifications,
+      'show_zodiac_sign': instance.showZodiacSign,
+      'zodiac_sign': instance.zodiacSign,
     };

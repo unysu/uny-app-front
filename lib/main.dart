@@ -1,25 +1,22 @@
 import 'dart:async';
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:random_color/random_color.dart';
-import 'package:sizer/sizer.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
-import 'package:uny_app/Interests%20Model/all_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/family_interests.dart';
-import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/general_interests.dart';
-import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests.dart';
-import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
-import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
 import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
+import 'package:uny_app/Providers/user_data_provider.dart';
+import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
@@ -27,18 +24,44 @@ import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
 import 'Interests Model/career_interests.dart';
 
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ShPreferences.init();
   await TokenData.init();
-  runApp(ChangeNotifierProvider<InterestsCounterProvider>(
-    create: (_) => InterestsCounterProvider(),
-    builder: (context, child){
-      return MaterialApp(
-        home: SplashScreenPage(),
-      );
-    }
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider<InterestsCounterProvider>(
+          create: (context) => InterestsCounterProvider()
+      ),
+
+      ChangeNotifierProvider<UserDataProvider>(
+          create: (context) => UserDataProvider(),
+      ),
+
+      ChangeNotifierProvider<VideoControllerProvider>(
+        create: (context) => VideoControllerProvider(),
+      )
+    ],
+    child: AdaptiveTheme(
+      initial: AdaptiveThemeMode.light,
+      light: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.red,
+        accentColor: Colors.amber,
+      ),
+      dark: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.red,
+        accentColor: Colors.amber,
+      ),
+      builder: (theme, darkTheme){
+        return MaterialApp(
+          theme: theme,
+          darkTheme: darkTheme,
+          home: SplashScreenPage(),
+        );
+      },
+    )
    )
   );
 }
@@ -60,12 +83,13 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
   late TravelingInterests travelingInterests;
   late GeneralInterests generalInterests;
 
-
   List<String>? _familyInterestsList = [];
   List<String>? _careerInterestsList = [];
   List<String>? _sportInterestsList = [];
   List<String>? _travelingInterestsList = [];
   List<String>? _generalInterestsList = [];
+
+  final String _mainLogoAsset = 'assets/uny_main_logo.svg';
 
 
  @override
@@ -86,7 +110,6 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
 
 
     addInterestsToDb().whenComplete(() {
-      ShPreferences.setIsFirstRun(false);
       if(TokenData.getUserToken() != ''){
         Navigator.pushReplacement(
             context,
@@ -126,22 +149,25 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                       SizedBox(
                           width: 150,
                           height: 150,
-                          child: Image.asset('assets/splash_icon.png')
+                          child: SvgPicture.asset(_mainLogoAsset)
                       ),
-                      SizedBox(height: 50),
-                      CircularProgressIndicator(
-                        strokeWidth: 1,
-                        color: Color.fromRGBO(145, 10, 251, 5),
-                      ),
-                      SizedBox(height: 10),
+                      SizedBox(height: 30),
+                      Text('UNY', style: TextStyle(fontSize: 32, color: Colors.black)),
+                      SizedBox(height: 20),
                       Container(
-                        child: Text('Первый запуск...  Может занять несколько секунд', maxLines: 2),
+                        width: 300,
+                        padding: EdgeInsets.symmetric(horizontal: 30),
+                        child: Text(
+                            'Ожидайте, мы ищем вам лучших людей...',
+                            maxLines: 2,
+                          style: TextStyle(fontSize: 22, color: Colors.black45),
+                        ),
                       )
                     ],
                   ) : SizedBox(
                       width: 150,
                       height: 150,
-                      child: Image.asset('assets/splash_icon.png')
+                      child: SvgPicture.asset(_mainLogoAsset)
                   ),
                 )
             ),
@@ -163,27 +189,12 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
 
     DatabaseObject.setDb = database;
 
-    int? allInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM AllInterestsModel'));
-    int? familyInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM FamilyInterestsModel'));
-    int? careerInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM CareerInterestsModel'));
-    int? sportInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM SportInterestsModel'));
-    int? travellingInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM TravellingInterestsModel'));
-    int? generalInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM GeneralInterestsModel'));
+    int? allInterestsCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM InterestsModel'));
 
-    if(
-        allInterestsCount == 0 &&
-        familyInterestsCount == 0 &&
-        careerInterestsCount == 0 &&
-        sportInterestsCount == 0  &&
-        travellingInterestsCount == 0 &&
-        generalInterestsCount == 0
-    ){
-      final allInterestsDao = database.allInterestsDao;
-      final familyInterestsDao = database.familyInterestsDao;
-      final careerInterestsDao = database.careerInterestsDao;
-      final sportInterestsDao = database.sportInterestsDao;
-      final travelingInterestsDao = database.travelingInterestsDao;
-      final generalInterestsDao = database.generalInterestsDao;
+    if(allInterestsCount == 0){
+      final interestsDao = database.interestsModelDao;
+
+      List<InterestsModel> allInterests = [];
 
       for(int i = 0; i < _familyInterestsList!.length; ++i){
         Color? color = _randomColor.randomColor(
@@ -191,9 +202,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             colorSaturation: ColorSaturation.mediumSaturation,
             colorBrightness: ColorBrightness.primary);
 
-        final familyInterests = FamilyInterestsModel(i, _familyInterestsList![i], color.value.toRadixString(16));
+        final familyInterests = InterestsModel.ForDB(_familyInterestsList![i], 'family', color.value.toRadixString(16));
 
-        await familyInterestsDao.insertFamilyInterest(familyInterests);
+        allInterests.add(familyInterests);
       }
 
       for(int i = 0; i < _careerInterestsList!.length; ++i){
@@ -202,9 +213,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             colorSaturation: ColorSaturation.highSaturation,
             colorBrightness: ColorBrightness.primary);
 
-        final careerInterests = CareerInterestsModel(i, _careerInterestsList![i], color.value.toRadixString(16));
+        final careerInterests = InterestsModel.ForDB(_careerInterestsList![i], 'career', color.value.toRadixString(16));
 
-        await careerInterestsDao.insertCareerInterests(careerInterests);
+        allInterests.add(careerInterests);
       }
 
       for(int i = 0; i < _sportInterestsList!.length; ++i){
@@ -213,9 +224,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             colorSaturation: ColorSaturation.highSaturation,
             colorBrightness: ColorBrightness.primary);
 
-        final sportInterests = SportInterestsModel(i, _sportInterestsList![i], color.value.toRadixString(16));
+        final sportInterests = InterestsModel.ForDB(_sportInterestsList![i], 'sport', color.value.toRadixString(16));
 
-        await sportInterestsDao.insertSportInterests(sportInterests);
+        allInterests.add(sportInterests);
       }
 
       for(int i = 0; i < _travelingInterestsList!.length; ++i){
@@ -224,9 +235,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             colorSaturation: ColorSaturation.highSaturation,
             colorBrightness: ColorBrightness.light);
 
-        final travelingInterests = TravellingInterestsModel(i, _travelingInterestsList![i], color.value.toRadixString(16));
+        final travelingInterests = InterestsModel.ForDB(_travelingInterestsList![i], 'traveling', color.value.toRadixString(16));
 
-        await travelingInterestsDao.insertTravelingInterests(travelingInterests);
+        allInterests.add(travelingInterests);
       }
 
       for(int i = 0; i < _generalInterestsList!.length; ++i){
@@ -235,56 +246,13 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             colorSaturation: ColorSaturation.highSaturation,
             colorBrightness: ColorBrightness.light);
 
-        final generalInterests = GeneralInterestsModel(i, _generalInterestsList![i], color.value.toRadixString(16));
+        final generalInterests = InterestsModel.ForDB(_generalInterestsList![i], 'general', color.value.toRadixString(16));
 
-        await generalInterestsDao.insertGeneralInterests(generalInterests);
+        allInterests.add(generalInterests);
       }
 
-      List<FamilyInterestsModel> _familyInterests = await familyInterestsDao.getFamilyInterests();
-      List<CareerInterestsModel> _careerInterests = await careerInterestsDao.getCareerInterests();
-      List<SportInterestsModel> _sportInterests = await sportInterestsDao.getSportInterests();
-      List<TravellingInterestsModel> _travelingInterest = await travelingInterestsDao.getTravelingInterests();
-      List<GeneralInterestsModel> _generalInterests = await generalInterestsDao.getGeneralInterests();
-
-      Map<String, String> familyInterestsMap = Map.fromIterable(_familyInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> careerInterestsMap = Map.fromIterable(_careerInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> sportInterestsMap = Map.fromIterable(_sportInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> travelingInterestsMap = Map.fromIterable(_travelingInterest,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-      Map<String, String> generalInterestsMap = Map.fromIterable(_generalInterests,
-          key: (interest) => interest.name,
-          value: (interest) => interest.color);
-
-
-      List<AllInterestsModel>? _allInterestsList = [];
-      Map<String, String> allInterestsMap = {};
-      allInterestsMap.addAll(familyInterestsMap);
-      allInterestsMap.addAll(careerInterestsMap);
-      allInterestsMap.addAll(sportInterestsMap);
-      allInterestsMap.addAll(travelingInterestsMap);
-      allInterestsMap.addAll(generalInterestsMap);
-
-      allInterestsMap.forEach((name, color) {
-        _allInterestsList.add(AllInterestsModel(name, color));
-      });
-
-      _allInterestsList.shuffle();
-      for(int i = 0; i < _allInterestsList.length; ++i){
-        final allInterests = AllInterestsModel.ForDB(i, _allInterestsList[i].name, _allInterestsList[i].color);
-
-        await allInterestsDao.insertAllInterests(allInterests);
-      }
+      allInterests.shuffle();
+      interestsDao.insertInterest(allInterests);
     }else{
       return;
     }

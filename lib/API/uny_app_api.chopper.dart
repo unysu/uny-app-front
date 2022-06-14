@@ -52,6 +52,17 @@ class _$UnyAPI extends UnyAPI {
   }
 
   @override
+  Future<Response<dynamic>> getInterests(String token) {
+    final $url = '/user/get_interests';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
   Future<Response<UserDataModel>> updateUser(String token, dynamic data) {
     final $url = '/user/update_user';
     final $headers = {
@@ -62,6 +73,45 @@ class _$UnyAPI extends UnyAPI {
     final $request =
         Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
     return client.send<UserDataModel, UserDataModel>($request);
+  }
+
+  @override
+  Future<Response<AllUserDataModel>> getCurrentUser(String token) {
+    final $url = '/user/get_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
+    return client.send<AllUserDataModel, AllUserDataModel>($request);
+  }
+
+  @override
+  Future<Response<UpdatedInterestsModel>> removeInterests(
+      String token, dynamic data) {
+    final $url = '/user/remove_interests';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<UpdatedInterestsModel, UpdatedInterestsModel>($request);
+  }
+
+  @override
+  Future<Response<PhotoSearchDataModel>> getUserPhotoSearch(
+      String token, dynamic data) {
+    final $url = '/user/filter_match_users_with_percent';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<PhotoSearchDataModel, PhotoSearchDataModel>($request);
   }
 
   @override
@@ -104,13 +154,28 @@ class _$UnyAPI extends UnyAPI {
   }
 
   @override
-  Future<Response<AllUserDataModel>> getCurrentUser(String token) {
-    final $url = '/user/get_user';
+  Future<Response<dynamic>> updateMedia(String token, dynamic data) {
+    final $url = '/user/update_media';
     final $headers = {
       'Authorization': token,
     };
 
-    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
-    return client.send<AllUserDataModel, AllUserDataModel>($request);
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> deleteMedia(String token, dynamic data) {
+    final $url = '/user/remove_media';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
   }
 }

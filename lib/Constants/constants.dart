@@ -1,10 +1,14 @@
 class Constants{
 
-  static const SIMPLE_RESPONSE_CONVERTER = 'simple_response_converter';
+  static const SIMPLE_RESPONSE_CONVERTER = 'SIMPLE_RESPONSE_CONVERTER';
 
-  static const AUTH_MODEL_CONVERTER_CONSTANT = 'auth_model_converter_constant';
+  static const AUTH_MODEL_CONVERTER_CONSTANT = 'AUTH_MODEL_CONVERTER';
 
-  static const USER_DATA_MODEL_CONVERTER_CONSTANT = 'user_data_model_converter_constant';
+  static const USER_DATA_MODEL_CONVERTER_CONSTANT = 'USER_DATA_MODEL_CONVERTER';
 
-  static const ALL_USER_DATA_MODEL_CONVERTER_CONSTANT = 'all_user_data_model_converter_constant';
+  static const ALL_USER_DATA_MODEL_CONVERTER_CONSTANT = 'ALL_USER_DATA_MODEL_CONVERTER';
+
+  static const INTERESTS_MODEL_CONVERTER = 'INTERESTS_MODEL_CONVERTER';
+
+  static const PHOTO_SEARCH_MODEL_CONVERTER = 'PHOTO_SEARCH_MODEL_CONVERTER';
 }

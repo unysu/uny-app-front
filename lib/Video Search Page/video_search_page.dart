@@ -23,6 +23,8 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
   AnimationController? controller;
   AnimationController? emojisAnimationController;
 
+  late TabController? _tabController;
+
   late FocusNode _startAgeFieldFocusNode;
   late FocusNode _endAgeFieldFocusNode;
 
@@ -32,8 +34,10 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
   late double height;
   late double width;
 
-  final String _chatAsset = 'assets/chat_video_search.svg';
+  final String _giftIcon = 'assets/gift_icon.svg';
   final String _reactionAsset = 'assets/video_search_reaction.svg';
+  final String _shareAsset = 'assets/share_icon.svg';
+  final String _unyLogo = 'assets/gift_page_uny_logo.svg';
 
 
   bool _isReactionButtonTapped = false;
@@ -52,6 +56,8 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
 
   @override
   void initState() {
+
+    _tabController = TabController(length: 4, vsync: this);
 
     _startAgeFieldFocusNode = FocusNode();
     _endAgeFieldFocusNode = FocusNode();
@@ -396,7 +402,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
         ),
         Positioned(
             top: height / 2,
-            left: width / 1.18,
+            left: width / 1.21,
             child: Column(
               children: [
                 AnimatedSwitcher(
@@ -450,8 +456,8 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
             )
         ),
         Positioned(
-            top: height / 1.69,
-            left: width / 1.19,
+            top: height / 1.65,
+            left: width / 1.21,
             child: AnimatedSwitcher(
               duration: Duration(milliseconds: 250),
               transitionBuilder: (child, transition) {
@@ -467,29 +473,132 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
               child: Column(
                 children: [
                   InkWell(
-                    onTap: () => null,
+                    onTap: () {
+                      showCupertinoModalPopup(
+                        context: context,
+                        builder: (context){
+                          return Material(
+                            borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                            child: Container(
+                              padding: EdgeInsets.only(top: height / 80),
+                              height: height * 0.7,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.only(left: 10, right: 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        SizedBox(width: width / 8),
+                                        Text('Отправить подарок',
+                                            style:
+                                            TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                                        IconButton(
+                                          icon: Icon(CupertinoIcons.clear_thick_circled),
+                                          color: Colors.grey.withOpacity(0.5),
+                                          onPressed: () => Navigator.pop(context),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  TabBar (
+                                    controller: _tabController,
+                                    unselectedLabelColor: Colors.grey,
+                                    indicatorColor: Color.fromRGBO(145, 10, 251, 5),
+                                    labelColor: Color.fromRGBO(145, 10, 251, 5),
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
+                                    physics: BouncingScrollPhysics(),
+                                    isScrollable: true,
+                                    tabs: [
+                                      Tab(text: 'Обычные'),
+                                      Tab(text: 'Необычные'),
+                                      Tab(text: 'Редкие'),
+                                      Tab(text: 'Эпические'),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Container(
+                                    height: 70,
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('Ваш баланс', style: TextStyle(color: Colors.grey, fontSize: 17)),
+                                          SizedBox(width: 10),
+                                          Text('12', style: TextStyle(fontSize: 17)),
+                                          SizedBox(width: 5),
+                                          SvgPicture.asset(_unyLogo, height: 17)
+                                        ],
+                                      )
+                                    ),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        border: Border(
+                                        top: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                                        bottom: BorderSide(color: Colors.grey.withOpacity(0.5))
+                                      )
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Container(
+                                    height: 270,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 30),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                    child: Container(
+                                        width: 400,
+                                        height: 50,
+                                        color: Color.fromRGBO(145, 10, 251, 5),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            SizedBox(width: 5),
+                                            Text('Отправить', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
+                                          ],
+                                        )
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      );
+                    },
                     child: Container(
                       height: 60,
                       width: 60,
                       child: Center(
-                        child: SvgPicture.asset(_chatAsset),
+                        child: SvgPicture.asset(_giftIcon),
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.7),
                         shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromRGBO(255, 0, 92, 10),
+                            Color.fromRGBO(255, 172, 47, 10),
+                          ]
+                        )
                       ),
                     ),
                   ),
                   SizedBox(height: 2),
-                  Text('Написать',
+                  Text('Подарок',
                       style: TextStyle(fontSize: 14, color: Colors.white))
                 ],
               ),
             )
         ),
         Positioned(
-            top: height / 1.42,
-            left: width / 1.18,
+            top: height / 1.4,
+            left: width / 1.21,
             child: AnimatedSwitcher(
               duration: Duration(milliseconds: 250),
               transitionBuilder: (child, transition) {
@@ -531,6 +640,44 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                   ),
                   SizedBox(height: 2),
                   Text('Реакция',
+                      style: TextStyle(fontSize: 14, color: Colors.white))
+                ],
+              ),
+            )
+        ),
+        Positioned(
+            top: height / 1.22,
+            left: width / 1.25,
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 250),
+              transitionBuilder: (child, transition) {
+                return SlideTransition(
+                  position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
+                      .animate(
+                    CurvedAnimation(
+                        parent: controller!, curve: Curves.fastOutSlowIn),
+                  ),
+                  child: child,
+                );
+              },
+              child: Column(
+                children: [
+                  InkWell(
+                    onTap: () => null,
+                    child: Container(
+                      height: 60,
+                      width: 60,
+                      child: Center(
+                        child: SvgPicture.asset(_shareAsset),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text('Поделиться',
                       style: TextStyle(fontSize: 14, color: Colors.white))
                 ],
               ),
@@ -616,7 +763,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
 
   Widget showSearchFilterOptions() {
     return StatefulBuilder(
-      builder: (context, setState) {
+      builder: (context1, setState) {
         return Material(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(35), topRight: Radius.circular(35)),
@@ -766,9 +913,12 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                 style: TextStyle(color: Colors.black),
                                 textInputAction: TextInputAction.done,
                                 focusNode: _startAgeFieldFocusNode,
+                                maxLength: 2,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                 decoration: InputDecoration(
                                   hintText: 'От 18',
+                                  counterText: "",
                                   fillColor: Colors.grey.withOpacity(0.3),
                                   filled: true,
                                   enabledBorder: OutlineInputBorder(
@@ -806,9 +956,14 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                 style: TextStyle(color: Colors.black),
                                 textInputAction: TextInputAction.done,
                                 keyboardType: TextInputType.number,
+                                maxLength: 2,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
                                 focusNode: _endAgeFieldFocusNode,
                                 decoration: InputDecoration(
                                   hintText: 'До 35',
+                                  counterText: "",
                                   fillColor: Colors.grey.withOpacity(0.3),
                                   filled: true,
                                   enabledBorder: OutlineInputBorder(

@@ -1,15 +1,20 @@
+import 'dart:convert';
+
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_model.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
-import 'package:uny_app/Interests%20Model/all_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/career_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/family_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/general_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/sport_interests_db_model.dart';
-import 'package:uny_app/Interests%20Model/travelling_interests_db_model.dart';
+import 'package:uny_app/Interests%20Model/interests_db_model.dart';
+import 'package:uny_app/Providers/user_data_provider.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
+
 
 class EditInterestsPage extends StatefulWidget {
 
@@ -19,12 +24,16 @@ class EditInterestsPage extends StatefulWidget {
 
 class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProviderStateMixin{
 
+  late String token;
+
   late InterestsDatabase? db;
 
   late double height;
   late double width;
 
   bool _isSearching = false;
+
+  StateSetter? interestsState;
 
   TabController? _tabController;
   PageController? _pageViewController;
@@ -33,6 +42,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   ScrollController? _careerInterestsScrollController;
   ScrollController? _travelingInterestsScrollController;
   ScrollController? _generalInterestsScrollController;
+
+  bool _showLoading = false;
 
   bool _isAllSelected = true;
   bool _isFamilySelected = false;
@@ -49,38 +60,51 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   int generalInterestsStart = 0;
   int end = 150;
 
-  Future<List<AllInterestsModel>>? _allInterestsFuture;
-  Future<List<FamilyInterestsModel>>? _familyInterestsFuture;
-  Future<List<CareerInterestsModel>>? _careerInterestsFuture;
-  Future<List<SportInterestsModel>>? _sportInterestsFuture;
-  Future<List<TravellingInterestsModel>>? _travellingInterestsFuture;
-  Future<List<GeneralInterestsModel>>? _generalInterestsFuture;
+  Future<List<InterestsModel>>? _allInterestsFuture;
+  Future<List<InterestsModel>>? _familyInterestsFuture;
+  Future<List<InterestsModel>>? _careerInterestsFuture;
+  Future<List<InterestsModel>>? _sportInterestsFuture;
+  Future<List<InterestsModel>>? _travellingInterestsFuture;
+  Future<List<InterestsModel>>? _generalInterestsFuture;
 
-  List<AllInterestsModel>? _allInterestsList = [];
-  List<FamilyInterestsModel>? _familyInterestsList = [];
-  List<CareerInterestsModel>? _careerInterestsList = [];
-  List<SportInterestsModel>? _sportInterestsList = [];
-  List<TravellingInterestsModel>? _travelingInterestsList = [];
-  List<GeneralInterestsModel>? _generalInterestsList = [];
+  List<InterestsModel>? _allInterestsList = [];
+  List<InterestsModel>? _allInterestsFilteredList = [];
+  List<InterestsModel>? _selectedAllInterests = [];
 
-  List<AllInterestsModel>? _allInterestsFilteredList = [];
-  List<FamilyInterestsModel>? _familyFilteredList = [];
-  List<CareerInterestsModel>? _careerFilteredList = [];
-  List<SportInterestsModel>? _sportFilteredList = [];
-  List<TravellingInterestsModel>? _travelingFilteredList = [];
-  List<GeneralInterestsModel>? _generalFilteredList = [];
+  List<InterestsModel>? _familyInterestsList = [];
+  List<InterestsModel>? _familyFilteredList = [];
+  List<InterestsModel>? _selectedFamilyInterests = [];
 
-  List<AllInterestsModel>? _selectedAllInterests = [];
-  List<FamilyInterestsModel>? _selectedFamilyInterests = [];
-  List<CareerInterestsModel>? _selectedCareerInterests = [];
-  List<SportInterestsModel>? _selectedSportInterests = [];
-  List<TravellingInterestsModel>? _selectedTravelingInterests = [];
-  List<GeneralInterestsModel>? _selectedGeneralInterests = [];
+  List<InterestsModel>? _careerInterestsList = [];
+  List<InterestsModel>? _careerFilteredList = [];
+  List<InterestsModel>? _selectedCareerInterests = [];
+
+  List<InterestsModel>? _sportInterestsList = [];
+  List<InterestsModel>? _sportFilteredList = [];
+  List<InterestsModel>? _selectedSportInterests = [];
+
+  List<InterestsModel>? _travelingInterestsList = [];
+  List<InterestsModel>? _travelingFilteredList = [];
+  List<InterestsModel>? _selectedTravelingInterests = [];
+
+  List<InterestsModel>? _generalInterestsList = [];
+  List<InterestsModel>? _generalFilteredList = [];
+  List<InterestsModel>? _selectedGeneralInterests = [];
+
+  List<InterestsDataModel>? _familyInterests;
+  List<InterestsDataModel>? _careerInterests;
+  List<InterestsDataModel>? _sportInterests;
+  List<InterestsDataModel>? _travelingInterests;
+  List<InterestsDataModel>? _generalInterests;
 
   int _page = 0;
 
+  List<String>? _deletedInterests = [];
+
   @override
   void initState() {
+
+    token = 'Bearer ' + TokenData.getUserToken();
 
     _tabController = TabController(length: 2, vsync: this);
 
@@ -93,13 +117,12 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     _travelingInterestsScrollController = ScrollController();
     _generalInterestsScrollController = ScrollController();
 
-
     _allInterestsScrollController!.addListener(() async {
       if(_allInterestsScrollController!.position.atEdge) {
         if(_allInterestsFilteredList!.length < 6504){
           allInterestsStart += 150;
-          List<AllInterestsModel> allInterests = await db!.allInterestsDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString());
-          setState(() {
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString());
+          interestsState!(() {
             _allInterestsFilteredList!.addAll(allInterests);
           });
         }else if(_allInterestsFilteredList!.length == 6504){
@@ -114,8 +137,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
       if(_careerInterestsScrollController!.position.atEdge) {
         if(_careerFilteredList!.length < 1619){
           careerInterestsStart += 150;
-          List<CareerInterestsModel> allInterests = await db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString());
-          setState(() {
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString());
+          interestsState!(() {
             _careerFilteredList!.addAll(allInterests);
           });
         }else if(_careerFilteredList!.length == 1619){
@@ -130,8 +153,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
       if(_travelingInterestsScrollController!.position.atEdge) {
         if(_travelingFilteredList!.length < 1415){
           travelingInterestsStart += 150;
-          List<TravellingInterestsModel> allInterests = await db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString());
-          setState(() {
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString());
+          interestsState!(() {
             _travelingFilteredList!.addAll(allInterests);
           });
         }else if(_travelingFilteredList!.length == 1415){
@@ -146,8 +169,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
       if(_generalInterestsScrollController!.position.atEdge) {
         if(_generalFilteredList!.length < 3446){
           generalInterestsStart += 80;
-          List<GeneralInterestsModel> allInterests = await db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString());
-          setState(() {
+          List<InterestsModel> allInterests = await db!.interestsModelDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString());
+          interestsState!(() {
             _generalFilteredList!.addAll(allInterests);
           });
         }else if(_generalFilteredList!.length == 3446){
@@ -160,12 +183,49 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
 
     db = DatabaseObject.getDb;
-    _allInterestsFuture = db!.allInterestsDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString()).then((value) => _allInterestsFilteredList = value);
-    _familyInterestsFuture = db!.familyInterestsDao.getFamilyInterestsByLimit(familyInterestsStart.toString(), end.toString()).then((value) => _familyFilteredList = value);
-    _careerInterestsFuture = db!.careerInterestsDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerFilteredList = value);
-    _sportInterestsFuture = db!.sportInterestsDao.getSportInterestsByLimit(sportInterestsStart.toString(), end.toString()).then((value) => _sportFilteredList = value);
-    _travellingInterestsFuture = db!.travelingInterestsDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString()).then((value) => _travelingFilteredList = value);
-    _generalInterestsFuture = db!.generalInterestsDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalFilteredList = value);
+    _sportInterestsFuture = db!.interestsModelDao.getSportInterestsByLimit().then((value) => _sportInterestsList = value).whenComplete(() => _sportFilteredList = List.from(_sportInterestsList!.toList()));
+    _familyInterestsFuture = db!.interestsModelDao.getFamilyInterestsByLimit().then((value) => _familyInterestsList = value).whenComplete(() => _familyFilteredList = List.from(_familyInterestsList!.toList()));
+    _allInterestsFuture = db!.interestsModelDao.getAllInterestsByLimit(allInterestsStart.toString(), end.toString()).then((value) => _allInterestsList = value).whenComplete(() => _allInterestsFilteredList = List.from(_allInterestsList!.toList()));
+    _careerInterestsFuture = db!.interestsModelDao.getCareerInterestsByLimit(careerInterestsStart.toString(), end.toString()).then((value) => _careerInterestsList = value).whenComplete(() => _careerFilteredList = List.from(_careerInterestsList!.toList()));
+    _travellingInterestsFuture = db!.interestsModelDao.getTravelingInterestsByLimit(travelingInterestsStart.toString(), end.toString()).then((value) => _travelingInterestsList = value).whenComplete(() => _travelingFilteredList = List.from(_travelingInterestsList!.toList()));
+    _generalInterestsFuture = db!.interestsModelDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalInterestsList = value).whenComplete(() => _generalFilteredList = List.from(_generalInterestsList!.toList()));
+
+
+    _familyInterests = Provider.of<UserDataProvider>(context, listen: false).interestsDataModel!.where((element) => element.type == 'family').toList();
+    _careerInterests = Provider.of<UserDataProvider>(context, listen: false).interestsDataModel!.where((element) => element.type == 'career').toList();
+    _sportInterests = Provider.of<UserDataProvider>(context, listen: false).interestsDataModel!.where((element) => element.type == 'sport').toList();
+    _travelingInterests = Provider.of<UserDataProvider>(context, listen: false).interestsDataModel!.where((element) => element.type == 'traveling').toList();
+    _generalInterests = Provider.of<UserDataProvider>(context, listen: false).interestsDataModel!.where((element) => element.type == 'general').toList();
+
+    for(int i = 0; i < _familyInterests!.length; i++){
+      _selectedAllInterests!.add(InterestsModel.ForDB(_familyInterests![i].interest, _familyInterests![i].type, _familyInterests![i].color));
+
+      _selectedFamilyInterests!.add(InterestsModel.ForDB(_familyInterests![i].interest, _familyInterests![i].type, _familyInterests![i].color));
+    }
+
+    for(int i = 0; i < _careerInterests!.length; i++){
+      _selectedAllInterests!.add(InterestsModel.ForDB(_careerInterests![i].interest, _careerInterests![i].type, _careerInterests![i].color));
+
+      _selectedCareerInterests!.add(InterestsModel.ForDB(_careerInterests![i].interest, _careerInterests![i].type, _careerInterests![i].color));
+    }
+
+    for(int i = 0; i < _sportInterests!.length; i++){
+      _selectedAllInterests!.add(InterestsModel.ForDB(_sportInterests![i].interest, _sportInterests![i].type, _sportInterests![i].color));
+
+      _selectedSportInterests!.add(InterestsModel.ForDB(_sportInterests![i].interest, _sportInterests![i].type, _sportInterests![i].color));
+    }
+
+    for(int i = 0; i < _travelingInterests!.length; i++){
+      _selectedAllInterests!.add(InterestsModel.ForDB(_travelingInterests![i].interest, _travelingInterests![i].type, _travelingInterests![i].color));
+
+      _selectedTravelingInterests!.add(InterestsModel.ForDB(_travelingInterests![i].interest, _travelingInterests![i].type, _travelingInterests![i].color));
+    }
+
+    for(int i = 0; i < _generalInterests!.length; i++){
+      _selectedAllInterests!.add(InterestsModel.ForDB(_generalInterests![i].interest, _generalInterests![i].type, _generalInterests![i].color));
+
+      _selectedGeneralInterests!.add(InterestsModel.ForDB(_generalInterests![i].interest, _generalInterests![i].type, _generalInterests![i].color));
+    }
 
     super.initState();
   }
@@ -184,115 +244,119 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-       height = constraints.maxHeight;
-       width = constraints.maxWidth;
-       return ResponsiveWrapper.builder(
-         Scaffold(
-           appBar: AppBar(
-             elevation: 0,
-             automaticallyImplyLeading: false,
-             backgroundColor: Colors.transparent,
-             systemOverlayStyle: SystemUiOverlayStyle.dark,
-             leading: IconButton(
-               icon: Icon(Icons.arrow_back, color: Colors.grey),
-               onPressed: () => Navigator.pop(context),
-             ),
-             title: Container(
-               height: height / 23,
-               padding: EdgeInsets.only(right: width / 20),
-               child: TextFormField(
-                 cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                 textAlign: TextAlign.center,
-                 decoration: InputDecoration(
-                   contentPadding: EdgeInsets.only(bottom: height / 50),
-                   filled: true,
-                   fillColor: Colors.grey.withOpacity(0.1),
-                   prefixIcon: _isSearching != true
-                       ? Row(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     children: [
-                       Icon(CupertinoIcons.search, color: Colors.grey),
-                       Text('Поиск интересов',
-                           style: TextStyle(
-                               fontSize: 17, color: Colors.grey))
-                     ],
-                   )
-                       : null,
-                   enabledBorder: OutlineInputBorder(
-                       borderRadius: BorderRadius.all(Radius.circular(30)),
-                       borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
-                   focusedBorder: OutlineInputBorder(
-                       borderRadius: BorderRadius.all(Radius.circular(30)),
-                       borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
-                 ),
-                 onTap: () {
-                   setState(() {
-                     _isSearching = true;
-                   });
-                 },
+        height = constraints.maxHeight;
+        width = constraints.maxWidth;
+        return ResponsiveWrapper.builder(
+          Scaffold(
+              appBar: AppBar(
+                elevation: 0,
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.transparent,
+                systemOverlayStyle: SystemUiOverlayStyle.dark,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.grey),
+                  onPressed: () => updateInterests()
+                ),
+                title: Container(
+                  height: height / 23,
+                  padding: EdgeInsets.only(right: width / 20),
+                  child: TextFormField(
+                    cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.only(bottom: height / 50),
+                      filled: true,
+                      fillColor: Colors.grey.withOpacity(0.1),
+                      prefixIcon: _isSearching != true ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.search, color: Colors.grey),
+                          Text('Поиск интересов',
+                              style: TextStyle(
+                                  fontSize: 17, color: Colors.grey))
+                        ],
+                      ): null,
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _isSearching = true;
+                      });
+                    },
 
-                 onChanged: (value){
-                   if(_isAllSelected){
-                     _allInterestsFilteredList = _allInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                   } else if(_isFamilySelected){
-                     _familyFilteredList = _familyInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                   }else if(_isCareerSelected){
-                     _careerFilteredList = _careerInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                   }else if(_isSportSelected){
-                     _sportFilteredList = _sportInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                   }else if(_isTravelingSelected){
-                     _travelingFilteredList = _travelingInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                   }else{
-                     _generalFilteredList = _generalInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
-                   }
+                    onChanged: (value){
+                      if(_isAllSelected){
+                        _allInterestsFilteredList = _allInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                      } else if(_isFamilySelected){
+                        _familyFilteredList = _familyInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                      }else if(_isCareerSelected){
+                        _careerFilteredList = _careerInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                      }else if(_isSportSelected){
+                        _sportFilteredList = _sportInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                      }else if(_isTravelingSelected){
+                        _travelingFilteredList = _travelingInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                      }else{
+                        _generalFilteredList = _generalInterestsList!.where((interest) => interest.name!.toLowerCase().startsWith(value.toLowerCase())).toList();
+                      }
 
-                   setState(() {});
+                      setState(() {});
 
-                   if (value.isEmpty) {
-                     setState(() {
-                       _isSearching = false;
-                     });
-                   } else {
-                     setState(() {
-                       _isSearching = true;
-                     });
-                   }
-                 },
-               ),
-             ),
-             centerTitle: true,
-             bottom: TabBar (
-               controller: _tabController,
-               indicatorColor: Color.fromRGBO(145, 10, 251, 5),
-               labelColor: Color.fromRGBO(145, 10, 251, 5),
-               unselectedLabelColor: Colors.grey,
-               padding: EdgeInsets.symmetric(horizontal: width / 7),
-               tabs: [
-                 Tab(
-                   text: 'Мои интересы'
-                 ),
-                 Tab(
-                   text: 'Рекомендуемые',
-                 )
-               ],
-               onTap: (pageIndex){
-                 _pageViewController!.animateToPage(pageIndex, duration: Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
-               },
-             ),
-           ),
-           body: mainBody(),
-         ),
-         maxWidth: 800,
-         minWidth: 450,
-         defaultScale: true,
-         breakpoints: [
-           ResponsiveBreakpoint.resize(450, name: MOBILE),
-           ResponsiveBreakpoint.autoScale(800, name: MOBILE),
-         ],
-       );
+                      if (value.isEmpty) {
+                        setState(() {
+                          _isSearching = false;
+                        });
+                      } else {
+                        setState(() {
+                          _isSearching = true;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                centerTitle: true,
+                bottom: TabBar (
+                  controller: _tabController,
+                  indicatorColor: Color.fromRGBO(145, 10, 251, 5),
+                  labelColor: Color.fromRGBO(145, 10, 251, 5),
+                  unselectedLabelColor: Colors.grey,
+                  padding: EdgeInsets.symmetric(horizontal: width / 7),
+                  tabs: [
+                    Tab(
+                        text: 'Мои интересы'
+                    ),
+                    Tab(
+                      text: 'Рекомендуемые',
+                    )
+                  ],
+                  onTap: (pageIndex){
+                    _pageViewController!.animateToPage(pageIndex, duration: Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
+                  },
+                ),
+              ),
+              body: StatefulBuilder(
+                builder: (context, setState){
+                  interestsState = setState;
+                  return mainBody();
+                },
+              )
+          ),
+          maxWidth: 800,
+          minWidth: 450,
+          defaultScale: true,
+          breakpoints: [
+            ResponsiveBreakpoint.resize(450, name: MOBILE),
+            ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+          ],
+        );
       },
     );
   }
+
 
   Widget mainBody() {
     return Column(
@@ -485,37 +549,66 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               Container(
                 child: Wrap(
                   children: [
-                    Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: _isAllSelected
-                            ?  allSelectedInterests()
-                            : _isFamilySelected
-                            ? familySelectedInterests()
-                            : _isCareerSelected
-                            ? careerSelectedInterests()
-                            : _isSportSelected
-                            ? sportSelectedInterests()
-                            : _isTravelingSelected
-                            ? travelingSelectedInterests()
-                            : _isGeneralSelected
-                            ? generalSelectedInterests()
-                            : null
-                    ),
-                    Container(
-                        child: _isAllSelected
-                            ? allInterestsGridView()
-                            : _isFamilySelected
-                            ? familyInterestsGridView()
-                            : _isCareerSelected
-                            ? careerInterestsGridView()
-                            : _isSportSelected
-                            ? sportInterestsGridView()
-                            : _isTravelingSelected
-                            ? travelingInterestsGridView()
-                            : _isGeneralSelected
-                            ? generalInterestsGridView()
-                            : null
-                    ),
+                    StatefulBuilder(
+                      builder: (context, setState){
+                        interestsState = setState;
+                        return Column(
+                          children: [
+                            Padding(
+                                padding: EdgeInsets.only(left: 10),
+                                child: _isAllSelected
+                                    ?  allSelectedInterests()
+                                    : _isFamilySelected
+                                    ? familySelectedInterests()
+                                    : _isCareerSelected
+                                    ? careerSelectedInterests()
+                                    : _isSportSelected
+                                    ? sportSelectedInterests()
+                                    : _isTravelingSelected
+                                    ? travelingSelectedInterests()
+                                    : _isGeneralSelected
+                                    ? generalSelectedInterests()
+                                    : null
+                            ),
+                            Stack(
+                              children: [
+                                Container(
+                                    child: _isAllSelected
+                                        ? allInterestsFutureBuilder()
+                                        : _isFamilySelected
+                                        ? familyInterestsFutureBuilder()
+                                        : _isCareerSelected
+                                        ? careerInterestsFutureBuilder()
+                                        : _isSportSelected
+                                        ? sportInterestsFutureBuilder()
+                                        : _isTravelingSelected
+                                        ? travellingInterestsFutureBuilder()
+                                        : _isGeneralSelected
+                                        ? generalInterestsFutureBuilder()
+                                        : null
+                                ),
+                                _showLoading ? Center(
+                                  heightFactor: 4,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                                      height: 80,
+                                      width: 80,
+                                      color: Colors.black.withOpacity(0.7),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ) : Container()
+                              ],
+                            )
+                          ],
+                        );
+                      },
+                    )
                   ],
                 )
               ),
@@ -532,8 +625,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   }
 
 
-  FutureBuilder<List<AllInterestsModel>> allInterestsFutureBuilder(){
-    return FutureBuilder<List<AllInterestsModel>>(
+  FutureBuilder<List<InterestsModel>> allInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
       future: _allInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
@@ -555,8 +648,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     );
   }
 
-  FutureBuilder<List<FamilyInterestsModel>> familyInterestsFutureBuilder(){
-    return FutureBuilder<List<FamilyInterestsModel>>(
+  FutureBuilder<List<InterestsModel>> familyInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
       future: _familyInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
@@ -578,8 +671,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     );
   }
 
-  FutureBuilder<List<CareerInterestsModel>> careerInterestsFutureBuilder(){
-    return FutureBuilder<List<CareerInterestsModel>>(
+  FutureBuilder<List<InterestsModel>> careerInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
       future: _careerInterestsFuture,
       builder: (context, snapshot) {
 
@@ -601,8 +694,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     );
   }
 
-  FutureBuilder<List<SportInterestsModel>> sportInterestsFutureBuilder(){
-    return FutureBuilder<List<SportInterestsModel>>(
+  FutureBuilder<List<InterestsModel>> sportInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
       future: _sportInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
@@ -624,8 +717,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     );
   }
 
-  FutureBuilder<List<TravellingInterestsModel>> travellingInterestsFutureBuilder(){
-    return FutureBuilder<List<TravellingInterestsModel>>(
+  FutureBuilder<List<InterestsModel>> travellingInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
       future: _travellingInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
@@ -647,8 +740,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     );
   }
 
-  FutureBuilder<List<GeneralInterestsModel>> generalInterestsFutureBuilder(){
-    return FutureBuilder<List<GeneralInterestsModel>>(
+  FutureBuilder<List<InterestsModel>> generalInterestsFutureBuilder(){
+    return FutureBuilder<List<InterestsModel>>(
       future: _generalInterestsFuture,
       builder: (context, snapshot) {
         while(snapshot.connectionState == ConnectionState.waiting){
@@ -671,7 +764,6 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
 
   Widget allInterestsGridView() {
-    if(_allInterestsList!.length != 0){
       return Column(
         children: [
           Divider(
@@ -686,7 +778,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   controller: _allInterestsScrollController,
                   child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: Container (
+                      child: Container(
                         padding: EdgeInsets.only(left: 10),
                         width: width / 0.5,
                         child: Wrap(
@@ -697,6 +789,34 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                 child: InkWell(
                                     onTap: () {
                                       _selectedAllInterests!.add(_allInterestsFilteredList![index]);
+
+                                      switch(_allInterestsFilteredList![index].type){
+                                        case 'family':
+                                          _selectedFamilyInterests!.add(_allInterestsFilteredList![index]);
+
+                                          _familyFilteredList!.removeWhere((element) => element.name!.startsWith(_allInterestsFilteredList![index].name.toString()));
+                                          break;
+                                        case 'career':
+                                          _selectedCareerInterests!.add(_allInterestsFilteredList![index]);
+
+                                          _careerFilteredList!.removeWhere((element) => element.name!.startsWith(_allInterestsFilteredList![index].name.toString()));
+                                          break;
+                                        case 'sport':
+                                          _selectedSportInterests!.add(_allInterestsFilteredList![index]);
+
+                                          _sportFilteredList!.removeWhere((element) => element.name!.startsWith(_allInterestsFilteredList![index].name.toString()));
+                                          break;
+                                        case 'traveling':
+                                          _selectedTravelingInterests!.add(_allInterestsFilteredList![index]);
+
+                                          _travelingFilteredList!.removeWhere((element) => element.name!.startsWith(_allInterestsFilteredList![index].name.toString()));
+                                          break;
+                                        case 'general':
+                                          _selectedGeneralInterests!.add(_allInterestsFilteredList![index]);
+
+                                          _generalFilteredList!.removeWhere((element) => element.name!.startsWith(_allInterestsFilteredList![index].name.toString()));
+                                          break;
+                                      }
 
                                       _allInterestsFilteredList!.removeAt(index);
 
@@ -753,13 +873,9 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           )
         ],
       );
-    }else{
-      return allInterestsFutureBuilder();
-    }
   }
 
   Widget familyInterestsGridView() {
-    if(_familyInterestsList!.length != 0){
       return Column(
         children: [
           Divider(
@@ -783,6 +899,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                               return Material(
                                 child: InkWell(
                                     onTap: () {
+                                      _selectedAllInterests!.add(_familyFilteredList![index]);
+
                                       _selectedFamilyInterests!.add(_familyFilteredList![index]);
 
                                       _familyFilteredList!.removeAt(index);
@@ -840,13 +958,9 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           )
         ],
       );
-    }else{
-      return familyInterestsFutureBuilder();
-    }
   }
 
   Widget careerInterestsGridView(){
-    if(_careerInterestsList!.length != 0){
       return Column(
         children: [
           Divider(
@@ -872,6 +986,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                   return Material(
                                     child: InkWell(
                                         onTap: () {
+                                          _selectedAllInterests!.add(_careerFilteredList![index]);
+
                                           _selectedCareerInterests!.add(_careerFilteredList![index]);
 
                                           _careerFilteredList!.removeAt(index);
@@ -929,13 +1045,9 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           )
         ],
       );
-    }else{
-      return careerInterestsFutureBuilder();
-    }
   }
 
   Widget sportInterestsGridView() {
-    if(_sportInterestsList!.length != 0){
       return Column(
         children: [
           Divider(
@@ -960,6 +1072,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                   return Material(
                                     child: InkWell(
                                         onTap: () {
+                                          _selectedAllInterests!.add(_sportFilteredList![index]);
+
                                           _selectedSportInterests!.add(_sportFilteredList![index]);
 
                                           _sportFilteredList!.removeAt(index);
@@ -1017,13 +1131,9 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           )
         ],
       );
-    }else{
-      return sportInterestsFutureBuilder();
-    }
   }
 
   Widget travelingInterestsGridView() {
-    if(_travelingInterestsList!.length != 0){
       return Column(
         children: [
           Divider(
@@ -1049,6 +1159,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                   return Material(
                                     child: InkWell(
                                         onTap: () {
+                                          _selectedAllInterests!.add(_travelingFilteredList![index]);
+
                                           _selectedTravelingInterests!.add(_travelingFilteredList![index]);
 
                                           _travelingFilteredList!.removeAt(index);
@@ -1106,13 +1218,9 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           )
         ],
       );
-    }else{
-      return travellingInterestsFutureBuilder();
-    }
   }
 
   Widget generalInterestsGridView() {
-    if(_generalInterestsList!.length != 0){
       return Column(
         children: [
           Divider(
@@ -1138,6 +1246,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                   return Material(
                                     child: InkWell(
                                         onTap: () {
+                                          _selectedAllInterests!.add(_generalFilteredList![index]);
+
                                           _selectedGeneralInterests!.add(_generalFilteredList![index]);
 
                                           _generalFilteredList!.removeAt(index);
@@ -1195,11 +1305,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           )
         ],
       );
-    }else{
-      return generalInterestsFutureBuilder();
-    }
   }
-
 
 
   Widget allSelectedInterests(){
@@ -1233,10 +1339,40 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
 
-                              int indx = _allInterestsList!.indexOf(_selectedAllInterests![index]);
-                              _allInterestsFilteredList!.insert(indx, _selectedAllInterests![index]);
+                              switch(_selectedAllInterests![index].type){
+                                case 'family':
+                                  _selectedFamilyInterests!.removeWhere((element) => element.name!.startsWith(_selectedAllInterests![index].name!));
+
+                                  _familyFilteredList = List.from(_familyInterestsList!.toList());
+                                  break;
+                                case 'career':
+                                  _selectedCareerInterests!.removeWhere((element) => element.name!.startsWith(_selectedAllInterests![index].name!));
+
+                                  _careerFilteredList = List.from(_careerInterestsList!.toList());
+                                  break;
+                                case 'sport':
+                                  _selectedSportInterests!.removeWhere((element) => element.name!.startsWith(_selectedAllInterests![index].name!));
+
+                                  _sportFilteredList = List.from(_sportInterestsList!.toList());
+                                  break;
+                                case 'traveling':
+                                  _selectedTravelingInterests!.removeWhere((element) => element.name!.startsWith(_selectedAllInterests![index].name!));
+
+                                  _travelingFilteredList = List.from(_travelingInterestsList!.toList());
+                                  break;
+                                case 'general':
+                                  _selectedGeneralInterests!.removeWhere((element) => element.name!.startsWith(_selectedAllInterests![index].name!));
+
+                                  _generalFilteredList = List.from(_generalInterestsList!.toList());
+                                  break;
+                              }
+
+                              _deletedInterests!.add(_selectedAllInterests![index].name!);
 
                               _selectedAllInterests!.removeAt(index);
+
+                              _allInterestsFilteredList = List.from(_allInterestsList!.toList());
+
                               setState((){});
                             },
                           ),
@@ -1265,7 +1401,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   }
 
   Widget familySelectedInterests(){
-    return _selectedFamilyInterests!.length == 0
+    return _selectedFamilyInterests!.isEmpty
         ? Container() : Container(
         width: width * 2,
         height: 50,
@@ -1295,10 +1431,13 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
 
-                              int indx = _familyInterestsList!.indexOf(_selectedFamilyInterests![index]);
-                              _familyFilteredList!.insert(indx, _selectedFamilyInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedFamilyInterests![index].name.toString()));
+
+                              _deletedInterests!.add(_selectedFamilyInterests![index].name!);
 
                               _selectedFamilyInterests!.removeAt(index);
+
+                              _familyFilteredList = List.from(_familyInterestsList!.toList());
 
                               setState((){});
                             },
@@ -1328,7 +1467,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   }
 
   Widget careerSelectedInterests(){
-    return _selectedCareerInterests!.length == 0
+    return _selectedCareerInterests!.isEmpty
         ? Container(): Container(
         width: width * 2,
         height: 50,
@@ -1357,10 +1496,13 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _careerInterestsList!.indexOf(_selectedCareerInterests![index]);
-                              _careerFilteredList!.insert(indx, _selectedCareerInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedCareerInterests![index].name.toString()));
+
+                              _deletedInterests!.add(_selectedCareerInterests![index].name!);
 
                               _selectedCareerInterests!.removeAt(index);
+
+                              _careerFilteredList = List.from(_careerInterestsList!.toList());
 
                               setState((){});
                             },
@@ -1390,7 +1532,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   }
 
   Widget sportSelectedInterests(){
-    return _selectedSportInterests!.length == 0
+    return _selectedSportInterests!.isEmpty
         ? Container(): Container(
         width: width * 2,
         height: 50,
@@ -1419,10 +1561,13 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _sportInterestsList!.indexOf(_selectedSportInterests![index]);
-                              _sportFilteredList!.insert(indx, _selectedSportInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedSportInterests![index].name.toString()));
+
+                              _deletedInterests!.add(_selectedSportInterests![index].name!);
 
                               _selectedSportInterests!.removeAt(index);
+
+                              _sportFilteredList = List.from(_sportInterestsList!.toList());
 
                               setState((){});
                             },
@@ -1452,7 +1597,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   }
 
   Widget travelingSelectedInterests(){
-    return _selectedTravelingInterests!.length == 0
+    return _selectedTravelingInterests!.isEmpty
         ? Container(): Container(
         width: width * 2,
         height: 50,
@@ -1481,10 +1626,14 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _travelingInterestsList!.indexOf(_selectedTravelingInterests![index]);
-                              _travelingFilteredList!.insert(indx, _selectedTravelingInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedTravelingInterests![index].name.toString()));
+
+                              _deletedInterests!.add(_selectedTravelingInterests![index].name!);
 
                               _selectedTravelingInterests!.removeAt(index);
+
+                              _travelingFilteredList = List.from(_travelingInterestsList!.toList());
+
                               setState((){});
                             },
                           ),
@@ -1513,7 +1662,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   }
 
   Widget generalSelectedInterests(){
-    return _selectedGeneralInterests!.length == 0
+    return _selectedGeneralInterests!.isEmpty
         ? Container() : Container(
         width: width * 2,
         height: 50,
@@ -1542,10 +1691,13 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _generalInterestsList!.indexOf(_selectedGeneralInterests![index]);
-                              _generalFilteredList!.insert(indx, _selectedGeneralInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedGeneralInterests![index].name.toString()));
+
+                              _deletedInterests!.add(_selectedGeneralInterests![index].name!);
 
                               _selectedGeneralInterests!.removeAt(index);
+
+                              _generalFilteredList = List.from(_generalInterestsList!.toList());
 
                               setState((){});
                             },
@@ -1572,6 +1724,49 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           ),
         )
     );
+  }
+
+
+  void updateInterests() async {
+
+    Map<String, String> newInterestsMap = {};
+
+    List<Map<String, String>> newInterestsList = [];
+
+    setState((){
+      _showLoading = true;
+    });
+
+    for(int i = 0; i < _selectedAllInterests!.length; i++){
+      newInterestsMap = Map();
+
+      newInterestsMap.addAll({
+        'type' : '${_selectedAllInterests![i].type}',
+        'interest' : '${_selectedAllInterests![i].name}',
+        'color' : '${_selectedAllInterests![i].color}'
+      });
+
+      newInterestsList.add(newInterestsMap);
+    }
+    
+
+    var removeData = {
+      'interests' : jsonEncode(_deletedInterests)
+    };
+
+    var newInterestsData = {
+      'interests' : jsonEncode(newInterestsList)
+    };
+
+
+    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).addInterests(token, newInterestsData);
+
+    await UnyAPI.create(Constants.INTERESTS_MODEL_CONVERTER).removeInterests(token, removeData).then((value){
+      Provider.of<UserDataProvider>(context, listen: false).setInterestsDataModel(value.body!.interests);
+
+      Navigator.pop(context);
+    });
+
   }
 
 }
