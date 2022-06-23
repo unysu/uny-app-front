@@ -18,6 +18,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
+import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:video_player/video_player.dart';
@@ -163,7 +164,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
                                     onTap: () {
                                       Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (context) => VideoPage(videoIndex: index))
+                                          MaterialPageRoute(builder: (context) => VideoPage(videoId: _videos![index].id))
                                       );
                                     },
                                     child: Container(
@@ -191,6 +192,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
 
                                         Provider.of<UserDataProvider>(context, listen: false).setUserDataModel(value.body!.user);
                                         Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+                                        Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(value.body!.media!.otherPhotosList);
 
                                         setState(() {});
                                       });

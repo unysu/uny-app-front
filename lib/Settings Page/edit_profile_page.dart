@@ -729,7 +729,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+                  child: Text('Отмена', style: TextStyle(color: Colors.lightBlueAccent)),
                 ),
               ],
             );

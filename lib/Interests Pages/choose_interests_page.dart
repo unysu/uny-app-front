@@ -81,6 +81,8 @@ class _InterestsPageState extends State<InterestsPage>{
   double _selectedTravelingInterestsValue = 0.0;
   double _selectedGeneralInterestsValue = 0.0;
 
+  bool _isAttention18Closed = false;
+
   bool _isSearching = false;
 
   bool _isFamilyEnabled = true;
@@ -179,12 +181,14 @@ class _InterestsPageState extends State<InterestsPage>{
       if (UniversalPlatform.isIOS) {
         await showCupertinoModalPopup(
             context: context,
+            barrierDismissible: false,
             builder: (context) {
               return popup18PlusAttentionWidget();
             });
       } else if (UniversalPlatform.isAndroid) {
         await showModalBottomSheet(
             context: context,
+            isDismissible: false,
             builder: (context) {
               return popup18PlusAttentionWidget();
             });
@@ -233,6 +237,7 @@ class _InterestsPageState extends State<InterestsPage>{
                   child: TextFormField(
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.center,
+                    textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.only(bottom: height / 50),
                       filled: true,
@@ -259,6 +264,28 @@ class _InterestsPageState extends State<InterestsPage>{
                       setState(() {
                         _isSearching = true;
                       });
+
+                      if(_isFamilyEnabled){
+                        setState((){
+                          _showFamilyToolTip = false;
+                        });
+                      }else if(_isCareerEnabled){
+                        setState((){
+                          _showCareerTooltip = false;
+                        });
+                      }else if(_isSportEnabled){
+                        setState((){
+                          _showSportTooltip = false;
+                        });
+                      }else if(_isTravelingEnabled){
+                        setState((){
+                          _showTravelingTooltip = false;
+                        });
+                      }else if(_isGeneralEnabled){
+                        setState((){
+                          _showGeneralTooltip = false;
+                        });
+                      }
                     },
                     onChanged: (value) {
                       if(_isFamilyEnabled){
@@ -289,343 +316,369 @@ class _InterestsPageState extends State<InterestsPage>{
                 ),
                 centerTitle: true,
               ),
-              body: Stack(
-                children: [
-                  mainBody(),
-                  _isFamilyEnabled ? AnimatedPositioned(
-                    right: _showFamilyToolTip ? 0 : -450,
-                    top: 120,
-                    duration: Duration(milliseconds: 450),
-                    child: Stack(
-                      children: [
-                        Material(
-                          borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(15),
-                              bottomLeft: Radius.circular(15)
-                          ),
-                          elevation: 20,
-                          child: Container(
-                            height: 250,
-                            width: 370,
-                            decoration: BoxDecoration(
-                                color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
-                                backgroundBlendMode: BlendMode.plus,
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(15),
-                                    bottomLeft: Radius.circular(15)
-                                )
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 5,
-                          right: 5,
-                          child: IconButton(
-                            icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                            splashRadius: 1,
-                            onPressed: (){
-                              setState((){
-                                _showFamilyToolTip = false;
-                              });
-                            }
-                          ),
-                        ),
-                        Positioned(
-                          top: 50,
-                          left: 45,
-                          child: Container(
-                            width: 300,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Stack(
-                                  children: [
-                                    Container(
-                                      height: 87,
-                                      width: 85,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        image: DecorationImage(
-                                          image: AssetImage('assets/tooltips_image.png'),
-                                          fit: BoxFit.cover,
-                                        )
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 1,
-                                      child: Container(
-                                        height: 83,
-                                        width: 83,
-                                        child: SimpleCircularProgressBar(
-                                          valueNotifier: ValueNotifier(60),
-                                          backColor: Colors.grey,
-                                          animationDuration: 0,
-                                          mergeMode: true,
-                                          backStrokeWidth: 6,
-                                          progressStrokeWidth: 6,
-                                          startAngle: 210,
-                                          progressColors: [
-                                            Colors.deepOrange,
-                                            Colors.yellowAccent,
-                                            Colors.lightGreen
-                                          ],
-                                        )
-                                      )
-                                    ),
-                                    Positioned(
-                                      top: 57,
-                                      left: 12,
-                                      child: Container(
-                                        height: 30,
-                                        width: 60,
-                                        padding: EdgeInsets.symmetric(horizontal: 6),
-                                        child: Center(
-                                          child: Text('64 %', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              Colors.deepOrange,
-                                              Colors.orange,
-                                            ]
-                                          )
-                                        ),
-                                      ),
+              body: GestureDetector(
+                onTap: (){
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  if(_isFamilyEnabled){
+                    setState((){
+                      _showFamilyToolTip = false;
+                    });
+                  }else if(_isCareerEnabled){
+                    setState((){
+                      _showCareerTooltip = false;
+                    });
+                  }else if(_isSportEnabled){
+                    setState((){
+                      _showSportTooltip = false;
+                    });
+                  }else if(_isTravelingEnabled){
+                    setState((){
+                      _showTravelingTooltip = false;
+                    });
+                  }else if(_isGeneralEnabled){
+                    setState((){
+                      _showGeneralTooltip = false;
+                    });
+                  }
+                },
+                child: Stack(
+                  children: [
+                    mainBody(),
+                    _isFamilyEnabled && _isAttention18Closed == true ? AnimatedPositioned(
+                        right: _showFamilyToolTip ? 0 : -450,
+                        top: 120,
+                        duration: Duration(milliseconds: 450),
+                        child: Stack(
+                          children: [
+                            Material(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  bottomLeft: Radius.circular(15)
+                              ),
+                              elevation: 20,
+                              child: Container(
+                                height: 250,
+                                width: 370,
+                                decoration: BoxDecoration(
+                                    color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                    backgroundBlendMode: BlendMode.plus,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(15),
+                                        bottomLeft: Radius.circular(15)
                                     )
-                                  ],
                                 ),
-                                SizedBox(height: 20),
-                                Text(
-                                    'Выбери свои интересы, чем больше интересов ты добавишь, тем быстрее мы подберем для тебя пару и просчитаем совместимость.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                )
-                              ],
+                              ),
                             ),
-                          )
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: IconButton(
+                                  icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                  splashRadius: 1,
+                                  onPressed: (){
+                                    setState((){
+                                      _showFamilyToolTip = false;
+                                    });
+                                  }
+                              ),
+                            ),
+                            Positioned(
+                                top: 50,
+                                left: 45,
+                                child: Container(
+                                  width: 300,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Stack(
+                                        children: [
+                                          Container(
+                                            height: 87,
+                                            width: 85,
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                image: DecorationImage(
+                                                  image: AssetImage('assets/tooltips_image.png'),
+                                                  fit: BoxFit.cover,
+                                                )
+                                            ),
+                                          ),
+                                          Positioned(
+                                              top: 1,
+                                              child: Container(
+                                                  height: 83,
+                                                  width: 83,
+                                                  child: SimpleCircularProgressBar(
+                                                    valueNotifier: ValueNotifier(60),
+                                                    backColor: Colors.grey,
+                                                    animationDuration: 0,
+                                                    mergeMode: true,
+                                                    backStrokeWidth: 6,
+                                                    progressStrokeWidth: 6,
+                                                    startAngle: 210,
+                                                    progressColors: [
+                                                      Colors.deepOrange,
+                                                      Colors.yellowAccent,
+                                                      Colors.lightGreen
+                                                    ],
+                                                  )
+                                              )
+                                          ),
+                                          Positioned(
+                                            top: 57,
+                                            left: 12,
+                                            child: Container(
+                                              height: 30,
+                                              width: 60,
+                                              padding: EdgeInsets.symmetric(horizontal: 6),
+                                              child: Center(
+                                                child: Text('64 %', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                                  gradient: LinearGradient(
+                                                      colors: [
+                                                        Colors.deepOrange,
+                                                        Colors.orange,
+                                                      ]
+                                                  )
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      SizedBox(height: 20),
+                                      Text(
+                                        'Выбери свои интересы, чем больше интересов ты добавишь, тем быстрее мы подберем для тебя пару и просчитаем совместимость.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      )
+                                    ],
+                                  ),
+                                )
+                            )
+                          ],
                         )
-                      ],
                     )
-                  )
-                      : _isCareerEnabled ? AnimatedPositioned(
-                      right: _showCareerTooltip ? 0 : -450,
-                      top: 120,
-                      duration: Duration(milliseconds: 450),
-                      child: Stack(
-                        children: [
-                          Material(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(15),
-                                bottomLeft: Radius.circular(15)
-                            ),
-                            elevation: 20,
-                            child: Container(
-                              height: 80,
-                              width: 250,
-                              decoration: BoxDecoration(
-                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
-                                  backgroundBlendMode: BlendMode.plus,
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(15),
-                                      bottomLeft: Radius.circular(15)
-                                  )
+                        : _isCareerEnabled ? AnimatedPositioned(
+                        right: _showCareerTooltip ? 0 : -450,
+                        top: 120,
+                        duration: Duration(milliseconds: 450),
+                        child: Stack(
+                          children: [
+                            Material(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  bottomLeft: Radius.circular(15)
+                              ),
+                              elevation: 20,
+                              child: Container(
+                                height: 80,
+                                width: 250,
+                                decoration: BoxDecoration(
+                                    color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                    backgroundBlendMode: BlendMode.plus,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(15),
+                                        bottomLeft: Radius.circular(15)
+                                    )
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: 5,
-                            right: 5,
-                            child: IconButton(
-                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                                splashRadius: 1,
-                                onPressed: (){
-                                  setState((){
-                                    _showCareerTooltip = false;
-                                  });
-                                }
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: IconButton(
+                                  icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                  splashRadius: 1,
+                                  onPressed: (){
+                                    setState((){
+                                      _showCareerTooltip = false;
+                                    });
+                                  }
+                              ),
                             ),
-                          ),
-                          Positioned(
-                              top: 25,
-                              left: 50,
-                              child: Container(
-                                width: 120,
-                                child: Text(
-                                  'Расскажи о своей карьере',
-                                  maxLines: 2,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                            Positioned(
+                                top: 25,
+                                left: 50,
+                                child: Container(
+                                    width: 120,
+                                    child: Text(
+                                      'Расскажи о своей карьере',
+                                      maxLines: 2,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    )
                                 )
-                              )
-                          )
-                        ],
-                      )
-                  )
-                      : _isSportEnabled ? AnimatedPositioned(
-                      right: _showSportTooltip ? 0 : -450,
-                      top: 120,
-                      duration: Duration(milliseconds: 450),
-                      child: Stack(
-                        children: [
-                          Material(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(15),
-                                bottomLeft: Radius.circular(15)
-                            ),
-                            elevation: 20,
-                            child: Container(
-                              height: 80,
-                              width: 250,
-                              decoration: BoxDecoration(
-                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
-                                  backgroundBlendMode: BlendMode.plus,
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(15),
-                                      bottomLeft: Radius.circular(15)
-                                  )
+                            )
+                          ],
+                        )
+                    )
+                        : _isSportEnabled ? AnimatedPositioned(
+                        right: _showSportTooltip ? 0 : -450,
+                        top: 120,
+                        duration: Duration(milliseconds: 450),
+                        child: Stack(
+                          children: [
+                            Material(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  bottomLeft: Radius.circular(15)
+                              ),
+                              elevation: 20,
+                              child: Container(
+                                height: 80,
+                                width: 250,
+                                decoration: BoxDecoration(
+                                    color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                    backgroundBlendMode: BlendMode.plus,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(15),
+                                        bottomLeft: Radius.circular(15)
+                                    )
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: 5,
-                            right: 5,
-                            child: IconButton(
-                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                                splashRadius: 1,
-                                onPressed: (){
-                                  setState((){
-                                    _showSportTooltip = false;
-                                  });
-                                }
-                            ),
-                          ),
-                          Positioned(
-                              top: 25,
-                              left: 50,
-                              child: Container(
-                                  width: 120,
-                                  child: Text(
-                                    'Какой спорт ты предпочитаешь?',
-                                    maxLines: 2,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  )
-                              )
-                          )
-                        ],
-                      )
-                  )
-                      : _isTravelingEnabled ? AnimatedPositioned(
-                      right: _showTravelingTooltip ? 0 : -450,
-                      top: 120,
-                      duration: Duration(milliseconds: 450),
-                      child: Stack(
-                        children: [
-                          Material(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(15),
-                                bottomLeft: Radius.circular(15)
-                            ),
-                            elevation: 20,
-                            child: Container(
-                              height: 100,
-                              width: 350,
-                              decoration: BoxDecoration(
-                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
-                                  backgroundBlendMode: BlendMode.plus,
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(15),
-                                      bottomLeft: Radius.circular(15)
-                                  )
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: IconButton(
+                                  icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                  splashRadius: 1,
+                                  onPressed: (){
+                                    setState((){
+                                      _showSportTooltip = false;
+                                    });
+                                  }
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: 5,
-                            right: 5,
-                            child: IconButton(
-                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                                splashRadius: 1,
-                                onPressed: (){
-                                  setState((){
-                                    _showTravelingTooltip = false;
-                                  });
-                                }
-                            ),
-                          ),
-                          Positioned(
-                              top: 25,
-                              left: 45,
+                            Positioned(
+                                top: 25,
+                                left: 50,
+                                child: Container(
+                                    width: 120,
+                                    child: Text(
+                                      'Какой спорт ты предпочитаешь?',
+                                      maxLines: 2,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    )
+                                )
+                            )
+                          ],
+                        )
+                    )
+                        : _isTravelingEnabled ? AnimatedPositioned(
+                        right: _showTravelingTooltip ? 0 : -450,
+                        top: 120,
+                        duration: Duration(milliseconds: 450),
+                        child: Stack(
+                          children: [
+                            Material(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  bottomLeft: Radius.circular(15)
+                              ),
+                              elevation: 20,
                               child: Container(
-                                  width: 250,
-                                  child: Text(
-                                    'Любишь ли ты путешествовать и какой формат путешествий ты предпочитаешь?',
-                                    maxLines: 3,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  )
-                              )
-                          )
-                        ],
-                      )
-                  )
-                      : _isGeneralEnabled ? AnimatedPositioned(
-                      right: _showGeneralTooltip ? 0 : -450,
-                      top: 120,
-                      duration: Duration(milliseconds: 450),
-                      child: Stack(
-                        children: [
-                          Material(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(15),
-                                bottomLeft: Radius.circular(15)
-                            ),
-                            elevation: 20,
-                            child: Container(
-                              height: 100,
-                              width: 350,
-                              decoration: BoxDecoration(
-                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
-                                  backgroundBlendMode: BlendMode.plus,
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(15),
-                                      bottomLeft: Radius.circular(15)
-                                  )
+                                height: 100,
+                                width: 350,
+                                decoration: BoxDecoration(
+                                    color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                    backgroundBlendMode: BlendMode.plus,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(15),
+                                        bottomLeft: Radius.circular(15)
+                                    )
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: 5,
-                            right: 5,
-                            child: IconButton(
-                                icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                                splashRadius: 1,
-                                onPressed: (){
-                                  setState((){
-                                    _showGeneralTooltip = false;
-                                  });
-                                }
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: IconButton(
+                                  icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                  splashRadius: 1,
+                                  onPressed: (){
+                                    setState((){
+                                      _showTravelingTooltip = false;
+                                    });
+                                  }
+                              ),
                             ),
-                          ),
-                          Positioned(
-                              top: 25,
-                              left: 45,
+                            Positioned(
+                                top: 25,
+                                left: 45,
+                                child: Container(
+                                    width: 250,
+                                    child: Text(
+                                      'Любишь ли ты путешествовать и какой формат путешествий ты предпочитаешь?',
+                                      maxLines: 3,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    )
+                                )
+                            )
+                          ],
+                        )
+                    )
+                        : _isGeneralEnabled ? AnimatedPositioned(
+                        right: _showGeneralTooltip ? 0 : -450,
+                        top: 120,
+                        duration: Duration(milliseconds: 450),
+                        child: Stack(
+                          children: [
+                            Material(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  bottomLeft: Radius.circular(15)
+                              ),
+                              elevation: 20,
                               child: Container(
-                                  width: 250,
-                                  child: Text(
-                                    'Почти готово, посмотри последний список интересов и добавь свои интересы',
-                                    maxLines: 3,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  )
-                              )
-                          )
-                        ],
-                      )
-                  ) : Container()
-                ],
+                                height: 100,
+                                width: 350,
+                                decoration: BoxDecoration(
+                                    color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.white : Colors.black,
+                                    backgroundBlendMode: BlendMode.plus,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(15),
+                                        bottomLeft: Radius.circular(15)
+                                    )
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: IconButton(
+                                  icon: Icon(Icons.close_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                                  splashRadius: 1,
+                                  onPressed: (){
+                                    setState((){
+                                      _showGeneralTooltip = false;
+                                    });
+                                  }
+                              ),
+                            ),
+                            Positioned(
+                                top: 25,
+                                left: 45,
+                                child: Container(
+                                    width: 250,
+                                    child: Text(
+                                      'Почти готово, посмотри последний список интересов и добавь свои интересы',
+                                      maxLines: 3,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    )
+                                )
+                            )
+                          ],
+                        )
+                    ) : Container()
+                  ],
+                ),
               )
             ),
           maxWidth: 800,
@@ -1133,6 +1186,9 @@ class _InterestsPageState extends State<InterestsPage>{
                                       _selectedFamilyInterestsValue += 0.01;
                                       ++_familyInterestsCounter;
 
+                                      FocusManager.instance.primaryFocus?.unfocus();
+
+                                      _showFamilyToolTip = false;
                                       setState(() {});
                                     },
                                     borderRadius: const BorderRadius.all(Radius.circular(30)),
@@ -1375,6 +1431,9 @@ class _InterestsPageState extends State<InterestsPage>{
                                           _selectedCareerInterestsValue += 0.01;
                                           ++_careerInterestsCounter;
 
+                                          FocusManager.instance.primaryFocus?.unfocus();
+
+                                          _showCareerTooltip = false;
                                           setState(() {});
                                         },
                                         borderRadius: const BorderRadius.all(
@@ -1619,6 +1678,9 @@ class _InterestsPageState extends State<InterestsPage>{
                                           _selectedSportInterestsValue += 0.01;
                                           ++_sportInterestsCounter;
 
+                                          FocusManager.instance.primaryFocus?.unfocus();
+
+                                          _showSportTooltip = false;
                                           setState(() {});
                                         },
                                         borderRadius: BorderRadius.all(
@@ -1864,6 +1926,9 @@ class _InterestsPageState extends State<InterestsPage>{
                                           0.01;
                                           ++_travelingInterestsCounter;
 
+                                          FocusManager.instance.primaryFocus?.unfocus();
+
+                                          _showTravelingTooltip = false;
                                           setState(() {});
                                         },
                                         borderRadius: BorderRadius.all(
@@ -2115,6 +2180,9 @@ class _InterestsPageState extends State<InterestsPage>{
                                           0.01;
                                           ++_generalInterestsCounter;
 
+                                          FocusManager.instance.primaryFocus?.unfocus();
+
+                                          _showGeneralTooltip = false;
                                           setState(() {});
                                         },
                                         borderRadius: BorderRadius.all(
@@ -2208,7 +2276,13 @@ class _InterestsPageState extends State<InterestsPage>{
                   IconButton(
                     icon: Icon(CupertinoIcons.clear_thick_circled),
                     color: Colors.grey.withOpacity(0.5),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: (){
+                      setState((){
+                        _isAttention18Closed = true;
+                      });
+
+                      Navigator.pop(context);
+                    }
                   )
                 ],
               ),
@@ -2238,6 +2312,10 @@ class _InterestsPageState extends State<InterestsPage>{
                       color: Colors.white,
                       child: InkWell(
                         onTap: () {
+                          setState((){
+                            _isAttention18Closed = true;
+                          });
+
                           Navigator.pop(context);
                         },
                         child: Container(
@@ -2263,6 +2341,9 @@ class _InterestsPageState extends State<InterestsPage>{
                         color: Color.fromRGBO(145, 10, 251, 5),
                         child: InkWell(
                           onTap: () {
+                            setState((){
+                              _isAttention18Closed = true;
+                            });
                             Navigator.pop(context);
                           },
                           child: Container(
@@ -2334,7 +2415,10 @@ class _InterestsPageState extends State<InterestsPage>{
                   IconButton(
                     icon: Icon(CupertinoIcons.clear_thick_circled),
                     color: Colors.grey.withOpacity(0.5),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: (){
+                      newInterestFieldTextController!.clear();
+                      Navigator.pop(context);
+                    }
                   )
                 ],
               ),
@@ -2398,6 +2482,7 @@ class _InterestsPageState extends State<InterestsPage>{
                       color: Colors.white,
                       child: InkWell(
                         onTap: () {
+                          newInterestFieldTextController!.clear();
                           Navigator.pop(context);
                         },
                         child: Container(
@@ -2424,6 +2509,8 @@ class _InterestsPageState extends State<InterestsPage>{
                           onTap: () {
                             Navigator.pop(context);
                             addNewInterest(newInterestFieldTextController!.text);
+
+                            newInterestFieldTextController!.clear();
                           },
                           child: Container(
                             child: Center(
@@ -2503,14 +2590,16 @@ class _InterestsPageState extends State<InterestsPage>{
     if(UniversalPlatform.isIOS){
       showCupertinoModalPopup(
         context: context,
+        barrierDismissible: false,
         builder: (context) {
           return newInterestsWidget(context);
         }
       );
     }else if(UniversalPlatform.isAndroid){
       showModalBottomSheet(
-        context: context,
-        builder: (context){
+          context: context,
+          isDismissible: false,
+          builder: (context){
           return newInterestsWidget(context);
         }
       );

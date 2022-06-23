@@ -1,21 +1,21 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:chewie/chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Providers/video_controller_provider.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPage extends StatefulWidget{
 
-  int? videoIndex;
+  int? videoId;
 
-  VideoPage({required this.videoIndex});
+  VideoPage({required this.videoId});
 
   @override
   _VideoPageState createState() => _VideoPageState();
@@ -23,19 +23,26 @@ class VideoPage extends StatefulWidget{
 
 class _VideoPageState extends State<VideoPage>{
 
+  Map<int, VideoPlayerController>? _videoPlayerControllersMap;
+
+  late String token;
+
   late double height;
   late double width;
 
   bool _showIcon = false;
+  bool _showLoading = false;
 
-  List<VideoPlayerController>? _videoPlayerControllersList;
+  StateSetter? _videoPageState;
 
   @override
   void initState(){
 
-    _videoPlayerControllersList = Provider.of<VideoControllerProvider>(context, listen: false).videoPlayerControllersList;
+    token = 'Bearer ' + TokenData.getUserToken();
 
-    _videoPlayerControllersList![widget.videoIndex!].play();
+    _videoPlayerControllersMap = Provider.of<VideoControllerProvider>(context, listen: false).videoPlayerControllersMap;
+
+    _videoPlayerControllersMap![widget.videoId!]!.play();
 
     super.initState();
   }
@@ -43,7 +50,9 @@ class _VideoPageState extends State<VideoPage>{
   @override
   void dispose(){
 
-    _videoPlayerControllersList = [];
+    _videoPlayerControllersMap![widget.videoId!]!.pause();
+
+    _videoPlayerControllersMap = {};
 
     super.dispose();
   }
@@ -66,9 +75,9 @@ class _VideoPageState extends State<VideoPage>{
                 title: Text('Видеозапись', style: TextStyle(fontSize: 17, color: Colors.white)),
                 leading: IconButton(
                   onPressed: (){
-                    _videoPlayerControllersList = [];
+                    _videoPlayerControllersMap![widget.videoId!]!.pause();
 
-                    _videoPlayerControllersList![widget.videoIndex!].dispose();
+                    _videoPlayerControllersMap = {};
 
                     Navigator.pop(context);
                   },
@@ -85,18 +94,21 @@ class _VideoPageState extends State<VideoPage>{
               ),
               body: GestureDetector(
                 onTap: (){
-                  _videoPlayerControllersList![widget.videoIndex!].value.isPlaying
+                  _videoPlayerControllersMap![widget.videoId!]!.value.isPlaying
                       ? setState((){
-                          _videoPlayerControllersList![widget.videoIndex!].pause();
+                    _videoPlayerControllersMap![widget.videoId!]!.pause();
                           _showIcon = true;
                        }) : setState((){
-                          _videoPlayerControllersList![widget.videoIndex!].play();
+                    _videoPlayerControllersMap![widget.videoId!]!.play();
                           _showIcon = false;
                        });
                 },
                 child: Stack(
                   children: [
-                    mainBody(),
+                    Container(
+                      color: Colors.black,
+                      child: mainBody()
+                    ),
                     Center(
                         child: AnimatedOpacity(
                           opacity: _showIcon ? 1.0 : 0.0,
@@ -104,7 +116,7 @@ class _VideoPageState extends State<VideoPage>{
                           child: IconButton(
                               icon: Icon(CupertinoIcons.play_fill, size: 60, color: Colors.white),
                               onPressed: (){
-                                _videoPlayerControllersList![widget.videoIndex!].play();
+                                _videoPlayerControllersMap![widget.videoId!]!.play();
 
                                 setState((){
                                   _showIcon = false;
@@ -112,7 +124,7 @@ class _VideoPageState extends State<VideoPage>{
                               }
                           ),
                         )
-                    )
+                    ),
                   ],
                 )
               )
@@ -130,12 +142,40 @@ class _VideoPageState extends State<VideoPage>{
   }
 
   Widget mainBody(){
-    return SizedBox.expand(
-      child: _videoPlayerControllersList![widget.videoIndex!].value.isInitialized ? AspectRatio(
-        aspectRatio: 1,
-        child: VideoPlayer(_videoPlayerControllersList![widget.videoIndex!]),
-      ) : Container(),
-    );
+    return _videoPlayerControllersMap![widget.videoId!]!.value.isInitialized ? Center(
+      child: StatefulBuilder(
+        builder: (context, setState){
+          _videoPageState = setState;
+          return Stack(
+            children: [
+              Center(
+                child: Container(
+                  child: AspectRatio(
+                    aspectRatio: _videoPlayerControllersMap![widget.videoId!]!.value.aspectRatio,
+                    child: VideoPlayer(_videoPlayerControllersMap![widget.videoId!]!),
+                  ),
+                ),
+              ),
+              _showLoading ? Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                    height: 80,
+                    width: 80,
+                    color: Colors.black.withOpacity(0.7),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ) : Container()
+            ],
+          );
+        },
+      )
+    ) : Container();
   }
 
   void showDeleteVideoDialog() {
@@ -160,8 +200,24 @@ class _VideoPageState extends State<VideoPage>{
               ),
               actions: [
                 CupertinoActionSheetAction(
-                  onPressed: () {
+                  onPressed: () async {
+                    _videoPageState!((){
+                      _showLoading = true;
+                    });
 
+                    var data = {
+                      'media_id' : widget.videoId
+                    };
+
+                    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).deleteMedia(token, data).whenComplete(() async {
+                      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+
+                        Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      });
+                    });
                   },
                   isDestructiveAction: true,
                   child: Text('Удалить видео'),
@@ -169,7 +225,7 @@ class _VideoPageState extends State<VideoPage>{
               ],
               cancelButton: CupertinoActionSheetAction(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Отмена'),
+                child: Text('Отмена', style: TextStyle(color: Colors.lightBlue)),
               ),
             );
           }
@@ -195,8 +251,24 @@ class _VideoPageState extends State<VideoPage>{
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
+                  onPressed: () async {
 
+                    _videoPageState!((){
+                      _showLoading = true;
+                    });
+
+                    var data = {
+                      'media_id' : widget.videoId
+                    };
+
+                    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).deleteMedia(token, data).whenComplete(() async {
+                      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+
+                        Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+
+                        Navigator.pop(context);
+                      });
+                    });
                   },
                   child: Text('Удалить видео', style: TextStyle(color: Colors.red)),
                 ),

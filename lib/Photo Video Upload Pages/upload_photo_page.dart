@@ -342,7 +342,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                       ),
                       CupertinoActionSheetAction(
                         child: Text(
-                            'Выбрать из библиотеки', textAlign: TextAlign.center),
+                            'Выбрать из библиотеки', textAlign: TextAlign.center, style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.lightBlue : Colors.red)),
                         onPressed: () async {
                           XFile? image = await _picker.pickImage(
                               source: ImageSource.gallery);
@@ -465,29 +465,31 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
   }
 
   void _cropImage(String? filePath) async {
-    File? croppedFile = await ImageCropper().cropImage(
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: filePath!,
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Загрузить фото',
-          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
-          hideBottomControls: true,
-        ),
-        iosUiSettings: IOSUiSettings(
-          title: 'Загрузить фото',
-          showCancelConfirmationDialog: true,
-          cancelButtonTitle: 'Закрыть',
-          doneButtonTitle: 'Сохранить',
-          rotateButtonsHidden: true,
-          aspectRatioPickerButtonHidden: true,
-          rotateClockwiseButtonHidden: true,
-          resetButtonHidden: true,
-          rectX: 100,
-          rectY: 100,
-          aspectRatioLockEnabled: false,
-        )
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Загрузить фото',
+            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            hideBottomControls: true,
+          ),
+          IOSUiSettings(
+            title: 'Загрузить фото',
+            showCancelConfirmationDialog: true,
+            cancelButtonTitle: 'Закрыть',
+            doneButtonTitle: 'Сохранить',
+            rotateButtonsHidden: true,
+            aspectRatioPickerButtonHidden: true,
+            rotateClockwiseButtonHidden: true,
+            resetButtonHidden: true,
+            rectX: 100,
+            rectY: 100,
+            aspectRatioLockEnabled: false,
+          )
+        ]
     );
 
     Navigator.pop(context);

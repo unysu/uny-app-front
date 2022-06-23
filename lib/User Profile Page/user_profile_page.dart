@@ -3,10 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:cached_memory_image/cached_memory_image.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,7 +16,6 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:sizer/sizer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Chats%20Page/messages_page.dart';
@@ -30,17 +25,17 @@ import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart
 import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Photo%20Search%20Page/photo_search_page.dart';
+import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
-import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:video_player/video_player.dart';
 import '../Settings Page/settings_page.dart';
 
 class UserProfilePage extends StatefulWidget{
@@ -65,12 +60,11 @@ class _UserProfilePageState extends State<UserProfilePage>{
   final String _optionsButtonAsset = 'assets/options_icon.svg';
 
   StateSetter? _bioState;
+  StateSetter? _mainPageState;
 
   Widget? _zodiacSignWidget;
 
-  bool _showImageLoading = true;
   bool _showEditBioLoading = false;
-  bool _showLoading = false;
 
   Future<Response<AllUserDataModel>>? _allUserDataModelFuture;
 
@@ -81,9 +75,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
   List<MediaModel>? _photos;
   List<MediaModel>? _videos;
   List<InterestsDataModel>? _interests;
-
-  List<String>? _videoThumbnails = [];
-  List<String>? _base64Videos = [];
 
   UserDataModel? _user;
 
@@ -99,6 +90,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   String? _aboutMe;
 
+  XFile? _video;
+
   @override
   void initState() {
 
@@ -112,6 +105,16 @@ class _UserProfilePageState extends State<UserProfilePage>{
     _pageController = PageController(
       initialPage: _bottomNavBarIndex
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // var data = {
+      //   'limit' : 100
+      // };
+      //
+      // await UnyAPI.create(Constants.ALL_MESSAGES_MODEL_CONVERTER).getAllChats(token, data).then((value){
+      //   Provider.of<ChatsDataProvider>(context, listen: false).setAllRooms(value.body!.chats!);
+      // });
+    });
 
     super.initState();
   }
@@ -134,7 +137,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
       builder: (context, constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-       return ResponsiveWrapper.builder (
+       return ResponsiveWrapper.builder(
            Scaffold(
              resizeToAvoidBottomInset: false,
              extendBodyBehindAppBar: true,
@@ -153,28 +156,17 @@ class _UserProfilePageState extends State<UserProfilePage>{
                controller: _pageController,
                children: [
                  ChatsPage(),
-                 Stack(
-                   children: [
-                     Container(
-                       child: _allUserDataModel != null ? mainBody() : getUserData(),
-                     ),
-                     _showLoading ? Center(
-                       heightFactor: 50,
-                       child: ClipRRect(
-                         borderRadius: BorderRadius.all(Radius.circular(15)),
-                         child: Container(
-                           padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                           height: 80,
-                           width: 80,
-                           color: Colors.black.withOpacity(0.7),
-                           child: CircularProgressIndicator(
-                             strokeWidth: 2,
-                             color: Colors.white,
-                           ),
+                 StatefulBuilder(
+                   builder: (context, setState){
+                     _mainPageState = setState;
+                     return Stack(
+                       children: [
+                         Container(
+                           child: _allUserDataModel != null ? mainBody() : getUserData(),
                          ),
-                       ),
-                     ) : Container()
-                   ],
+                       ],
+                     );
+                   },
                  ),
                  PhotoSearchPage(),
                  VideoSearchPage(),
@@ -183,7 +175,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
              ),
              bottomNavigationBar: Container(
                height: height / 10,
-               child: BottomNavigationBar(
+                 child: BottomNavigationBar(
                  type: BottomNavigationBarType.fixed,
                  selectedItemColor: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
                                     ? Colors.white
@@ -325,8 +317,16 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                           width: 150,
                                           child: Text('${viewModel.userDataModel!.firstName} ${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 2)
                                         ),
-                                        viewModel.userDataModel!.job != null
-                                            ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            viewModel.userDataModel!.job != null
+                                                ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container(),
+                                            SizedBox(height: 5),
+                                            viewModel.userDataModel!.jobCompany != null
+                                                ? Text(viewModel.userDataModel!.jobCompany, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
+                                          ],
+                                        )
                                       ],
                                     ),
                                   );
@@ -335,6 +335,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               Center(
                                 widthFactor: 0.2,
                                 child: Container(
+                                    height: 100,
+                                    width: 100,
                                     child: Consumer<UserDataProvider>(
                                       builder: (context, viewModel, child) {
                                         MediaModel? mainPhoto = viewModel.mediaDataModel!.mainPhoto;
@@ -357,13 +359,24 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                               ],
                                             ),
                                           ),
+                                          placeholder: (context, url) => Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.white,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey,
+                                                shape: BoxShape.circle
+                                              ),
+                                            ),
+                                          ),
                                         ) : Container(
                                           width: 100,
                                           height: 100,
                                           child: Center(
-                                            child: Icon(Icons.account_circle_rounded, size: 85, color: Colors.grey),
+                                            child: Icon(Icons.person, size: 85, color: Colors.white),
                                           ),
                                           decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.white),
                                               shape: BoxShape.circle
                                           ),
                                         );
@@ -372,15 +385,34 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                 ),
                               ),
                               SizedBox(width: 10),
-                              Container(
-                                padding: EdgeInsets.only(right: 10),
-                                height: 100,
-                                child: Column(
-                                  children: [
-                                    Container(height: 67),
-                                    _zodiacSignWidget!
-                                  ],
-                                ),
+                              Consumer<UserDataProvider>(
+                                builder: (context, viewModel, child){
+                                  return Container(
+                                    padding: EdgeInsets.only(right: 10),
+                                    height: 100,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(viewModel.userDataModel!.location, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                            SizedBox(width: 5),
+                                            Container(
+                                              height: 20,
+                                              width: 20,
+                                              child: ClipOval(
+                                                child: SvgPicture.asset('assets/russian_flag.svg'),
+                                              )
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 10),
+                                        _zodiacSignWidget!
+                                      ],
+                                    ),
+                                  );
+                                },
                               )
                             ],
                           ),
@@ -573,7 +605,15 @@ class _UserProfilePageState extends State<UserProfilePage>{
               padding: EdgeInsets.only(left: 20),
               child: Consumer<UserDataProvider>(
                 builder: (context, viewModel, child){
-                  _videos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+                  if(viewModel.mediaDataModel!.otherPhotosList != null){
+                    if(viewModel.mediaDataModel!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList().isNotEmpty){
+                      _videos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+                    }else{
+                      _videos = [];
+                    }
+                  }else{
+                    _videos = [];
+                  }
                   return GridView.count(
                     crossAxisCount: 1,
                     childAspectRatio: 16 / 8,
@@ -582,22 +622,94 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     scrollDirection: Axis.horizontal,
                     children: List.generate(_videos!.length + 1, (index) {
                       if(index == 0){
-                        return ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                          child: Container(
-                            height: height / 5,
-                            width: width / 4.5,
-                            color: Colors.grey.withOpacity(0.3),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
-                                SizedBox(height: 3),
-                                Text('Загрузить видео',
-                                  style: TextStyle(fontSize: 15, color: Colors.grey),
-                                  textAlign: TextAlign.center,
-                                )
-                              ],
+                        return InkWell(
+                          onTap: () async {
+                            _video = await _picker.pickVideo(source: ImageSource.gallery);
+
+                            VideoPlayerController videoController = VideoPlayerController.file(File(_video!.path));
+                            await videoController.initialize();
+
+                            if(videoController.value.duration.inSeconds <= 15){
+                              
+                              String? mime = lookupMimeType(_video!.path);
+
+                              Uint8List videoBytes = File(_video!.path).readAsBytesSync();
+
+                              String base64Video = base64Encode(videoBytes);
+                              
+                              var data = {
+                                'media' : base64Video,
+                                'mime' : mime,
+                                'filter' : '-'
+                              };
+
+                             await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete(() async {
+                                await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+
+                                  Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+
+                                  Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(value.body!.media!.otherPhotosList);
+                                });
+                              });
+                              
+                            }else{
+                              _video = null;
+                              if(UniversalPlatform.isIOS){
+                                showCupertinoDialog(
+                                    context: context,
+                                    builder: (context){
+                                      return CupertinoAlertDialog(
+                                        title: Text('Ошибка загрузки'),
+                                        content: Center(
+                                          child: Text(
+                                              'Длительность видео должен быть не более 15 сек'),
+                                        ),
+                                        actions: [
+                                          CupertinoDialogAction(
+                                            child: Text('Закрыть'),
+                                            onPressed: () => Navigator.pop(context),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                );
+                              }else if(UniversalPlatform.isAndroid){
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text('Ошибка загрузки'),
+                                        content: Text('Длительность видео должен быть не более 15 сек'),
+                                        actions: [
+                                          FloatingActionButton.extended(
+                                            label: Text('Закрыть'),
+                                            backgroundColor: Color.fromRGBO(145, 10, 251, 5),
+                                            onPressed: () => Navigator.pop(context),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                );
+                              }
+                            }
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            child: Container(
+                              height: height / 5,
+                              width: width / 4.5,
+                              color: Colors.grey.withOpacity(0.3),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                  SizedBox(height: 3),
+                                  Text('Загрузить видео',
+                                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                                    textAlign: TextAlign.center,
+                                  )
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -607,7 +719,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => VideoPage(videoIndex: index - 1)
+                                    builder: (context) => VideoPage(videoId: _videos![index - 1].id)
                                 )
                             );
                           },
@@ -648,15 +760,23 @@ class _UserProfilePageState extends State<UserProfilePage>{
           SizedBox(height: 10),
           Consumer<UserDataProvider>(
             builder: (context, viewModel, child){
-              _photos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => (element.filter.toString().startsWith("-") && element.type.toString().startsWith("image"))).toList();
+              if(viewModel.mediaDataModel!.otherPhotosList != null){
+                if(viewModel.mediaDataModel!.otherPhotosList!.where((element) => (element.filter.toString().startsWith("-") && element.type.toString().startsWith("image"))).toList().isNotEmpty){
+                  _photos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => (element.filter.toString().startsWith("-") && element.type.toString().startsWith("image"))).toList();
+                }else{
+                  _photos = [];
+                }
+              }else{
+                _photos = [];
+              }
               return Padding(
                 padding: EdgeInsets.only(bottom: 10),
                 child: Container(
-                    height: _photos!.length > 4 ? 200 : 100,
+                    height: _photos!.length > 5 ? 200 : 100,
                     width: 430,
                     padding: EdgeInsets.only(left: 10),
                     child: GridView.count(
-                      crossAxisCount:  _photos!.length > 5 ? 2 : 1,
+                      crossAxisCount: _photos!.length > 5 ? 2 : 1,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 10,
                       shrinkWrap: true,
@@ -922,13 +1042,19 @@ class _UserProfilePageState extends State<UserProfilePage>{
           return Container();
         }
 
-
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _allUserDataModel = snapshot.data!.body;
           _user = _allUserDataModel!.user;
 
           _media = _allUserDataModel!.media!;
-          _videos = _allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+
+          if(_allUserDataModel!.media!.otherPhotosList != null){
+            if(_allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList().isNotEmpty){
+              _videos = _allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+
+              Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(_videos);
+            };
+          }
 
           _interests = _allUserDataModel!.interests;
 
@@ -947,9 +1073,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
             ..setUserDataModel(_user)
             ..setMediaDataModel(_media)
             ..setInterestsDataModel(_interests);
-
-
-          Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(_media!.otherPhotosList);
 
           return mainBody();
         }else{
@@ -1030,8 +1153,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                     });
                                   },
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(8)),
+                                    borderRadius: BorderRadius.all(Radius.circular(8)),
                                     child: AssetEntityImage(
                                       media[index],
                                       isOriginal: false,
@@ -1049,8 +1171,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         ),
                       ),
                       CupertinoActionSheetAction(
-                        child: Text(
-                            'Выбрать из библиотеки', textAlign: TextAlign.center),
+                        child: Text('Выбрать из библиотеки', textAlign: TextAlign.center, style: TextStyle(color: Colors.lightBlueAccent)),
                         onPressed: () async {
                           XFile? image = await _picker.pickImage(
                               source: ImageSource.gallery);
@@ -1062,7 +1183,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 ],
                 cancelButton: CupertinoActionSheetAction(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Отмена'),
+                  isDestructiveAction: true,
+                  child: Text('Отмена', style: TextStyle(color: Colors.red)),
                 ),
               );
             }
@@ -1173,42 +1295,41 @@ class _UserProfilePageState extends State<UserProfilePage>{
   }
 
   void _cropImage(String? filePath) async {
-
-    setState((){
-      _showLoading = true;
-    });
-
-    File? croppedFile = await ImageCropper().cropImage(
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: filePath!,
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Загрузить фото',
-          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
-          hideBottomControls: true,
-        ),
-        iosUiSettings: IOSUiSettings(
-          title: 'Загрузить фото',
-          showCancelConfirmationDialog: true,
-          cancelButtonTitle: 'Закрыть',
-          doneButtonTitle: 'Сохранить',
-          rotateButtonsHidden: true,
-          aspectRatioPickerButtonHidden: true,
-          rotateClockwiseButtonHidden: true,
-          resetButtonHidden: true,
-          rectX: 100,
-          rectY: 100,
-          aspectRatioLockEnabled: false,
-        )
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Загрузить фото',
+            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            hideBottomControls: true,
+          ),
+          IOSUiSettings(
+            title: 'Загрузить фото',
+            showCancelConfirmationDialog: true,
+            cancelButtonTitle: 'Закрыть',
+            doneButtonTitle: 'Сохранить',
+            rotateButtonsHidden: true,
+            aspectRatioPickerButtonHidden: true,
+            rotateClockwiseButtonHidden: true,
+            resetButtonHidden: true,
+            rectX: 100,
+            rectY: 100,
+            aspectRatioLockEnabled: false,
+          )
+        ]
     );
 
-    Uint8List bytes = croppedFile!.readAsBytesSync();
+    Uint8List? bytes;
+
+    await croppedFile!.readAsBytes().then((value) => bytes = value);
 
     String? mime = lookupMimeType(croppedFile.path);
 
     var data = {
-      'media' : base64Encode(bytes),
+      'media' : base64Encode(bytes!),
       'mime' : mime,
       'filter' : '-'
     };
@@ -1217,11 +1338,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
       await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
         Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
 
-        setState((){
-          _showLoading = true;
-        });
-
-        Navigator.pop(context);
         Navigator.pop(context);
       });
     });

@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,16 +9,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
+import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Settings%20Page/blocked_users_settings_page.dart';
 import 'package:uny_app/Settings%20Page/edit_profile_page.dart';
 import 'package:uny_app/Settings%20Page/notifications_settings_page.dart';
 import 'package:uny_app/Settings%20Page/privacy_settings_page.dart';
 import 'package:uny_app/Settings%20Page/support_settings_page.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/profile_photos_page.dart';
 
 class SettingsPage extends StatefulWidget{
@@ -26,6 +33,10 @@ class SettingsPage extends StatefulWidget{
 }
 
 class _SettingsPageState extends State<SettingsPage>{
+
+  bool _showLoading = false;
+
+  late String token;
 
   late double height;
   late double width;
@@ -41,8 +52,18 @@ class _SettingsPageState extends State<SettingsPage>{
   final ImagePicker _picker = ImagePicker();
 
   String? profilePictureUrl;
+  StateSetter? loadingBarState;
 
   File? _image;
+
+  int? _mainPhotoId;
+
+  @override
+  void initState() {
+    token = 'Bearer ' + TokenData.getUserToken();
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +80,31 @@ class _SettingsPageState extends State<SettingsPage>{
                 automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent,
               ),
-              body: mainBody()
+              body: Stack(
+                children: [
+                  mainBody(),
+                  StatefulBuilder(
+                    builder: (context, setState){
+                      loadingBarState = setState;
+                      return _showLoading ? Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                              height: 80,
+                              width: 80,
+                              color: Colors.black.withOpacity(0.7),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                      ) : Container();
+                    },
+                  )
+                ],
+              )
           ),
           maxWidth: 800,
           minWidth: 450,
@@ -90,8 +135,13 @@ class _SettingsPageState extends State<SettingsPage>{
                   child: Center(
                     child:  Consumer<UserDataProvider>(
                       builder: (context, viewModel, child){
-                        profilePictureUrl = viewModel.mediaDataModel!.mainPhoto!.url;
-                        return  CachedNetworkImage(
+
+                        if(viewModel.mediaDataModel!.mainPhoto != null){
+                          profilePictureUrl = viewModel.mediaDataModel!.mainPhoto!.url;
+                          _mainPhotoId = viewModel.mediaDataModel!.mainPhoto!.id;
+                        }
+
+                        return profilePictureUrl != null ? CachedNetworkImage(
                           imageUrl: profilePictureUrl!,
                           fadeOutDuration: Duration(seconds: 0),
                           fadeInDuration: Duration(seconds: 0),
@@ -102,6 +152,25 @@ class _SettingsPageState extends State<SettingsPage>{
                               shape: BoxShape.circle,
                               image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
                             ),
+                          ),
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.white,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey,
+                                  shape: BoxShape.circle
+                              ),
+                            ),
+                          ),
+                        ) : Container(
+                          width: 150,
+                          height: 150,
+                          child: Center(
+                            child: Icon(Icons.person, size: 150, color: Colors.grey),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
                           ),
                         );
                       },
@@ -319,8 +388,26 @@ class _SettingsPageState extends State<SettingsPage>{
                 title: Text('Удалить текущее фото'),
                 leading: Icon(CupertinoIcons.delete),
                 trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
-                onTap: () {
+                onTap: () async {
+                  if(_mainPhotoId != null){
+                    loadingBarState!((){
+                      _showLoading = true;
+                    });
 
+                    var data = {
+                      'media_id' : _mainPhotoId
+                    };
+
+                    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).deleteMedia(token, data).whenComplete(() async {
+                      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+                        Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+
+                        loadingBarState!((){
+                          _showLoading = false;
+                        });
+                      });
+                    });
+                  }
                 }
             ),
             ListTile(
@@ -341,6 +428,11 @@ class _SettingsPageState extends State<SettingsPage>{
               leading: SvgPicture.asset(_newMediaImageAsset, color: Colors.grey),
               trailing: Icon(Icons.arrow_forward_ios_rounded, size: 20),
               onTap: () async {
+                loadingBarState!((){
+                  _showLoading = true;
+                });
+
+
                 XFile? image = await _picker.pickImage(source: ImageSource.gallery);
                 _cropImage(image!.path);
               },
@@ -368,8 +460,7 @@ class _SettingsPageState extends State<SettingsPage>{
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => AuthorizationPage()),
-                        (Route<dynamic> route) => false,
+                    MaterialPageRoute(builder: (context) => AuthorizationPage()), (Route<dynamic> route) => false,
                   );
                 },
                 isDestructiveAction: true,
@@ -378,7 +469,7 @@ class _SettingsPageState extends State<SettingsPage>{
             ],
             cancelButton: CupertinoActionSheetAction(
               onPressed: () => Navigator.pop(context),
-              child: Text('Отмена'),
+              child: Text('Отмена', style: TextStyle(color: Colors.lightBlue)),
             ),
           );
         }
@@ -406,7 +497,7 @@ class _SettingsPageState extends State<SettingsPage>{
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+                child: Text('Отмена', style: TextStyle(color: Colors.lightBlue)),
               ),
             ],
           );
@@ -417,34 +508,55 @@ class _SettingsPageState extends State<SettingsPage>{
 
 
   void _cropImage(String? filePath) async {
-    File? croppedFile = await ImageCropper().cropImage(
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: filePath!,
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Загрузить фото',
-          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
-          hideBottomControls: true,
-        ),
-        iosUiSettings: IOSUiSettings(
-          title: 'Загрузить фото',
-          showCancelConfirmationDialog: true,
-          cancelButtonTitle: 'Закрыть',
-          doneButtonTitle: 'Сохранить',
-          rotateButtonsHidden: true,
-          aspectRatioPickerButtonHidden: true,
-          rotateClockwiseButtonHidden: true,
-          resetButtonHidden: true,
-          rectX: 100,
-          rectY: 100,
-          aspectRatioLockEnabled: false,
-        )
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Загрузить фото',
+            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            hideBottomControls: true,
+          ),
+          IOSUiSettings(
+            title: 'Загрузить фото',
+            showCancelConfirmationDialog: true,
+            cancelButtonTitle: 'Закрыть',
+            doneButtonTitle: 'Сохранить',
+            rotateButtonsHidden: true,
+            aspectRatioPickerButtonHidden: true,
+            rotateClockwiseButtonHidden: true,
+            resetButtonHidden: true,
+            rectX: 100,
+            rectY: 100,
+            aspectRatioLockEnabled: false,
+          )
+        ]
     );
 
-    Navigator.pop(context);
-    setState(() {
-      _image = croppedFile;
+    String? mime = lookupMimeType(croppedFile!.path);
+
+    Uint8List imageBytes = File(croppedFile.path).readAsBytesSync();
+
+    String base64Img = base64Encode(imageBytes);
+
+    var data = {
+      'media' : base64Img,
+      'mime' : mime,
+      'filter' : 'main+'
+    };
+
+    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete(() async {
+      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+        Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+
+        loadingBarState!((){
+          _showLoading = false;
+        });
+
+        Navigator.of(context);
+      });
     });
   }
 }

@@ -75,35 +75,6 @@ class _ProfilePhotosPageState extends State<ProfilePhotosPage> {
                   ),
                 ),
               ),
-              actions: [
-                Center(
-                  child: _showApplyLoading
-                      ? Padding(
-                    padding: EdgeInsets.only(right: 10),
-                    child: Container(
-                      height: 25,
-                      width: 25,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color.fromRGBO(145, 10, 251, 5),
-                      ),
-                    ),
-                  )
-                      : TextButton(
-                    child: Text(
-                        'Сохранить',
-                        style: TextStyle(
-                            color: Color.fromRGBO(145, 10, 251, 5),
-                            fontSize: 15
-                        )),
-                    onPressed: (){
-                      setState((){
-                        _showApplyLoading = true;
-                      });
-                    },
-                  ),
-                )
-              ],
               leadingWidth: width / 6,
             ),
             body: mainBody(),
@@ -466,29 +437,31 @@ class _ProfilePhotosPageState extends State<ProfilePhotosPage> {
   }
 
   void cropImage(String? filePath) async {
-    File? croppedFile = await ImageCropper().cropImage(
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: filePath!,
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Загрузить фото',
-          toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
-          hideBottomControls: true,
-        ),
-        iosUiSettings: IOSUiSettings(
-          title: 'Загрузить фото',
-          showCancelConfirmationDialog: true,
-          cancelButtonTitle: 'Закрыть',
-          doneButtonTitle: 'Сохранить',
-          rotateButtonsHidden: true,
-          aspectRatioPickerButtonHidden: true,
-          rotateClockwiseButtonHidden: true,
-          resetButtonHidden: true,
-          rectX: 100,
-          rectY: 100,
-          aspectRatioLockEnabled: false,
-        )
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Загрузить фото',
+            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            hideBottomControls: true,
+          ),
+          IOSUiSettings(
+            title: 'Загрузить фото',
+            showCancelConfirmationDialog: true,
+            cancelButtonTitle: 'Закрыть',
+            doneButtonTitle: 'Сохранить',
+            rotateButtonsHidden: true,
+            aspectRatioPickerButtonHidden: true,
+            rotateClockwiseButtonHidden: true,
+            resetButtonHidden: true,
+            rectX: 100,
+            rectY: 100,
+            aspectRatioLockEnabled: false,
+          )
+        ]
     );
 
     Navigator.pop(context);

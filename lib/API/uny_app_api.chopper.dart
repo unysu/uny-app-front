@@ -52,41 +52,6 @@ class _$UnyAPI extends UnyAPI {
   }
 
   @override
-  Future<Response<dynamic>> getInterests(String token) {
-    final $url = '/user/get_interests';
-    final $headers = {
-      'Authorization': token,
-    };
-
-    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
-    return client.send<dynamic, dynamic>($request);
-  }
-
-  @override
-  Future<Response<UserDataModel>> updateUser(String token, dynamic data) {
-    final $url = '/user/update_user';
-    final $headers = {
-      'Authorization': token,
-    };
-
-    final $body = data;
-    final $request =
-        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
-    return client.send<UserDataModel, UserDataModel>($request);
-  }
-
-  @override
-  Future<Response<AllUserDataModel>> getCurrentUser(String token) {
-    final $url = '/user/get_user';
-    final $headers = {
-      'Authorization': token,
-    };
-
-    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
-    return client.send<AllUserDataModel, AllUserDataModel>($request);
-  }
-
-  @override
   Future<Response<UpdatedInterestsModel>> removeInterests(
       String token, dynamic data) {
     final $url = '/user/remove_interests';
@@ -177,5 +142,130 @@ class _$UnyAPI extends UnyAPI {
     final $request =
         Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
     return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<UserDataModel>> updateUser(String token, dynamic data) {
+    final $url = '/user/update_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<UserDataModel, UserDataModel>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> startChat(String token, dynamic data) {
+    final $url = '/user/start_chat';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<AllChatsModel>> getAllChats(String token, dynamic data) {
+    final $url = '/user/get_all_messages';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<AllChatsModel, AllChatsModel>($request);
+  }
+
+  @override
+  Future<Response<RoomMessagesModel>> getRoomMessages(
+      String token, int id, String date) {
+    final $url = '/user/get_message_by_chat_room_id';
+    final $params = <String, dynamic>{'chat_room_id': id, 'older_from': date};
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('POST', $url, client.baseUrl,
+        parameters: $params, headers: $headers);
+    return client.send<RoomMessagesModel, RoomMessagesModel>($request);
+  }
+
+  @override
+  Future<Response<Message>> sendMessage(String token, dynamic data) {
+    final $url = '/user/send_message';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<Message, Message>($request);
+  }
+
+  @override
+  Future<Response<Message>> editMessage(String token, dynamic data) {
+    final $url = '/user/edit_message';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<Message, Message>($request);
+  }
+
+  @override
+  Future<Response<Message>> deleteMessage(String token, dynamic data) {
+    final $url = '/user/remove_message';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<Message, Message>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> getInterests(String token) {
+    final $url = '/user/get_interests';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<AllUserDataModel>> getCurrentUser(String token) {
+    final $url = '/user/get_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
+    return client.send<AllUserDataModel, AllUserDataModel>($request);
+  }
+
+  @override
+  Future<Response<MediaDataModel>> getMedia(String token) {
+    final $url = '/user/get_all_media';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('GET', $url, client.baseUrl, headers: $headers);
+    return client.send<MediaDataModel, MediaDataModel>($request);
   }
 }

@@ -205,26 +205,28 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                     };
 
                     Response<UserDataModel> response = await UnyAPI.create(Constants.USER_DATA_MODEL_CONVERTER_CONSTANT).confirmCode(data);
-                    UserDataModel userData = response.body!;
+                    if(response.body != null){
+                      UserDataModel userData = response.body!;
 
-                    if(userData.success == true && userData.firstName == null){
-                      setState((){
-                        isWrong = false;
-                        showLoading = false;
-                      });
+                      if(userData.success == true && userData.firstName == null){
+                        setState((){
+                          isWrong = false;
+                          showLoading = false;
+                        });
 
-                      TokenData.setUserToken(userData.token);
+                        TokenData.setUserToken(userData.token);
 
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
-                    }else if(userData.success == true && userData.firstName != null){
-                      setState((){
-                        isWrong = false;
-                        showLoading = false;
-                      });
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => GenderPage()));
+                      }else if(userData.success == true && userData.firstName != null){
+                        setState((){
+                          isWrong = false;
+                          showLoading = false;
+                        });
 
-                      TokenData.setUserToken(userData.token);
+                        TokenData.setUserToken(userData.token);
 
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfilePage()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfilePage()));
+                      }
                     }else{
                       setState(() {
                         isWrong = true;

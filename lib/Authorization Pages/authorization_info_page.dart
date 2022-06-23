@@ -185,7 +185,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 ),
               ),
               onChanged: (value){
-                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>=+×÷/_€£¥₽`~°•○●□■♤♡◇♧☆▪️¤《》¡¿]'))){
                   setState((){
                     containsSymbolsName = true;
                   });
@@ -228,7 +228,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 ),
               ),
               onChanged: (value){
-                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>=+×÷/_€£¥₽`~°•○●□■♤♡◇♧☆▪️¤《》¡¿]'))){
                   setState((){
                     containsSymbolsSurname = true;
                   });
@@ -273,6 +273,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
+              onTap: () => showDatePicker()
             ),
           ),
 
@@ -336,7 +337,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 ),
               ),
               onChanged: (value){
-                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>=+×÷/_€£¥₽`~°•○●□■♤♡◇♧☆▪️¤《》¡¿]'))){
                   setState((){
                     containsSymbolsLocation = true;
                   });

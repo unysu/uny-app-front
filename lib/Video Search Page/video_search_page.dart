@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,10 +9,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
+import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/Video%20Search%20Page/filter_interests_page.dart';
 import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
+import 'package:video_player/video_player.dart';
+
+
 
 class VideoSearchPage extends StatefulWidget {
 
@@ -20,8 +30,18 @@ class VideoSearchPage extends StatefulWidget {
 
 class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderStateMixin {
 
+  PageController? _pageController;
+
+  List<String>? _videoUrls = [];
+
   AnimationController? controller;
   AnimationController? emojisAnimationController;
+
+  StateSetter? _videoPageState;
+
+  Future<Response<PhotoSearchDataModel>>? _videoSearchFuture;
+
+  late String token;
 
   late TabController? _tabController;
 
@@ -39,6 +59,8 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
   final String _shareAsset = 'assets/share_icon.svg';
   final String _unyLogo = 'assets/gift_page_uny_logo.svg';
 
+  List<Matches>? _matchedUsersList;
+  List<Matches>? _usersWithVideo = [];
 
   bool _isReactionButtonTapped = false;
   bool _isManSelected = false;
@@ -57,7 +79,11 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
   @override
   void initState() {
 
+    token = 'Bearer ' + TokenData.getUserToken();
+
     _tabController = TabController(length: 4, vsync: this);
+
+    _pageController = PageController();
 
     _startAgeFieldFocusNode = FocusNode();
     _endAgeFieldFocusNode = FocusNode();
@@ -68,6 +94,11 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
     controller = AnimationController(vsync: this, duration: Duration(milliseconds: 250));
     emojisAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 400));
 
+    var data = {
+      'only_above_percent' : 10
+    };
+
+    _videoSearchFuture = UnyAPI.create(Constants.PHOTO_SEARCH_MODEL_CONVERTER).getUserPhotoSearch(token, data);
 
     super.initState();
   }
@@ -75,6 +106,8 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
 
   @override
   void dispose(){
+
+    _pageController!.dispose();
 
     _startAgeFieldFocusNode.dispose();
     _endAgeFieldFocusNode.dispose();
@@ -100,7 +133,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                 automaticallyImplyLeading: false,
                 systemOverlayStyle: SystemUiOverlayStyle.dark,
                 backgroundColor: Colors.transparent,
-                toolbarHeight: height / 4.2,
+                toolbarHeight: height / 5,
                 centerTitle: true,
                 title: TextFormField(
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
@@ -200,21 +233,15 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                 ],
               ),
               body: GestureDetector(
-                child: mainBody(),
+                child: getMatches(),
                 onTap: () {
                   if (_isReactionButtonTapped == false) {
                     return;
                   } else {
-                    setState(() {
-                      _isReactionButtonTapped = !_isReactionButtonTapped;
-                    });
-                    controller!.reverse();
-                    emojisAnimationController!.reverse();
 
-                    animateBlur();
                   }
                 },
-              )
+              ),
           ),
           maxWidth: 800,
           minWidth: 450,
@@ -228,481 +255,645 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
     );
   }
 
+  FutureBuilder<Response<PhotoSearchDataModel>> getMatches(){
+    return FutureBuilder<Response<PhotoSearchDataModel>>(
+      future: _videoSearchFuture,
+      builder: (context, snapshot){
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return Center(
+            heightFactor: 25,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: Color.fromRGBO(145, 10, 251, 5),
+            ),
+          );
+        }
+
+        if(snapshot.connectionState == ConnectionState.done){
+          _matchedUsersList = snapshot.data!.body!.matches;
+
+          _matchedUsersList!.forEach((matches) {
+            if(matches.media!.otherPhotosList != null){
+              matches.media!.otherPhotosList!.forEach((media) {
+                if(media.type.toString().startsWith('video')){
+                  _usersWithVideo!.add(matches);
+                }
+              });
+            }
+          });
+
+
+          _usersWithVideo!.shuffle();
+          for(int i = 0; i < _usersWithVideo!.length; ++i){
+            _videoUrls!.add(_usersWithVideo![i].media!.otherPhotosList![0].url.toString());
+          }
+
+          return mainBody();
+        }else{
+          return Center(
+            heightFactor: 40,
+            child: Text('Error while loading'),
+          );
+        }
+      },
+    );
+  }
+
   Widget mainBody() {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/video_sample_pic.png'),
-                fit: BoxFit.cover,
-              )
-          ),
-        ),
-        Positioned(
-          top: height / 4.5,
-          width: 500,
-          child: _isReactionButtonTapped ? TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: _begin, end: _end),
-            duration: Duration(milliseconds: 250),
-            curve: Curves.easeIn,
-            builder: (_, value, __){
-              return BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: value,
-                    sigmaY: value
+    return MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: PageView(
+          controller: _pageController,
+          scrollDirection: Axis.vertical,
+          children: List.generate(_usersWithVideo!.length, (index){
+            return Stack(
+              children: [
+                Container(
+                    height: MediaQuery.of(context).size.height,
+                    color: Colors.black,
+                    child: VideoPlayerWidget(
+                      url: _videoUrls![index],
+                    )
                 ),
-                child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: 400),
-                    transitionBuilder: (child, transition) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                            begin: Offset(0, 5),
-                            end: Offset.zero
-                        ).animate(
-                          CurvedAnimation(
-                              parent: emojisAnimationController!,
-                              curve: Curves.fastOutSlowIn),
+                Positioned(
+                  top: height / 4.5,
+                  width: 500,
+                  child: _isReactionButtonTapped ? TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: _begin, end: _end),
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.easeIn,
+                    builder: (_, value, __){
+                      return BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: value,
+                            sigmaY: value
                         ),
-                        child: child,
+                        child: AnimatedSwitcher(
+                            duration: Duration(milliseconds: 400),
+                            transitionBuilder: (child, transition) {
+                              return SlideTransition(
+                                position: Tween<Offset>(
+                                    begin: Offset(0, 5),
+                                    end: Offset.zero
+                                ).animate(
+                                  CurvedAnimation(
+                                      parent: emojisAnimationController!,
+                                      curve: Curves.fastOutSlowIn),
+                                ),
+                                child: child,
+                              );
+                            },
+                            child: Container(
+                              height: height,
+                              child: Stack(
+                                clipBehavior: Clip.antiAlias,
+                                children: [
+                                  Positioned(
+                                    top: height / 2.7,
+                                    left: width / 2,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 5,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/angry.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: height / 2.7,
+                                    left: width / 3.5,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 5,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/surprised.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: height / 4,
+                                    left: width / 2.46,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 6,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/wink.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: height / 4,
+                                    left: width / 7,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 4,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/happy.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: height / 4,
+                                    left: width / 1.7,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 4,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/fire.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: height / 7.5,
+                                    left: width / 3.9,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 4,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/loved.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: height / 7.3,
+                                    left: width / 2.1,
+                                    child: InkWell(
+                                      child: Container(
+                                        height: height / 12,
+                                        width: width / 4,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage('assets/crazy.png'),
+                                                fit: BoxFit.contain
+                                            )
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                      top: height / 2.1,
+                                      left: width / 3.8,
+                                      child: Text(
+                                        'Отправьте вашу реакцию',
+                                        style: TextStyle(fontSize: 17, color: Colors.white),
+                                      )
+                                  ),
+                                  Positioned(
+                                      top: height / 1.9,
+                                      left: width / 2.6,
+                                      child: InkWell(
+                                        onTap: (){
+                                          setState(() {
+                                            _isReactionButtonTapped = false;
+                                          });
+
+                                          controller!.reverse();
+                                          emojisAnimationController!.reverse();
+
+                                          animateBlur();
+                                        },
+                                        child: Container(
+                                          height: 40,
+                                          width: 100,
+                                          child: Center(
+                                            child: Text(
+                                              'Закрыть',
+                                              style: TextStyle(fontSize: 17, color: Colors.white),
+                                            ),
+                                          ),
+                                          decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.3),
+                                              borderRadius: BorderRadius.all(Radius.circular(20))
+                                          ),
+                                        ),
+                                      )
+                                  )
+                                ],
+                              ),
+                            )
+                        ),
                       );
                     },
-                    child: Container(
-                      height: height,
-                      child: Stack(
-                        clipBehavior: Clip.antiAlias,
+                  ) : Container(),
+                ),
+                Positioned(
+                    top: height / 2.3,
+                    left: width / 1.21,
+                    child: Column(
+                      children: [
+                        AnimatedSwitcher(
+                            duration: Duration(milliseconds: 250),
+                            transitionBuilder: (child, transition) {
+                              return SlideTransition(
+                                position: Tween<Offset>(
+                                    begin: Offset.zero, end: Offset(3, 0)).animate(
+                                  CurvedAnimation(
+                                      parent: controller!,
+                                      curve: Curves.fastOutSlowIn),
+                                ),
+                                child: child,
+                              );
+                            },
+                            child: InkWell(
+                                onTap: () => null,
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      height: height / 14,
+                                      width: width / 8,
+                                      child: _usersWithVideo![index].media!.mainPhotosList != null ? CachedNetworkImage(
+                                        imageUrl: _usersWithVideo![index].media!.mainPhotosList![0].url,
+                                        imageBuilder: (context, imageProvider) => Container(
+                                          width: 100,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.white.withOpacity(0.4),
+                                                spreadRadius: 10,
+                                                blurRadius: 7,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        placeholder: (context, url) => Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.white,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                      ) : Container(
+                                          width: 100,
+                                          height: 100,
+                                        child: Icon(Icons.account_circle_rounded, size: 60, color: Colors.white),
+                                       ),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: height / 20,
+                                      left: width / 67,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 6),
+                                        child: Text('${_usersWithVideo![index].matchPercent} %', style: TextStyle(
+                                            color: Colors.white)),
+                                        decoration: BoxDecoration(
+                                          color: _usersWithVideo![index].matchPercent < 49 ? Colors.red
+                                              : (_usersWithVideo![index].matchPercent > 49 && _usersWithVideo![index].matchPercent < 65)
+                                              ? Colors.orange : (_usersWithVideo![index].matchPercent > 65) ? Colors.green : null,
+                                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                )
+                            )
+                        )
+                      ],
+                    )
+                ),
+                Positioned(
+                    top: height / 1.9,
+                    left: width / 1.21,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 250),
+                      transitionBuilder: (child, transition) {
+                        return SlideTransition(
+                          position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
+                              .animate(
+                            CurvedAnimation(
+                                parent: controller!, curve: Curves.fastOutSlowIn),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Column(
                         children: [
-                          Positioned(
-                            top: height / 2.7,
-                            left: width / 2,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 5,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/angry.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
+                          InkWell(
+                            onTap: () {
+                              showCupertinoModalPopup(
+                                  context: context,
+                                  builder: (context){
+                                    return Material(
+                                      borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                                      child: Container(
+                                        padding: EdgeInsets.only(top: height / 80),
+                                        height: height * 0.7,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              padding: EdgeInsets.only(left: 10, right: 10),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  SizedBox(width: width / 8),
+                                                  Text('Отправить подарок',
+                                                      style:
+                                                      TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                                                  IconButton(
+                                                    icon: Icon(CupertinoIcons.clear_thick_circled),
+                                                    color: Colors.grey.withOpacity(0.5),
+                                                    onPressed: () => Navigator.pop(context),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            TabBar (
+                                              controller: _tabController,
+                                              unselectedLabelColor: Colors.grey,
+                                              indicatorColor: Color.fromRGBO(145, 10, 251, 5),
+                                              labelColor: Color.fromRGBO(145, 10, 251, 5),
+                                              padding: EdgeInsets.symmetric(horizontal: 10),
+                                              physics: BouncingScrollPhysics(),
+                                              isScrollable: true,
+                                              tabs: [
+                                                Tab(text: 'Обычные'),
+                                                Tab(text: 'Необычные'),
+                                                Tab(text: 'Редкие'),
+                                                Tab(text: 'Эпические'),
+                                              ],
+                                            ),
+                                            SizedBox(height: 10),
+                                            Container(
+                                              height: 70,
+                                              child: Center(
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Text('Ваш баланс', style: TextStyle(color: Colors.grey, fontSize: 17)),
+                                                      SizedBox(width: 10),
+                                                      Text('12', style: TextStyle(fontSize: 17)),
+                                                      SizedBox(width: 5),
+                                                      SvgPicture.asset(_unyLogo, height: 17)
+                                                    ],
+                                                  )
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey.withOpacity(0.2),
+                                                  border: Border(
+                                                      top: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                                                      bottom: BorderSide(color: Colors.grey.withOpacity(0.5))
+                                                  )
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Container(
+                                              height: 270,
+                                              color: Colors.grey,
+                                            ),
+                                            SizedBox(height: 30),
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                                              child: Container(
+                                                  width: 400,
+                                                  height: 50,
+                                                  color: Color.fromRGBO(145, 10, 251, 5),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      SizedBox(width: 5),
+                                                      Text('Отправить', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
+                                                    ],
+                                                  )
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                              );
+                            },
+                            child: Container(
+                              height: 60,
+                              width: 60,
+                              child: Center(
+                                child: SvgPicture.asset(_giftIcon),
+                              ),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                      colors: [
+                                        Color.fromRGBO(255, 0, 92, 10),
+                                        Color.fromRGBO(255, 172, 47, 10),
+                                      ]
+                                  )
                               ),
                             ),
                           ),
-                          Positioned(
-                            top: height / 2.7,
-                            left: width / 3.5,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 5,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/surprised.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
+                          SizedBox(height: 2),
+                          Text('Подарок',
+                              style: TextStyle(fontSize: 14, color: Colors.white))
+                        ],
+                      ),
+                    )
+                ),
+                Positioned(
+                    top: height / 1.57,
+                    left: width / 1.21,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 250),
+                      transitionBuilder: (child, transition) {
+                        return SlideTransition(
+                          position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
+                              .animate(
+                            CurvedAnimation(
+                                parent: controller!, curve: Curves.fastOutSlowIn),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                _isReactionButtonTapped = !_isReactionButtonTapped;
+                              });
+                              _isReactionButtonTapped
+                                  ? controller!.forward()
+                                  : controller!.reverse();
+                              _isReactionButtonTapped ? emojisAnimationController!
+                                  .forward() : emojisAnimationController!.reverse();
+
+                              animateBlur();
+                            },
+                            child: Container(
+                              height: 60,
+                              width: 60,
+                              child: Center(
+                                child: SvgPicture.asset(_reactionAsset),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.7),
+                                shape: BoxShape.circle,
                               ),
                             ),
                           ),
-                          Positioned(
-                            top: height / 4,
-                            left: width / 2.46,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 6,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/wink.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
+                          SizedBox(height: 2),
+                          Text('Реакция',
+                              style: TextStyle(fontSize: 14, color: Colors.white))
+                        ],
+                      ),
+                    )
+                ),
+                Positioned(
+                    top: height / 1.33,
+                    left: width / 1.25,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 250),
+                      transitionBuilder: (child, transition) {
+                        return SlideTransition(
+                          position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
+                              .animate(
+                            CurvedAnimation(
+                                parent: controller!, curve: Curves.fastOutSlowIn),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          InkWell(
+                            onTap: () => null,
+                            child: Container(
+                              height: 60,
+                              width: 60,
+                              child: Center(
+                                child: SvgPicture.asset(_shareAsset),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.7),
+                                shape: BoxShape.circle,
                               ),
                             ),
                           ),
-                          Positioned(
-                            top: height / 4,
-                            left: width / 7,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 4,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/happy.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
-                              ),
-                            ),
+                          SizedBox(height: 2),
+                          Text('Поделиться',
+                              style: TextStyle(fontSize: 14, color: Colors.white))
+                        ],
+                      ),
+                    )
+                ),
+                Positioned(
+                    top: height / 1.2,
+                    left: width / 20,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 250),
+                      transitionBuilder: (child, transition) {
+                        return SlideTransition(
+                          position: Tween<Offset>(begin: Offset.zero, end: Offset(0, 5))
+                              .animate(
+                            CurvedAnimation(
+                                parent: controller!, curve: Curves.fastOutSlowIn),
                           ),
-                          Positioned(
-                            top: height / 4,
-                            left: width / 1.7,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 4,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/fire.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: height / 7.5,
-                            left: width / 3.9,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 4,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/loved.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: height / 7.3,
-                            left: width / 2.1,
-                            child: InkWell(
-                              child: Container(
-                                height: height / 12,
-                                width: width / 4,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image: AssetImage('assets/crazy.png'),
-                                        fit: BoxFit.contain
-                                    )
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                              top: height / 2.1,
-                              left: width / 3.8,
-                              child: Text(
-                                'Отправьте вашу реакцию',
-                                style: TextStyle(fontSize: 17, color: Colors.white),
+                          child: child,
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_usersWithVideo![index].firstName + ' ' + _usersWithVideo![index].lastName + ' ' + _usersWithVideo![index].age.toString(),
+                              style: TextStyle(fontSize: 24, color: Colors.white)),
+                          SizedBox(height: 10),
+                          Container(
+                              height: 100,
+                              width: width,
+                              child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Container(
+                                      padding: EdgeInsets.only(top: 5, bottom: 5),
+                                      width: width * 3,
+                                      child: Wrap(
+                                          spacing: 7.0,
+                                          runSpacing: 9.0,
+                                          children: List.generate(_usersWithVideo![index].interests!.length, (intIndex) {
+                                            return Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                  borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                                  child: Container(
+                                                    height: 40,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                                    child: Center(
+                                                      widthFactor: 1,
+                                                      child: Text(
+                                                        _usersWithVideo![index].interests![intIndex].interest!,
+                                                        style: const TextStyle(color: Colors.white),
+                                                        textAlign: TextAlign.center,
+                                                      ),
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                                        color: Color(int.parse('0x' + _usersWithVideo![index].interests![intIndex].color!)),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                              color: Color(int.parse('0x' + _usersWithVideo![index].interests![intIndex].color!)).withOpacity(0.7),
+                                                              offset: const Offset(3, 3),
+                                                              blurRadius: 0,
+                                                              spreadRadius: 0
+                                                          )
+                                                        ]
+                                                    ),
+                                                  )
+                                              ),
+                                            );
+                                          })
+                                      )
+                                  )
                               )
                           )
                         ],
                       ),
                     )
                 ),
-              );
-            },
-          ) : Container(),
-        ),
-        Positioned(
-            top: height / 2,
-            left: width / 1.21,
-            child: Column(
-              children: [
-                AnimatedSwitcher(
-                    duration: Duration(milliseconds: 250),
-                    transitionBuilder: (child, transition) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                            begin: Offset.zero, end: Offset(3, 0)).animate(
-                          CurvedAnimation(
-                              parent: controller!,
-                              curve: Curves.fastOutSlowIn),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: InkWell(
-                        onTap: () => null,
-                        child: Stack(
-                          children: [
-                            Container(
-                              height: height / 14,
-                              width: width / 8,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  image: DecorationImage(
-                                      image: AssetImage(
-                                          'assets/video_search_sample_pic.png')
-                                  ),
-                                  border: Border.all(color: Colors.white)
-                              ),
-                            ),
-                            Positioned(
-                              top: height / 20,
-                              left: width / 69,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 6),
-                                child: Text('64 %', style: TextStyle(
-                                    color: Colors.white)),
-                                decoration: BoxDecoration(
-                                  color: Colors.deepOrangeAccent,
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(10)),
-                                ),
-                              ),
-                            )
-                          ],
-                        )
-                    )
-                )
               ],
-            )
-        ),
-        Positioned(
-            top: height / 1.65,
-            left: width / 1.21,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              transitionBuilder: (child, transition) {
-                return SlideTransition(
-                  position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
-                      .animate(
-                    CurvedAnimation(
-                        parent: controller!, curve: Curves.fastOutSlowIn),
-                  ),
-                  child: child,
-                );
-              },
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      showCupertinoModalPopup(
-                        context: context,
-                        builder: (context){
-                          return Material(
-                            borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
-                            child: Container(
-                              padding: EdgeInsets.only(top: height / 80),
-                              height: height * 0.7,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(35), topRight: Radius.circular(35)),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.only(left: 10, right: 10),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        SizedBox(width: width / 8),
-                                        Text('Отправить подарок',
-                                            style:
-                                            TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                                        IconButton(
-                                          icon: Icon(CupertinoIcons.clear_thick_circled),
-                                          color: Colors.grey.withOpacity(0.5),
-                                          onPressed: () => Navigator.pop(context),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  TabBar (
-                                    controller: _tabController,
-                                    unselectedLabelColor: Colors.grey,
-                                    indicatorColor: Color.fromRGBO(145, 10, 251, 5),
-                                    labelColor: Color.fromRGBO(145, 10, 251, 5),
-                                    padding: EdgeInsets.symmetric(horizontal: 10),
-                                    physics: BouncingScrollPhysics(),
-                                    isScrollable: true,
-                                    tabs: [
-                                      Tab(text: 'Обычные'),
-                                      Tab(text: 'Необычные'),
-                                      Tab(text: 'Редкие'),
-                                      Tab(text: 'Эпические'),
-                                    ],
-                                  ),
-                                  SizedBox(height: 10),
-                                  Container(
-                                    height: 70,
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text('Ваш баланс', style: TextStyle(color: Colors.grey, fontSize: 17)),
-                                          SizedBox(width: 10),
-                                          Text('12', style: TextStyle(fontSize: 17)),
-                                          SizedBox(width: 5),
-                                          SvgPicture.asset(_unyLogo, height: 17)
-                                        ],
-                                      )
-                                    ),
-                                    decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.2),
-                                        border: Border(
-                                        top: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                                        bottom: BorderSide(color: Colors.grey.withOpacity(0.5))
-                                      )
-                                    ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  Container(
-                                    height: 270,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(height: 30),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                    child: Container(
-                                        width: 400,
-                                        height: 50,
-                                        color: Color.fromRGBO(145, 10, 251, 5),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            SizedBox(width: 5),
-                                            Text('Отправить', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
-                                          ],
-                                        )
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                      );
-                    },
-                    child: Container(
-                      height: 60,
-                      width: 60,
-                      child: Center(
-                        child: SvgPicture.asset(_giftIcon),
-                      ),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            Color.fromRGBO(255, 0, 92, 10),
-                            Color.fromRGBO(255, 172, 47, 10),
-                          ]
-                        )
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text('Подарок',
-                      style: TextStyle(fontSize: 14, color: Colors.white))
-                ],
-              ),
-            )
-        ),
-        Positioned(
-            top: height / 1.4,
-            left: width / 1.21,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              transitionBuilder: (child, transition) {
-                return SlideTransition(
-                  position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
-                      .animate(
-                    CurvedAnimation(
-                        parent: controller!, curve: Curves.fastOutSlowIn),
-                  ),
-                  child: child,
-                );
-              },
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _isReactionButtonTapped = !_isReactionButtonTapped;
-                      });
-                      _isReactionButtonTapped
-                          ? controller!.forward()
-                          : controller!.reverse();
-                      _isReactionButtonTapped ? emojisAnimationController!
-                          .forward() : emojisAnimationController!.reverse();
-
-                      animateBlur();
-                    },
-                    child: Container(
-                      height: 60,
-                      width: 60,
-                      child: Center(
-                        child: SvgPicture.asset(_reactionAsset),
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.7),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text('Реакция',
-                      style: TextStyle(fontSize: 14, color: Colors.white))
-                ],
-              ),
-            )
-        ),
-        Positioned(
-            top: height / 1.22,
-            left: width / 1.25,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              transitionBuilder: (child, transition) {
-                return SlideTransition(
-                  position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
-                      .animate(
-                    CurvedAnimation(
-                        parent: controller!, curve: Curves.fastOutSlowIn),
-                  ),
-                  child: child,
-                );
-              },
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () => null,
-                    child: Container(
-                      height: 60,
-                      width: 60,
-                      child: Center(
-                        child: SvgPicture.asset(_shareAsset),
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.7),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text('Поделиться',
-                      style: TextStyle(fontSize: 14, color: Colors.white))
-                ],
-              ),
-            )
-        ),
-        Positioned(
-            top: height / 1.12,
-            left: width / 20,
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              transitionBuilder: (child, transition) {
-                return SlideTransition(
-                  position: Tween<Offset>(begin: Offset.zero, end: Offset(0, 5))
-                      .animate(
-                    CurvedAnimation(
-                        parent: controller!, curve: Curves.fastOutSlowIn),
-                  ),
-                  child: child,
-                );
-              },
-              child: Text('Анастасия Ч. 29',
-                  style: TextStyle(fontSize: 24, color: Colors.white)),
-            )
-        ),
-      ],
+            );
+          }),
+        )
     );
   }
 
@@ -1144,5 +1335,131 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
       _begin == 10.0 ? _begin = 0.0 : _begin = 10.0;
       _end == 0.0 ? _end = 10.0 : _end = 0.0;
     });
+  }
+}
+
+
+
+
+class VideoPlayerWidget extends StatefulWidget {
+
+  final String? url;
+
+  @override
+  _VideoPlayerState createState() => _VideoPlayerState();
+
+  VideoPlayerWidget({Key? key, this.url}) : super(key: key);
+}
+
+
+class _VideoPlayerState extends State<VideoPlayerWidget>{
+
+  ValueNotifier<VideoPlayerValue?> currentPosition = ValueNotifier(null);
+  VideoPlayerController? controller;
+  late Future<void> futureController;
+
+  StateSetter? _videoState;
+
+  bool _showIcon = false;
+
+  initVideo() {
+    controller = VideoPlayerController.network(widget.url!, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false));
+    futureController = controller!.initialize();
+  }
+
+
+  @override
+  void initState(){
+    super.initState();
+
+    initVideo();
+    controller!.addListener(() {
+      if (controller!.value.isInitialized) {
+        currentPosition.value = controller!.value;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller!.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: futureController,
+      builder: (context, snapshot){
+        while(snapshot.connectionState == ConnectionState.waiting){
+          return Center(
+            heightFactor: 25,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: Color.fromRGBO(145, 10, 251, 5),
+            ),
+          );
+        }
+
+        if(snapshot.connectionState == ConnectionState.done){
+          controller!.setLooping(true);
+          controller!.play();
+          return GestureDetector(
+            onTap: (){
+              if(controller!.value.isPlaying){
+                _videoState!((){
+                  controller!.pause();
+                  _showIcon = true;
+                });
+              }else{
+                _videoState!((){
+                  controller!.play();
+                  _showIcon = false;
+                });
+              }
+            },
+            child: StatefulBuilder(
+              builder: (context, setState){
+                _videoState = setState;
+                return Center(
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: SizedBox.expand(
+                              child: AspectRatio(
+                                aspectRatio: controller!.value.aspectRatio,
+                                child: VideoPlayer(controller!),
+                              )
+                          ),
+                        ),
+                        Center(
+                            child: AnimatedOpacity(
+                              opacity: _showIcon ? 1.0 : 0.0,
+                              duration: Duration(milliseconds: 150),
+                              child: IconButton(
+                                  icon: Icon(CupertinoIcons.play_fill, size: 60, color: Colors.white),
+                                  onPressed: (){
+                                    controller!.play();
+
+                                    setState((){
+                                      _showIcon = false;
+                                    });
+                                  }
+                              ),
+                            )
+                        ),
+                      ],
+                    )
+                );
+              },
+            )
+          );
+        }else{
+          return Center(
+            child: Text('Error'),
+          );
+        }
+      },
+    );
   }
 }

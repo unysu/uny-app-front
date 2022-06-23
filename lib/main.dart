@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:random_color/random_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
@@ -15,6 +16,7 @@ import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
 import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
+import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
@@ -40,6 +42,10 @@ void main() async {
 
       ChangeNotifierProvider<VideoControllerProvider>(
         create: (context) => VideoControllerProvider(),
+      ),
+
+      ChangeNotifierProvider<ChatsDataProvider>(
+        create: (context) => ChatsDataProvider(),
       )
     ],
     child: AdaptiveTheme(
@@ -254,7 +260,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       allInterests.shuffle();
       interestsDao.insertInterest(allInterests);
     }else{
-      return;
+      return await Future.delayed(Duration(seconds: 1));
     }
   }
 }

@@ -22,7 +22,9 @@ class UserDataProvider extends ChangeNotifier{
   }
 
   void setMediaDataModel(MediaDataModel? _mediaDataModelList){
-    _mediaDataModel = _mediaDataModelList;
+    if(_mediaDataModelList != null){
+      _mediaDataModel = _mediaDataModelList;
+    }
 
     notifyListeners();
   }

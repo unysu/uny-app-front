@@ -306,7 +306,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                     children: [
                       Icon(CupertinoIcons.arrowshape_turn_up_right, color: Colors.blue),
                       SizedBox(width: 10),
-                      Text('Поделиться'),
+                      Text('Поделиться', style: TextStyle(color: Colors.blue)),
                     ],
                   )
                 ),
@@ -316,7 +316,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                     children: [
                       Icon(CupertinoIcons.doc_on_doc, color: Colors.blue),
                       SizedBox(width: 10),
-                      Text('Скопировать ссылку'),
+                      Text('Скопировать ссылку', style: TextStyle(color: Colors.blue)),
                     ],
                   )
                 ),
@@ -326,7 +326,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                     children: [
                       Icon(Icons.error_outline, color: Colors.blue),
                       SizedBox(width: 10),
-                      Text('Пожаловаться'),
+                      Text('Пожаловаться', style: TextStyle(color: Colors.blue)),
                     ],
                   )
                 ),

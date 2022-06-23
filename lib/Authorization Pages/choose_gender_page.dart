@@ -114,7 +114,7 @@ class _GenderPageState extends State<GenderPage>{
                           left: height / 6,
                           bottom: width * 0.8,
                           child:  GestureDetector(
-                            onTap: () => nextPage('Женский'),
+                            onTap: () => nextPage('female'),
                             child: Column(
                               children: [
                                 Image.asset(_womanAsset),
@@ -134,7 +134,7 @@ class _GenderPageState extends State<GenderPage>{
                           child: Column(
                             children: [
                               GestureDetector(
-                                onTap: () => nextPage('Другое'),
+                                onTap: () => nextPage('other'),
                                 child: Image.asset(_anotherGenderAsset)
                               ),
                               Text('Другое', style: TextStyle(color: Colors.white))
@@ -146,7 +146,7 @@ class _GenderPageState extends State<GenderPage>{
                           bottom: width / 2,
                           child: GestureDetector(
                             excludeFromSemantics: false,
-                            onTap: () => nextPage('Мужской'),
+                            onTap: () => nextPage('male'),
                             child: Column(
                               children: [
                                 Image.asset(_manAsset),

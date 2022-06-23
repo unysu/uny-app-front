@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,8 +15,8 @@ import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class UploadVideoPage extends StatefulWidget{
   @override
@@ -100,8 +101,8 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
         ),
         SizedBox(height: height * 0.01),
         Container(
-          height: _videoImageBytes != null ?  300 : height * 0.4,
-          width: _videoImageBytes != null ? width / 2 : width * 0.9,
+          height: _video != null ?  300 : height * 0.4,
+          width: _video != null ? width / 2 : width * 0.9,
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: LayoutBuilder(
             builder: (context, constraints){
@@ -110,11 +111,11 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
               return Stack(
                 children: [
                   Container(
-                    child: _videoImageBytes == null ? SvgPicture.asset(_mainImageAsset) : null,
+                    child: _video == null ? SvgPicture.asset(_mainImageAsset) : null,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(
                             Radius.circular(10)),
-                        image: _videoImageBytes != null ? DecorationImage(
+                        image: _video != null ? DecorationImage(
                             fit: BoxFit.cover,
                             image: MemoryImage(_videoImageBytes!)
                         ) : null
@@ -147,8 +148,10 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
             borderRadius: BorderRadius.circular(11),
             onTap: () async {
               _video = await _picker.pickVideo(source: ImageSource.gallery);
+
               VideoPlayerController videoController = VideoPlayerController.file(File(_video!.path));
               await videoController.initialize();
+
               if(videoController.value.duration.inSeconds <= 15){
                 _videoImageBytes = await VideoThumbnail.thumbnailData(
                   video: _video!.path,
@@ -266,13 +269,11 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                   };
 
                  await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete((){
-                   _showLoading = false;
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => InterestsPage())
                     );
                   });
-
                 }else{
                   Navigator.push(
                       context,

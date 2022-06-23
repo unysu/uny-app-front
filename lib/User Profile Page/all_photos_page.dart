@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:chopper/chopper.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -28,6 +29,8 @@ class AllPhotosPage extends StatefulWidget {
 
 class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProviderStateMixin{
 
+  FToast? _fToast;
+
   bool _showLoading = false;
 
   late String token;
@@ -42,7 +45,6 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
 
   StateSetter? picsState;
 
-
   List<MediaModel>? photos;
 
   List<String>? base64Photos = [];
@@ -51,6 +53,8 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
   void initState() {
     super.initState();
 
+    _fToast = FToast();
+
     token = 'Bearer ' + TokenData.getUserToken();
 
     _controller = AnimationController(
@@ -58,6 +62,9 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
       duration: Duration(milliseconds: 400),
     );
 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _fToast!.init(context);
+    });
   }
 
   @override
@@ -74,7 +81,10 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
                 Scaffold(
                     extendBodyBehindAppBar: true,
                     body: GestureDetector(
-                      child: mainBody(),
+                      child: Padding(
+                        padding: EdgeInsets.only(top: height / 40),
+                        child: mainBody(),
+                      ),
                       onTap: (){
                         setState(() {
                           _showAppBar = !_showAppBar;
@@ -160,7 +170,6 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
                         enableInfiniteScroll: false,
                         disableCenter: false,
                         pageSnapping: true,
-                        aspectRatio: 100,
                         enlargeStrategy: CenterPageEnlargeStrategy.scale,
                         scrollDirection: Axis.horizontal,
                         onPageChanged: (index, reason){
@@ -172,9 +181,12 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
                     items: List.generate(photos!.length, (index) {
                       return Consumer<UserDataProvider>(
                         builder: (context, viewModel, child){
-                          return CachedNetworkImage(
-                            imageUrl: photos![index].url,
-                            fit: BoxFit.contain,
+                          return AspectRatio(
+                            aspectRatio: 1,
+                            child: CachedNetworkImage(
+                              imageUrl: photos![index].url,
+                              fit: BoxFit.cover,
+                            ),
                           );
                         },
                       );
@@ -350,13 +362,13 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
     };
 
     await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).updateMedia(token, data).whenComplete(() async {
+      _showToast(1);
       await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
 
         Provider.of<UserDataProvider>(context, listen: false).setUserDataModel(value.body!.user);
         Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
 
-        _showLoading = false;
-
+        Navigator.pop(context);
         Navigator.pop(context);
       });
     });
@@ -373,6 +385,7 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
     };
 
     await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).deleteMedia(token, data).whenComplete(() async {
+      _showToast(0);
       await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
 
         Provider.of<UserDataProvider>(context, listen: false).setUserDataModel(value.body!.user);
@@ -385,5 +398,40 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
         Navigator.pop(context);
       });
     });
+  }
+
+
+  void _showToast(int index) {
+    Widget toast = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        color: Colors.black,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          index == 0 ?
+          Text("Фото удалено", style: TextStyle(color: Colors.white)) :  Text("Фото установлено фотографией пользователя", style: TextStyle(color: Colors.white)),
+          Container(
+            height: 20,
+            width: 20,
+            child: Center(
+              child: Icon(Icons.check, color: Colors.black, size: 15),
+            ),
+            decoration: BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle
+            ),
+          )
+        ],
+      ),
+    );
+
+    _fToast!.showToast(
+      child: toast,
+      gravity: ToastGravity.TOP,
+      toastDuration: Duration(seconds: 10),
+    );
   }
 }
