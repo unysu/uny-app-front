@@ -236,10 +236,10 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Перейдите в раздел сообщения', style: TextStyle(fontWeight: FontWeight.bold))));
             });
 
-            /* Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => OtherUsersPage())
-            ); */
+            //  Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => OtherUsersPage(user: matchedUser))
+            // );
           },
           child: Stack(
             children: [
@@ -336,7 +336,38 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                     Container(
                       height: 110,
                       width: 110,
-                      child: Icon(Icons.account_circle_rounded, size: 110, color: Colors.grey),
+                      child: matchedUser.media!.mainPhoto != null ? CachedNetworkImage(
+                        imageUrl: matchedUser.media!.mainPhoto!.url,
+                        height: 110,
+                        width: 110,
+                        imageBuilder: (context, imageProvider) => Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.4),
+                                spreadRadius: 10,
+                                blurRadius: 7,
+                              ),
+                            ],
+                          ),
+                        ),
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.white,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              shape: BoxShape.circle
+                            ),
+                          ),
+                        ),
+                      ) : Container(
+                        height: 110,
+                        width: 110,
+                        child: Icon(Icons.account_circle_rounded, size: 110, color: Colors.grey),
+                      ),
                     ),
                     Positioned(
                       top: 5,

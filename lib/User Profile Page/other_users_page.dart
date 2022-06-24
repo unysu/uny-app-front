@@ -1,16 +1,30 @@
+import 'dart:math';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sizer/sizer.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_model.dart';
+import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
+import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
 import 'package:uny_app/Report%20Page%20Android/report_page_android.dart';
 import 'package:uny_app/Report%20Types/report_types.dart';
+import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
+import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
 
 class OtherUsersPage extends StatefulWidget{
+
+  Matches? user;
+
+  OtherUsersPage({required this.user});
 
   @override
   _OtherUsersPage createState() => _OtherUsersPage();
@@ -24,11 +38,36 @@ class _OtherUsersPage extends State<OtherUsersPage>{
   FToast? _fToast;
   Reports? _reports;
 
+  Matches? user;
+
+  MediaModel? userProfilePhoto;
+  List<MediaModel>? mainPhotos;
+  List<MediaModel>? videos;
+  List<MediaModel>? photos;
+
   @override
   void initState() {
     super.initState();
 
     _fToast = FToast();
+
+    user = widget.user;
+
+    if(user!.media!.mainPhoto != null){
+      userProfilePhoto = user!.media!.mainPhoto;
+    }
+
+    if(user!.media!.mainPhotosList != null){
+      mainPhotos = user!.media!.mainPhotosList!;
+
+      mainPhotos!.add(userProfilePhoto!);
+    }
+
+    if(user!.media!.otherPhotosList != null){
+      videos = user!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+      photos = user!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('image')).toList();
+    }
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fToast!.init(context);
@@ -56,16 +95,31 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                           backgroundColor: Colors.white,
                           expandedHeight: height * 0.4,
                           systemOverlayStyle: SystemUiOverlayStyle.light,
-                          toolbarHeight: 75,
+                          toolbarHeight: 120,
                           title: Container(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Кристина З. 25',
+                                  '${user!.firstName} ' + '${user!.lastName[0]}',
                                   style: TextStyle(fontSize: 24, color: Colors.white),
                                 ),
-                                Text('Основатель Uny')
+                                Text('${user!.id}'),
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 5,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.green,
+
+                                      ),
+                                    ),
+                                    SizedBox(width: 5),
+                                    Text('В сети', style: TextStyle(fontSize: 12))
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -85,18 +139,34 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                               ),
                             ),
                           ),
-                          leading: IconButton(
-                            icon: Icon(Icons.arrow_back, color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
+                          leading: Column(
+                            children: [
+                              Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+                                  child: IconButton(
+                                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              )
+                            ],
                           ),
                           actions: [
                             Padding(
-                                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                                child: IconButton(
-                                  icon: Icon(Icons.more_horiz),
-                                  onPressed: (){
-                                    showActionsSheet();
-                                  },
+                                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+                                child: Column(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.more_horiz),
+                                      onPressed: (){
+                                        showActionsSheet();
+                                      },
+                                    ),
+                                    Container(
+                                      height: 30,
+                                      width: 30,
+                                      child: SvgPicture.asset('assets/mail_icon.svg'),
+                                    )
+                                  ],
                                 )
                             )
                           ],
@@ -104,7 +174,8 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                       ];
                     },
                     body: SafeArea(
-                      top: true,
+                      top: false,
+                      minimum: EdgeInsets.only(top: 10),
                       child: mainBody(),
                     )
                 ),
@@ -149,102 +220,141 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                           ),
                           SizedBox(width: 5),
                           Text('Москва', style: TextStyle(fontSize: 17)),
-                          SizedBox(width: 10),
+                          SizedBox(width: 15),
                           Container(
-                            height: 5,
-                            width: 5,
+                            height: 20,
+                            width: 20,
+                            child: Icon(Icons.location_on, color: Colors.white, size: 15),
                             decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.grey
+                                gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.topRight,
+                                    colors: [
+                                      Color.fromRGBO(145, 10, 251, 10),
+                                      Color.fromRGBO(217, 10, 251, 10)
+                                    ]
+                                )
                             ),
                           ),
-                          SizedBox(width: 10),
+                          SizedBox(width: 5),
+                          Text('${Random().nextInt(1000)} м'),
+                          SizedBox(width: 15),
+                          ZodiacSigns.getZodiacSign(DateTime(int.parse(user!.dateOfBirth[0]), int.parse(user!.dateOfBirth[1]), int.parse(user!.dateOfBirth[2])), 0)
                         ],
                       ),
                     ),
-                    ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                          color: Colors.grey.withOpacity(0.3),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.green,
-
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Text('В сети', style: TextStyle(fontSize: 15))
-                            ],
-                          ),
-                        )
-                    )
                   ],
                 ),
               ),
               SizedBox(height: height / 50),
               Container(
-                padding: EdgeInsets.only(top: 10, left: 10, right: 10),
-                child:  ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  child: InkWell(
-                    onTap: () => null,
-                    child: Container(
-                      height: height / 20,
-                      child: Center(
-                        child: Text('Написать', style: TextStyle(fontSize: 17, color: Colors.white)),
-                      ),
-                      decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Color.fromRGBO(145, 10, 251, 5),
-                                Color.fromRGBO(32, 216, 216, 5),
-                              ]
-                          )
+                padding: EdgeInsets.only(left: 10, right: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        child: Center(
+                          child: Text('Реакция', style: TextStyle(color: Colors.black)),
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.deepOrange)
+                        ),
                       ),
                     ),
-                  ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
+                              SizedBox(width: 5),
+                              Text('Отправить подарок', style: TextStyle(
+                                  color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500))
+                            ],
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                            gradient: LinearGradient(
+                                colors: [
+                                  Color.fromRGBO(255, 0, 92, 10),
+                                  Color.fromRGBO(255, 172, 47, 10),
+                                ]
+                            )
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: height / 40),
               Container(
-                padding: EdgeInsets.only(top: 10, left: 10, right: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Совподения', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
-                    Text('2 интереса', style: TextStyle(fontSize: 17, color: Colors.grey))
-                  ],
+                height: 100,
+                width: width * 3,
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                        padding: EdgeInsets.only(left: 10),
+                        width: width * 3,
+                        child: Wrap(
+                            spacing: 7.0,
+                            runSpacing: 9.0,
+                            direction: Axis.horizontal,
+                            children: List.generate(user!.interests!.length, (index) {
+                              InterestsDataModel _interests = user!.interests![index];
+                              return Material(
+                                child: InkWell(
+                                    borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                    child: Container(
+                                      height: 40,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      child: Center(
+                                        widthFactor: 1,
+                                        child: Text(
+                                          _interests.interest!,
+                                          style: const TextStyle(color: Colors.white),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                      decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                          color: Color(int.parse('0x' + _interests.color!)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
+                                                offset: const Offset(3, 3),
+                                                blurRadius: 0,
+                                                spreadRadius: 0
+                                            )
+                                          ]
+                                      ),
+                                    )
+                                ),
+                              );
+                            })
+                        )
+                    )
                 ),
               ),
-              SizedBox(height: height / 15),
               Container(
-                padding: EdgeInsets.only(top: 10, left: 10, right: 10),
-                child: Row(
-                  children: [
-                    Text('Интересы', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold))
-                  ],
+                child: Divider(
+                  thickness: 1,
                 ),
               ),
-              SizedBox(height: height / 10),
-              Divider(
-                color: Colors.grey,
-              ),
-              Container(
+              user!.aboutMe != null ? Container(
                 padding: EdgeInsets.only(top: 10, left: 10, right: 10),
-                child: Text(
-                  'Despite years of loving alcohol I no longer drink. I am not a recovering alcoholic, nor do I have any religious (or otherwise) views which dictate abstinence.',
+                child: Text('${user!.aboutMe}',
                   maxLines: 3,
                   style: TextStyle(fontSize: 15),
                 ),
-              ),
+              ) : Container(),
+              user!.aboutMe != null ? SizedBox(height: height / 10) : SizedBox(),
               Divider(
                 color: Colors.grey.withOpacity(0.1),
                 thickness: 8,
@@ -261,31 +371,98 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                   ],
                 ),
               ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  padding: EdgeInsets.only(top: 10, left: 10, right: 10),
-                  child: Row(
-                    children: List.generate(10, (index) {
-                      return Row(
-                        children: [
-                          ClipRRect(
-                              borderRadius: BorderRadius.all(Radius.circular(15)),
-                              child: InkWell(
+              Container(
+                height: 200,
+                padding: EdgeInsets.only(left: 10, top: 10),
+                child:  videos!.isNotEmpty ? GridView.count(
+                  crossAxisCount: 1,
+                  childAspectRatio: 16 / 8,
+                  mainAxisSpacing: 10,
+                  physics: const ClampingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  children: List.generate(videos!.length, (index) {
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => VideoPage(videoId: videos![index].id)
+                            )
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                        child: Container(
+                            child: CachedNetworkImage(
+                              placeholder: (context, url) => Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.white,
                                 child: Container(
-                                  height: height / 5,
-                                  width: width / 4.5,
-                                  color: Colors.purple,
+                                  color: Colors.grey,
                                 ),
-                              )
-                          ),
-                          SizedBox(width: 10)
-                        ],
-                      );
-                    }),
+                              ),
+                              imageUrl: videos![index].thumbnail,
+                              fit: BoxFit.cover,
+                            )
+                        ),
+                      ),
+                    );
+                  }),
+                ) : Container(
+                  child: Center(
+                    child: Text('Нет видео'),
                   ),
                 ),
-              )
+              ),
+              Container(
+                padding: EdgeInsets.only(top: 20, left: 10, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Фото', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+                    InkWell(
+                      child: Text('Все', style: TextStyle(fontSize: 17, color: Color.fromRGBO(145, 10, 251, 5))),
+                    )
+                  ],
+                ),
+              ),
+              photos!.isNotEmpty ? Container(
+                  height: height / 2,
+                  width: width,
+                  padding: EdgeInsets.only(top: 10),
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 10,
+                    shrinkWrap: true,
+                    physics: const ClampingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    children: List.generate(photos!.length, (index){
+                      return InkWell(
+                        onTap: (){
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AllPhotosPage()
+                              )
+                          );
+                        },
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            child: CachedNetworkImage(
+                              imageUrl: photos![index].url,
+                              fit: BoxFit.cover,
+                            )
+                        ),
+                      );
+                    }),
+                  )
+              ) : Container(
+                height: 200,
+                child: Center(
+                  child: Text('Нет фото'),
+                ),
+              ),
             ],
           ),
         ),

@@ -363,11 +363,11 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(_chatsList![index].participants![0].firstName, style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w500)),
+                                  Text(_chatsList![index].participants![0].firstName, style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w500), maxLines: 1),
                                   SizedBox(height: 5),
                                   Padding(
                                     padding: EdgeInsets.only(left: 2),
-                                    child: Text(_chatsList![index].messages!.isNotEmpty ? _chatsList![index].messages!.last.text : 'Нет сообщений', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                                    child: Text(_chatsList![index].messages!.isNotEmpty ? _chatsList![index].messages!.last.text : 'Нет сообщений', style: TextStyle(fontSize: 16, color: Colors.grey), maxLines: 2),
                                   )
                                 ],
                               ),

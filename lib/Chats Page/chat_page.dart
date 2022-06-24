@@ -355,6 +355,33 @@ class _UserChatPageState extends State<UserChatPage> with TickerProviderStateMix
                                     );
                                   }
                               );
+                            }else if(UniversalPlatform.isAndroid){
+                              showDialog(
+                                  context: context,
+                                  builder: (context){
+                                    return AlertDialog(
+                                      title: Text(
+                                        'Вы уверены, что хотите выйти?',
+                                        maxLines: 2,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: (){
+                                            deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
+                                          },
+                                          child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
+                                        ),
+                                        TextButton(
+                                          onPressed: (){
+                                            deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![0].id, chatMessage.messageId);
+                                          },
+                                          child: Text('Удалить у меня и у ${chat.participants![0].firstName}', style: TextStyle(color: Colors.lightBlue)),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                              );
                             }
                           }
                       ),
@@ -409,6 +436,33 @@ class _UserChatPageState extends State<UserChatPage> with TickerProviderStateMix
                                         onPressed: () => Navigator.pop(context),
                                         child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
                                       ),
+                                    );
+                                  }
+                              );
+                            }else if(UniversalPlatform.isAndroid){
+                              showDialog(
+                                  context: context,
+                                  builder: (context){
+                                    return AlertDialog(
+                                      title: Text(
+                                        'Вы уверены, что хотите выйти?',
+                                        maxLines: 2,
+                                        style: TextStyle(fontSize: 13),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: (){
+                                            deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
+                                          },
+                                          child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
+                                        ),
+                                        TextButton(
+                                          onPressed: (){
+                                            deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![0].id, chatMessage.messageId);
+                                          },
+                                          child: Text('Удалить у меня и у ${chat.participants![0].firstName}', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
                                     );
                                   }
                               );
@@ -667,8 +721,8 @@ class _UserChatPageState extends State<UserChatPage> with TickerProviderStateMix
     if(forWho == 'for_me'){
       idList.add(myId);
       data = {
-        'message_id' : messageId,
-        'remove_for' : jsonEncode(idList)
+         'message_id' : messageId,
+         'remove_for' : jsonEncode(idList)
       };
     }else{
       idList.add(myId);
