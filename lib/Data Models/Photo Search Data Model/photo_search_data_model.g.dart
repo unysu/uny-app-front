@@ -39,7 +39,9 @@ Matches _$MatchesFromJson(Map<String, dynamic> json) => Matches(
           ? null
           : MediaDataModel.fromJson(json['media'] as Map<String, dynamic>),
       matchPercent: json['match_percent'],
-    );
+    )
+      ..job = json['job']
+      ..company = json['company'];
 
 Map<String, dynamic> _$MatchesToJson(Matches instance) => <String, dynamic>{
       'id': instance.id,
@@ -52,6 +54,8 @@ Map<String, dynamic> _$MatchesToJson(Matches instance) => <String, dynamic>{
       'date_of_birth': instance.dateOfBirth,
       'match_percent': instance.matchPercent,
       'about_me': instance.aboutMe,
+      'job': instance.job,
+      'company': instance.company,
       'media': instance.media,
       'interests': instance.interests,
     };

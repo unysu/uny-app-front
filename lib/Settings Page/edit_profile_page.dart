@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
+import 'package:uny_app/Cities/russia_city.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Auth%20Data%20Models/auth_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
@@ -49,6 +51,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String _genderString = 'Женский';
 
   DateTime _date = DateTime.now();
+
+  bool _containsSymbolsNameField = false;
 
   bool _showZodiacSign = true;
   bool _iAmNotWorking = true;
@@ -190,6 +194,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                    ],
+                    textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
                       prefixIcon: Padding(
@@ -226,7 +234,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
+                    textCapitalization: TextCapitalization.sentences,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                    ],
                     style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
@@ -427,25 +439,53 @@ class _EditProfilePageState extends State<EditProfilePage> {
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
-          TextFormField(
-            controller: _locationTextController,
-            textInputAction: TextInputAction.done,
-            cursorColor: Color.fromRGBO(145, 10, 251, 5),
-            decoration: InputDecoration(
-              hintText: 'Название города',
-              hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
-              fillColor: Colors.grey.withOpacity(0.1),
-              prefixIcon: Icon(Icons.search, color: Colors.grey),
-              filled: true,
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
-                borderRadius: BorderRadius.circular(15),
+          TypeAheadField<String>(
+              textFieldConfiguration: TextFieldConfiguration(
+                controller: _locationTextController,
+                textInputAction: TextInputAction.done,
+                cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                ],
+                style: TextStyle(color: Colors.black),
+                decoration: InputDecoration(
+                  hintText: 'Название города',
+                  hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
+                  fillColor: Colors.grey.withOpacity(0.1),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  filled: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  focusedBorder:  OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
               ),
-              focusedBorder:  OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                borderRadius: BorderRadius.circular(15),
-              ),
-            ),
+              itemBuilder: (context, city){
+                return ListTile(
+                  title: Text(city),
+                );
+              },
+
+              onSuggestionSelected: (city){
+                _locationTextController!.value = _locationTextController!.value.copyWith(text: city);
+              },
+
+              noItemsFoundBuilder: (context){
+                return Container(
+                    child: Center(
+                      child: Text('Город не найден'),
+                    )
+                );
+              },
+
+              suggestionsCallback: (pattern){
+                return RussianCities.getCities(pattern);
+              }
           ),
           SizedBox(height: 10),
           Divider(thickness: 1),
@@ -478,6 +518,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: _companyNameTextController,
                   textInputAction: TextInputAction.done,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                  ],
                   style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: width / 15),
@@ -502,6 +545,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: _positionTextController,
                   textInputAction: TextInputAction.done,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                  ],
                   style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: width / 15),
@@ -620,11 +666,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       padding: EdgeInsets.only(left: 24, right: 24, top: 20),
                       child: FloatingActionButton.extended(
                         onPressed: (){
-                          var formatter = DateFormat('dd.MM.yyyy');
-                          var date = formatter.format(_date);
-                          _birthDateTextController!.value = _birthDateTextController!.value.copyWith(text: date);
 
-                          Navigator.pop(context);
+                          if(DateTime.now().year - (_date.year) < 18){
+                            _showDatePickerToast();
+                          }else if(DateTime.now().year - (_date.year) > 100){
+                            _showDatePickerToast();
+                          }else{
+
+                            var formatter = DateFormat('dd-MM-yyyy');
+                            var date = formatter.format(_date);
+                            _birthDateTextController!.value = _birthDateTextController!.value.copyWith(text: date);
+
+                            Navigator.pop(context);
+                          }
                         },
                         label: Text('Готово', style: TextStyle(fontSize: 17, color: Colors.white)),
                         backgroundColor: Color.fromRGBO(145, 10, 251, 5),
@@ -741,17 +795,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void validate(){
     String _name = _nameTextController!.text;
     String _secondName = _secondNameTextController!.text;
-    if(_name.contains(RegExp(r'[0-9]')) || _name.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
-      setState(() {
-        _containsSymbolsAndNumbersTextField1 = true;
-      });
-      _showToast(0);
-    }else if(_secondName.contains(RegExp(r'[0-9]')) || _secondName.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
-      setState(() {
-        _containsSymbolsAndNumbersTextField2 = true;
-      });
-      _showToast(1);
-    }else if(_name == '' || _secondName == ''){
+
+    if(_name == '' || _secondName == ''){
       _showToast(2);
     }else{
       setState(() {
@@ -779,6 +824,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ?  Text("Фамилия не может содержать цифры и символы", style: TextStyle(color: Colors.white))
           : index == 2
           ? Text("Поля не должны быть пустыми", style: TextStyle(color: Colors.white)) : Container(),
+          Container(
+            height: 20,
+            width: 20,
+            child: Center(child: SvgPicture.asset(_warningIconAsset)),
+          )
+        ],
+      ),
+    );
+
+    _fToast!.showToast(
+      child: toast,
+      gravity: ToastGravity.TOP,
+      toastDuration: Duration(seconds: 2),
+    );
+  }
+
+  void _showDatePickerToast(){
+    Widget toast = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        color: Colors.black,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Возраст должен быть от 18 до 100", style: TextStyle(color: Colors.white)),
           Container(
             height: 20,
             width: 20,

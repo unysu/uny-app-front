@@ -25,7 +25,6 @@ import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart
 import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Photo%20Search%20Page/photo_search_page.dart';
-import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Providers/video_controller_provider.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
@@ -890,9 +889,12 @@ class _UserProfilePageState extends State<UserProfilePage>{
                       cursorColor: Color.fromRGBO(145, 10, 251, 5),
                       style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.white : Colors.black),
                       textInputAction: TextInputAction.done,
+                      textCapitalization: TextCapitalization.sentences,
+                      maxLength: 650,
                       maxLines: 10,
                       decoration: InputDecoration(
                         hintText: 'Напишите о себе',
+                        counterText: '',
                         fillColor: Colors.grey.withOpacity(0.2),
                         filled: true,
                         enabledBorder: OutlineInputBorder(

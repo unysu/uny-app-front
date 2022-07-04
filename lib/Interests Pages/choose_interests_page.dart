@@ -29,6 +29,7 @@ class _InterestsPageState extends State<InterestsPage>{
 
   FocusNode? addNewInterestFieldFocusNode;
   TextEditingController? newInterestFieldTextController;
+  TextEditingController searchController = TextEditingController();
 
   ScrollController? _interestsStepsScrollController;
   ScrollController? _allInterestsScrollController;
@@ -209,6 +210,7 @@ class _InterestsPageState extends State<InterestsPage>{
     _travelingInterestsScrollController!.dispose();
     _generalInterestsScrollController!.dispose();
 
+    searchController.dispose();
 
     super.dispose();
   }
@@ -235,6 +237,7 @@ class _InterestsPageState extends State<InterestsPage>{
                   height: height / 20,
                   padding: EdgeInsets.only(right: width / 20),
                   child: TextFormField(
+                    controller: searchController,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.center,
                     textCapitalization: TextCapitalization.sentences,
@@ -1189,7 +1192,10 @@ class _InterestsPageState extends State<InterestsPage>{
                                       FocusManager.instance.primaryFocus?.unfocus();
 
                                       _showFamilyToolTip = false;
-                                      setState(() {});
+                                      setState(() {
+                                        _isSearching = false;
+                                        searchController.clear();
+                                      });
                                     },
                                     borderRadius: const BorderRadius.all(Radius.circular(30)),
                                     child: Container(
@@ -1434,7 +1440,10 @@ class _InterestsPageState extends State<InterestsPage>{
                                           FocusManager.instance.primaryFocus?.unfocus();
 
                                           _showCareerTooltip = false;
-                                          setState(() {});
+                                          setState(() {
+                                            _isSearching = false;
+                                            searchController.clear();
+                                          });
                                         },
                                         borderRadius: const BorderRadius.all(
                                             Radius.circular(30)),
@@ -1681,7 +1690,10 @@ class _InterestsPageState extends State<InterestsPage>{
                                           FocusManager.instance.primaryFocus?.unfocus();
 
                                           _showSportTooltip = false;
-                                          setState(() {});
+                                          setState(() {
+                                            _isSearching = false;
+                                            searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(30)),
@@ -1929,7 +1941,10 @@ class _InterestsPageState extends State<InterestsPage>{
                                           FocusManager.instance.primaryFocus?.unfocus();
 
                                           _showTravelingTooltip = false;
-                                          setState(() {});
+                                          setState(() {
+                                            _isSearching = false;
+                                            searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(30)),
@@ -2176,14 +2191,16 @@ class _InterestsPageState extends State<InterestsPage>{
                                               _generalFilteredList![index]);
                                           _generalFilteredList!.removeAt(index);
 
-                                          _selectedGeneralInterestsValue +=
-                                          0.01;
+                                          _selectedGeneralInterestsValue += 0.01;
                                           ++_generalInterestsCounter;
 
                                           FocusManager.instance.primaryFocus?.unfocus();
 
                                           _showGeneralTooltip = false;
-                                          setState(() {});
+                                          setState(() {
+                                            _isSearching = false;
+                                            searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(30)),
@@ -2395,7 +2412,7 @@ class _InterestsPageState extends State<InterestsPage>{
       child: AnimatedContainer(
         duration: Duration(milliseconds: 250),
         padding: EdgeInsets.only(top: 15),
-        height: addNewInterestFieldFocusNode!.hasFocus ? height / 1.3 : height / 2,
+        height: addNewInterestFieldFocusNode!.hasFocus ? height / 1.3 : height / 1.8,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -2596,9 +2613,9 @@ class _InterestsPageState extends State<InterestsPage>{
         }
       );
     }else if(UniversalPlatform.isAndroid){
-      showModalBottomSheet(
+      showCupertinoModalPopup(
           context: context,
-          isDismissible: false,
+          barrierDismissible: false,
           builder: (context){
           return newInterestsWidget(context);
         }

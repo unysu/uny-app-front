@@ -3,10 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Cities/russia_city.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Photo%20Video%20Upload%20Pages/upload_photo_page.dart';
@@ -40,10 +42,6 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   bool? isDateOfBirthFieldEmpty = false;
   bool? isLocationFieldEmpty = false;
 
-
-  bool? containsSymbolsName = false;
-  bool? containsSymbolsSurname = false;
-  bool? containsSymbolsLocation = false;
   bool? isCorrectDate = true;
 
   DateTime _date = DateTime.now();
@@ -167,34 +165,27 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               textInputAction: TextInputAction.done,
               style: TextStyle(color: Colors.white),
               textCapitalization: TextCapitalization.sentences,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+              ],
               maxLength: 40,
               decoration: InputDecoration(
                 counterText: "",
                 hintText: 'Имя',
-                hintStyle: TextStyle(fontSize: 17, color: isNameFieldEmpty != true && containsSymbolsName != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(fontSize: 17, color: isNameFieldEmpty != true ? Colors.white : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isNameFieldEmpty != true && containsSymbolsName != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
 
                 focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isNameFieldEmpty != true && containsSymbolsName != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
               onChanged: (value){
-                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>=+×÷/_€£¥₽`~°•○●□■♤♡◇♧☆▪️¤《》¡¿]'))){
-                  setState((){
-                    containsSymbolsName = true;
-                  });
-                }else{
-                  setState((){
-                    containsSymbolsName = false;
-                  });
-                }
-
                 setState(() {
                   isNameFieldEmpty = false;
                 });
@@ -210,34 +201,27 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               maxLength: 40,
               textInputAction: TextInputAction.done,
               textCapitalization: TextCapitalization.sentences,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+              ],
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 counterText: "",
                 hintText: 'Фамилия',
-                hintStyle: TextStyle(fontSize: 17, color: isSecondNameFieldEmpty != true && containsSymbolsSurname != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(fontSize: 17, color: isSecondNameFieldEmpty != true ? Colors.white : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  && containsSymbolsSurname != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
 
                 focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  && containsSymbolsSurname != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
               onChanged: (value){
-                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>=+×÷/_€£¥₽`~°•○●□■♤♡◇♧☆▪️¤《》¡¿]'))){
-                  setState((){
-                    containsSymbolsSurname = true;
-                  });
-                }else{
-                  setState((){
-                    containsSymbolsSurname = false;
-                  });
-                }
-
                 setState(() {
                   isSecondNameFieldEmpty = false;
                 });
@@ -291,19 +275,6 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 Text('Поля не должны быть пустыми', style: TextStyle(color: Colors.red, fontSize: 15))
               ],
             ),
-          ) : containsSymbolsName! || containsSymbolsSurname! || containsSymbolsLocation! ? Padding(
-            padding: EdgeInsets.only(left: 30, top: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  child: Icon(Icons.error, color: Colors.red),
-                ),
-                const SizedBox(width: 3),
-                Text('Поля не должны содержать цифры и символы', style: TextStyle(color: Colors.red, fontSize: 15))
-              ],
-            ),
           ) : Container(),
           Container(
             padding: EdgeInsets.only(top: mqHeight * 0.04, left: mqWidth * 0.1, right: mqWidth * 0.5),
@@ -311,50 +282,66 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
           ),
           Container(
             padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.1, right: mqWidth * 0.1),
-            child: TextFormField(
-              controller: locationTextController,
-              focusNode: locationFieldFocusNode,
-              cursorColor: Colors.white,
-              maxLength: 40,
-              textInputAction: TextInputAction.done,
-              textCapitalization: TextCapitalization.sentences,
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                counterText: "",
-                hintText: 'Название города',
-                hintStyle: TextStyle(fontSize: 17, color: isLocationFieldEmpty != true && containsSymbolsLocation != true ? Colors.white : Colors.red),
-                fillColor: Colors.white.withOpacity(0.3),
-                prefixIcon: Icon(Icons.search, color: Colors.white),
-                filled: true,
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isLocationFieldEmpty != true && containsSymbolsLocation != true ? Colors.white.withOpacity(0.5) : Colors.red),
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            child: TypeAheadField<String>(
+              textFieldConfiguration: TextFieldConfiguration(
+                controller: locationTextController,
+                focusNode: locationFieldFocusNode,
+                cursorColor: Colors.white,
+                maxLength: 40,
+                textInputAction: TextInputAction.done,
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                ],
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  counterText: "",
+                  hintText: 'Название города',
+                  hintStyle: TextStyle(fontSize: 17, color: isLocationFieldEmpty != true ? Colors.white : Colors.red),
+                  fillColor: Colors.white.withOpacity(0.3),
+                  prefixIcon: Icon(Icons.search, color: Colors.white),
+                  filled: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: isLocationFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
 
-                focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isLocationFieldEmpty != true && containsSymbolsLocation != true ? Colors.white.withOpacity(0.5) : Colors.red),
-                  borderRadius: BorderRadius.circular(15),
+                  focusedBorder:  OutlineInputBorder(
+                    borderSide: BorderSide(color: isLocationFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
                 ),
+                onChanged: (value){
+                  setState(() {
+                    isLocationFieldEmpty = false;
+                  });
+                },
+                onTap: (){
+                  FocusScope.of(context).requestFocus(locationFieldFocusNode);
+                },
               ),
-              onChanged: (value){
-                if(value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>=+×÷/_€£¥₽`~°•○●□■♤♡◇♧☆▪️¤《》¡¿]'))){
-                  setState((){
-                    containsSymbolsLocation = true;
-                  });
-                }else{
-                  setState((){
-                    containsSymbolsLocation = false;
-                  });
-                }
+              itemBuilder: (context, city){
+                return ListTile(
+                  title: Text(city),
+                );
+              },
 
-                setState(() {
-                  isLocationFieldEmpty = false;
-                });
+              onSuggestionSelected: (city){
+                locationTextController!.value = locationTextController!.value.copyWith(text: city);
               },
-              onTap: (){
-                FocusScope.of(context).requestFocus(locationFieldFocusNode);
+
+              noItemsFoundBuilder: (context){
+                return Container(
+                  child: Center(
+                    child: Text('Город не найден'),
+                  )
+                );
               },
-            ),
+
+              suggestionsCallback: (pattern){
+                return RussianCities.getCities(pattern);
+              }
+            )
           ),
           Container(
               padding: EdgeInsets.only(top: mqHeight * 0.02),
@@ -365,7 +352,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   onTap: () async {
                     validate();
 
-                    if(!isNameFieldEmpty! && !isSecondNameFieldEmpty! && !isDateOfBirthFieldEmpty! && !isLocationFieldEmpty! && !containsSymbolsName! && !containsSymbolsSurname! && !containsSymbolsLocation!){
+                    if(!isNameFieldEmpty! && !isSecondNameFieldEmpty! && !isDateOfBirthFieldEmpty! && !isLocationFieldEmpty!){
                       setState(() {
                         _showLoading = true;
                       });

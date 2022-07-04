@@ -16,6 +16,7 @@ import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
 import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
+import 'package:uny_app/Providers/chat_counter_provider.dart';
 import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Providers/video_controller_provider.dart';
@@ -46,6 +47,10 @@ void main() async {
 
       ChangeNotifierProvider<ChatsDataProvider>(
         create: (context) => ChatsDataProvider(),
+      ),
+
+      ChangeNotifierProvider<ChatCounterProvider>(
+        create: (context) => ChatCounterProvider(),
       )
     ],
     child: AdaptiveTheme(

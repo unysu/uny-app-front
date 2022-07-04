@@ -234,13 +234,6 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                       ],
                     )
                 ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: _socialAccountsWidget(),
-                  transitionBuilder: (child, animation){
-                    return ScaleTransition(child: child, scale: animation);
-                  },
-                ),
                 AnimatedContainer(
                     duration: Duration(milliseconds: 250),
                     curve: Curves.easeIn,
@@ -320,78 +313,6 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                   ]
               ),
               textAlign: TextAlign.center,
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-
-
-  Widget _socialAccountsWidget(){
-    return focusNode!.hasFocus ? Container(): Padding(
-      padding: EdgeInsets.only(top: mqHeight / 30),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ClipOval(
-            child: Material(
-              color: Colors.white.withOpacity(0.1), // Button color
-              child: InkWell(// Splash color
-                onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_googleImg)),
-              ),
-            ),
-          ),
-          SizedBox(width: mqWidth / 50),
-          ClipOval(
-            child: Material(
-              color: Colors.white.withOpacity(0.1), // Button color
-              child: InkWell(// Splash color
-                onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_mailruImg)),
-              ),
-            ),
-          ),
-          SizedBox(width: mqWidth / 50),
-          ClipOval(
-            child: Material(
-              color: Colors.white.withOpacity(0.1), // Button color
-              child: InkWell(// Splash color
-                onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_yandexImg)),
-              ),
-            ),
-          ),
-          SizedBox(width: mqWidth / 50),
-          ClipOval(
-            child: Material(
-              color: Colors.white.withOpacity(0.1), // Button color
-              child: InkWell(// Splash color
-                onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_vkImg)),
-              ),
-            ),
-          ),
-          SizedBox(width: mqWidth / 50),
-          ClipOval(
-            child: Material(
-              color: Colors.white.withOpacity(0.1), // Button color
-              child: InkWell(// Splash color
-                onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_fbImg)),
-              ),
-            ),
-          ),
-          SizedBox(width: mqWidth / 50),
-          ClipOval(
-            child: Material(
-              color: Colors.white.withOpacity(0.1), // Button color
-              child: InkWell(// Splash color
-                onTap: () {},
-                child: SizedBox(width: 50, height: 50, child: SvgPicture.asset(_okImg)),
-              ),
             ),
           )
         ],

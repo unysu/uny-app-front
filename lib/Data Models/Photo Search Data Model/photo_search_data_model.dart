@@ -73,6 +73,12 @@ class Matches{
   @JsonKey(name: 'about_me')
   var aboutMe;
 
+  @JsonKey(name: 'job')
+  var job;
+
+  @JsonKey(name: 'company')
+  var company;
+
   @JsonKey(name: 'media')
   MediaDataModel? media;
 

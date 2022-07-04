@@ -71,6 +71,13 @@ abstract class UnyAPI extends ChopperService{
   @Post(path: '/user/remove_message')
   Future<Response<Message>> deleteMessage(@Header('Authorization') String token, @Body() var data);
 
+  @Post(path: '/user/remove_chat_room_messages')
+  Future<Response<Message>> clearChat(@Header('Authorization') String token, @Body() var data);
+
+  @Post(path: '/user/remove_chat_room')
+  Future<Response> deleteChatRoom(@Header('Authorization') String token, @Body() var data);
+
+
 
   /* GET Requests */
 

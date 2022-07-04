@@ -16,7 +16,7 @@ import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_mo
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
-import 'package:uny_app/User%20Profile%20Page/other_users_page.dart';
+import 'package:uny_app/Other%20Users%20Page/other_users_page.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
 
 class PhotoSearchPage extends StatefulWidget{
@@ -227,19 +227,10 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
 
         return GestureDetector(
           onTap: () async {
-
-            var data = {
-              'user_id' : matchedUser.id
-            };
-
-            await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).startChat(token, data).whenComplete((){
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Перейдите в раздел сообщения', style: TextStyle(fontWeight: FontWeight.bold))));
-            });
-
-            //  Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => OtherUsersPage(user: matchedUser))
-            // );
+             Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OtherUsersPage(user: matchedUser))
+            );
           },
           child: Stack(
             children: [
@@ -524,27 +515,32 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                   widthFactor: 1.12,
                   child: ClipRRect(
                     borderRadius: BorderRadius.all(Radius.circular(20)),
-                    child: Container(
-                      width: 400,
-                      height: 60,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
-                          SizedBox(width: 5),
-                          Text('Отправить подарок', style: TextStyle(
-                              color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
-                        ],
+                    child: GestureDetector(
+                      onTap: () async {
+
+                      },
+                      child: Container(
+                        width: 400,
+                        height: 60,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
+                            SizedBox(width: 5),
+                            Text('Отправить подарок', style: TextStyle(
+                                color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
+                          ],
+                        ),
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: [
+                                  Color.fromRGBO(255, 0, 92, 10),
+                                  Color.fromRGBO(255, 172, 47, 10),
+                                ]
+                            )
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                              colors: [
-                                Color.fromRGBO(255, 0, 92, 10),
-                                Color.fromRGBO(255, 172, 47, 10),
-                              ]
-                          )
-                      ),
-                    ),
+                    )
                   ),
                 ),
               ),

@@ -237,6 +237,32 @@ class _$UnyAPI extends UnyAPI {
   }
 
   @override
+  Future<Response<Message>> clearChat(String token, dynamic data) {
+    final $url = '/user/remove_chat_room_messages';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<Message, Message>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> deleteChatRoom(String token, dynamic data) {
+    final $url = '/user/remove_chat_room';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
   Future<Response<dynamic>> getInterests(String token) {
     final $url = '/user/get_interests';
     final $headers = {

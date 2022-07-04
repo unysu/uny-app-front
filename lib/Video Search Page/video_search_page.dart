@@ -1,9 +1,11 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -16,6 +18,7 @@ import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
+import 'package:uny_app/Other%20Users%20Page/other_users_page.dart';
 import 'package:uny_app/Video%20Search%20Page/filter_interests_page.dart';
 import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
 import 'package:video_player/video_player.dart';
@@ -526,7 +529,14 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                               );
                             },
                             child: InkWell(
-                                onTap: () => null,
+                                onTap: (){
+                                  Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) => OtherUsersPage(user: _usersWithVideo![index])
+                                    )
+                                  );
+                                },
                                 child: Stack(
                                   children: [
                                     Container(
@@ -1402,8 +1412,10 @@ class _VideoPlayerState extends State<VideoPlayerWidget>{
         }
 
         if(snapshot.connectionState == ConnectionState.done){
+
           controller!.setLooping(true);
           controller!.play();
+
           return GestureDetector(
             onTap: (){
               if(controller!.value.isPlaying){

@@ -443,7 +443,7 @@ class ZodiacSigns {
     var days = date.day;
     var months = date.month;
 
-    if (months == 1) {
+    if (months ==  1) {
       if (days >= 21) {
         return _getVodoleiSign(pst);
       }else {

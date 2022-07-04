@@ -482,7 +482,7 @@ class _SettingsPageState extends State<SettingsPage>{
             title: Text(
               'Вы уверены, что хотите выйти?',
               maxLines: 2,
-              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13),
             ),
             actions: [
               TextButton(

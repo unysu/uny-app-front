@@ -19,6 +19,8 @@ class FilterInterestsVideoPage extends StatefulWidget{
 
 
 class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
+
+  TextEditingController _searchController = TextEditingController();
   
   ScrollController? _allInterestsScrollController;
   ScrollController? _careerInterestsScrollController;
@@ -173,6 +175,8 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
     ShPreferences.setAllInterests(_selectedAllInterests);
 
+    _searchController.dispose();
+
     super.dispose();
   }
 
@@ -199,6 +203,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                 height: height / 23,
                 padding: EdgeInsets.only(right: width / 20),
                 child: TextFormField(
+                  controller: _searchController,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
@@ -664,7 +669,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                       Provider.of<InterestsCounterProvider>(context, listen: false).incrementCounter();
 
-                                      setState(() {});
+                                      setState(() {
+                                        _isSearching = false;
+                                        _searchController.clear();
+                                      });
                                     },
                                     borderRadius: BorderRadius.all(Radius.circular(30)),
                                     child: Container(
@@ -755,7 +763,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                       Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
-                                      setState(() {});
+                                      setState(() {
+                                        _isSearching = false;
+                                        _searchController.clear();
+                                      });
                                     },
                                     borderRadius: BorderRadius.all(Radius.circular(30)),
                                     child: Container(
@@ -848,7 +859,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                           Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -940,7 +954,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                           Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -1033,7 +1050,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                           Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -1126,7 +1146,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
                                           Provider.of<InterestsCounterProvider>(context,listen: false).incrementCounter();
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -1309,13 +1332,11 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-
-                              int indx = _familyInterestsList!.indexOf(_selectedFamilyInterests![index]);
-                              _familyFilteredList!.insert(indx, _selectedFamilyInterests![index]);
-
-                              _selectedAllInterests!.remove(_selectedFamilyInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedFamilyInterests![index].name.toString()));
 
                               _selectedFamilyInterests!.removeAt(index);
+
+                              _familyFilteredList = List.from(_familyInterestsList!.toList());
 
                               Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 
@@ -1376,12 +1397,11 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _careerInterestsList!.indexOf(_selectedCareerInterests![index]);
-                              _careerFilteredList!.insert(indx, _selectedCareerInterests![index]);
-
-                              _selectedAllInterests!.remove(_selectedCareerInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedCareerInterests![index].name.toString()));
 
                               _selectedCareerInterests!.removeAt(index);
+
+                              _careerFilteredList = List.from(_careerInterestsList!.toList());
 
                               Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 
@@ -1442,12 +1462,11 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _sportInterestsList!.indexOf(_selectedSportInterests![index]);
-                              _sportFilteredList!.insert(indx, _selectedSportInterests![index]);
-
-                              _selectedAllInterests!.remove(_selectedSportInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedSportInterests![index].name.toString()));
 
                               _selectedSportInterests!.removeAt(index);
+
+                              _sportFilteredList = List.from(_sportInterestsList!.toList());
 
                               Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 
@@ -1508,12 +1527,11 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _travelingInterestsList!.indexOf(_selectedTravelingInterests![index]);
-                              _travelingFilteredList!.insert(indx, _selectedTravelingInterests![index]);
-
-                              _selectedAllInterests!.remove(_selectedTravelingInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedTravelingInterests![index].name.toString()));
 
                               _selectedTravelingInterests!.removeAt(index);
+
+                              _travelingFilteredList = List.from(_travelingInterestsList!.toList());
 
                               Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 
@@ -1574,12 +1592,11 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                           child: IconButton(
                             icon: const Icon(CupertinoIcons.clear_circled, color: Colors.white),
                             onPressed: (){
-                              int indx = _generalInterestsList!.indexOf(_selectedGeneralInterests![index]);
-                              _generalFilteredList!.insert(indx, _selectedGeneralInterests![index]);
-
-                              _selectedAllInterests!.remove(_selectedGeneralInterests![index]);
+                              _selectedAllInterests!.removeWhere((element) => element.name.toString().startsWith(_selectedGeneralInterests![index].name.toString()));
 
                               _selectedGeneralInterests!.removeAt(index);
+
+                              _generalFilteredList = List.from(_generalInterestsList!.toList());
 
                               Provider.of<InterestsCounterProvider>(context,listen: false).decrementCounter();
 

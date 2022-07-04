@@ -38,6 +38,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   TabController? _tabController;
   PageController? _pageViewController;
 
+  TextEditingController _searchController = TextEditingController();
+
   ScrollController? _allInterestsScrollController;
   ScrollController? _careerInterestsScrollController;
   ScrollController? _travelingInterestsScrollController;
@@ -237,6 +239,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     _travelingInterestsScrollController!.dispose();
     _generalInterestsScrollController!.dispose();
     _pageViewController!.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -262,6 +265,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   padding: EdgeInsets.only(right: width / 20),
                   child: TextFormField(
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                    controller: _searchController,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.only(bottom: height / 50),
@@ -820,7 +824,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
                                       _allInterestsFilteredList!.removeAt(index);
 
-                                      setState(() {});
+                                      setState(() {
+                                        _isSearching = false;
+                                        _searchController.clear();
+                                      });
                                     },
                                     borderRadius: BorderRadius.all(Radius.circular(30)),
                                     child: Container(
@@ -905,7 +912,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
                                       _familyFilteredList!.removeAt(index);
 
-                                      setState(() {});
+                                      setState(() {
+                                        _isSearching = false;
+                                        _searchController.clear();
+                                      });
                                     },
                                     borderRadius: BorderRadius.all(Radius.circular(30)),
                                     child: Container(
@@ -992,7 +1002,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
                                           _careerFilteredList!.removeAt(index);
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -1078,7 +1091,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
                                           _sportFilteredList!.removeAt(index);
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -1165,7 +1181,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
                                           _travelingFilteredList!.removeAt(index);
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(
@@ -1252,7 +1271,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
                                           _generalFilteredList!.removeAt(index);
 
-                                          setState((){});
+                                          setState(() {
+                                            _isSearching = false;
+                                            _searchController.clear();
+                                          });
                                         },
                                         borderRadius: BorderRadius.all(Radius.circular(30)),
                                         child: Container(

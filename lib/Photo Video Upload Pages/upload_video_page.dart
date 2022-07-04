@@ -71,7 +71,6 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
     );
   }
 
-
   Widget mainBody(){
     return Column(
       children: [
