@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:random_color/random_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_page.dart';
+import 'package:uny_app/Firebase/firebase_options.dart';
 import 'package:uny_app/Interests%20Database/Database/database_object.dart';
 import 'package:uny_app/Interests%20Database/interests_database.dart';
 import 'package:uny_app/Interests%20Model/family_interests.dart';
@@ -15,7 +18,6 @@ import 'package:uny_app/Interests%20Model/general_interests.dart';
 import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
-import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
 import 'package:uny_app/Providers/chat_counter_provider.dart';
 import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
@@ -31,6 +33,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ShPreferences.init();
   await TokenData.init();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<InterestsCounterProvider>(
@@ -131,6 +134,23 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             context,
             MaterialPageRoute(builder: (context) => AuthorizationPage())
         );
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(UniversalPlatform.isIOS){
+        FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+        await messaging.requestPermission(
+          alert: true,
+          announcement: false,
+          badge: true,
+          carPlay: false,
+          criticalAlert: false,
+          provisional: false,
+          sound: true,
+        );
+
       }
     });
   }

@@ -6,18 +6,27 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_model.dart';
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
+import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/Other%20Users%20Page/other_users_page.dart';
+import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
+
+import '../Video Search Page/filter_interests_page.dart';
 
 class PhotoSearchPage extends StatefulWidget{
 
@@ -32,17 +41,34 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
   late double height;
   late double width;
 
+  late FocusNode _startAgeFieldFocusNode;
+  late FocusNode _endAgeFieldFocusNode;
+
+  late TextEditingController _startAgeFieldTextController;
+  late TextEditingController _endAgeFieldTextController;
+
   StateSetter? _indicatorsState;
 
+  bool _usersLoaded = false;
   bool _isSearching = false;
 
   Future<Response<PhotoSearchDataModel>>? _photoSearchFuture;
 
   List<Matches>? _matchedUsersList;
+  List<Matches>? _secondaryUsersList;
 
   List<int>? _photosIndexes;
 
-  int? _upperUsersCount;
+  bool _isManSelected = false;
+  bool _isWomanSelected = false;
+  bool _isAnotherSelected = false;
+
+  bool _isSmaller18StartAgeField = false;
+  bool _isGreater100StartAgeField = false;
+
+  bool _isSmaller18EndAgeField = false;
+  bool _isGreater100EndAgeField = false;
+
 
   @override
   void initState(){
@@ -54,7 +80,31 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
 
     _photoSearchFuture = UnyAPI.create(Constants.PHOTO_SEARCH_MODEL_CONVERTER).getUserPhotoSearch(token, data);
 
+    _startAgeFieldFocusNode = FocusNode();
+    _endAgeFieldFocusNode = FocusNode();
+
+    _startAgeFieldTextController = TextEditingController();
+    _endAgeFieldTextController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _photoSearchFuture!.whenComplete((){
+        _usersLoaded = true;
+        setState((){});
+      });
+    });
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _startAgeFieldFocusNode.dispose();
+    _endAgeFieldFocusNode.dispose();
+
+    _startAgeFieldTextController.dispose();
+    _endAgeFieldTextController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -120,6 +170,127 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                 child: Column(
                   children: [
                     Container(
+                      height: _usersLoaded ? 80 : 0,
+                      padding: EdgeInsets.only(left: 10, bottom: 10),
+                      child: _usersLoaded ? GridView.count(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 15,
+                        shrinkWrap: true,
+                        scrollDirection: Axis.horizontal,
+                        children: List.generate(_secondaryUsersList!.length, (index){
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(builder: (context) => OtherUsersPage(user: _secondaryUsersList![index]))
+                              );
+                            },
+                            child: Stack(
+                              children: [
+                                ClipOval(
+                                  child: Container(
+                                      child: _secondaryUsersList![index].media!.mainPhoto != null ? CachedNetworkImage(
+                                        imageUrl: _secondaryUsersList![index].media!.mainPhoto!.url,
+                                        imageBuilder: (context, imageProvider) => Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.white.withOpacity(0.4),
+                                                spreadRadius: 10,
+                                                blurRadius: 7,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        placeholder: (context, url) => Shimmer.fromColors(
+                                          baseColor: Colors.grey[300]!,
+                                          highlightColor: Colors.white,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: Colors.grey,
+                                                shape: BoxShape.circle
+                                            ),
+                                          ),
+                                        ),
+                                      ) : ClipOval(
+                                        child: Container(
+                                          child: Center(
+                                            child: Icon(Icons.account_circle_rounded, size: 75, color: Colors.grey),
+                                          ),
+                                          decoration: BoxDecoration(
+                                              shape: BoxShape.circle
+                                          ),
+                                        ),
+                                      )
+                                  ),
+                                ),
+                                _secondaryUsersList![index].media!.mainPhoto != null ? Positioned(
+                                    child: ClipOval(
+                                      child: Container(
+                                        height: 70,
+                                        width: 70,
+                                        child: SimpleCircularProgressBar(
+                                          valueNotifier: ValueNotifier(double.parse(_secondaryUsersList![index].matchPercent.toString())),
+                                          backColor: Colors.grey[300]!,
+                                          animationDuration: 0,
+                                          backStrokeWidth: 10,
+                                          progressStrokeWidth: 10,
+                                          startAngle: 187,
+                                          progressColors: [
+                                            Colors.red,
+                                            Colors.yellowAccent,
+                                            Colors.green
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                ) : Positioned(
+                                    left: 2,
+                                    top: 2,
+                                    child: ClipOval(
+                                      child: Container(
+                                        height: 70,
+                                        width: 70,
+                                        child: SimpleCircularProgressBar(
+                                          valueNotifier: ValueNotifier(double.parse(_secondaryUsersList![index].matchPercent.toString())),
+                                          backColor: Colors.grey[300]!,
+                                          animationDuration: 0,
+                                          backStrokeWidth: 10,
+                                          progressStrokeWidth: 10,
+                                          startAngle: 187,
+                                          progressColors: [
+                                            Colors.red,
+                                            Colors.yellowAccent,
+                                            Colors.green
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  left: 12,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 6),
+                                    child: Text('${_secondaryUsersList![index].matchPercent} %', style: TextStyle(
+                                        color: Colors.white)),
+                                    decoration: BoxDecoration(
+                                      color: _secondaryUsersList![index].matchPercent < 49 ? Colors.red
+                                          : (_secondaryUsersList![index].matchPercent > 49 && _secondaryUsersList![index].matchPercent < 65)
+                                          ? Colors.orange : (_secondaryUsersList![index].matchPercent > 65) ? Colors.green : null,
+                                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ) : Container(),
+                    ),
+                    Container(
                       padding: EdgeInsets.only(left: 10, right: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,8 +306,54 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                 children: [
                                   SvgPicture.asset('assets/settings.svg'),
                                   SizedBox(width: 5),
-                                  Text('Фильтры', style: TextStyle(
-                                      color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))
+                                  GestureDetector(
+                                      onTap: () {
+                                        if (UniversalPlatform.isIOS) {
+                                          showCupertinoModalBottomSheet(
+                                              context: context,
+                                              duration: Duration(milliseconds: 250),
+                                              topRadius: Radius.circular(25),
+                                              builder: (context) {
+                                                return DraggableScrollableSheet(
+                                                  initialChildSize: _startAgeFieldFocusNode.hasFocus || _endAgeFieldFocusNode.hasFocus ? 0.9 : 0.6,
+                                                  maxChildSize: 1,
+                                                  minChildSize: 0.6,
+                                                  expand: false,
+                                                  builder: (context, scrollController) {
+                                                    return SingleChildScrollView(
+                                                        controller: scrollController,
+                                                        physics: ClampingScrollPhysics(),
+                                                        child: showSearchFilterOptions()
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        } else if (UniversalPlatform.isAndroid) {
+                                          showCupertinoModalBottomSheet(
+                                              context: context,
+                                              duration: Duration(milliseconds: 250),
+                                              builder: (context) {
+                                                return DraggableScrollableSheet(
+                                                  initialChildSize: _startAgeFieldFocusNode.hasFocus || _endAgeFieldFocusNode.hasFocus ? 0.9 : 0.6,
+                                                  maxChildSize: 1,
+                                                  minChildSize: 0.6,
+                                                  expand: false,
+                                                  builder: (context, scrollController) {
+                                                    return SingleChildScrollView(
+                                                        controller: scrollController,
+                                                        physics: ClampingScrollPhysics(),
+                                                        child: showSearchFilterOptions()
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        }
+                                      },
+                                    child: Text('Фильтры', style: TextStyle(
+                                        color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  )
                                 ],
                               ),
                               decoration: BoxDecoration(
@@ -187,12 +404,14 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
           _matchedUsersList = snapshot.data!.body!.matches;
+          _secondaryUsersList = List.from(_matchedUsersList!.toList());
+
+          _secondaryUsersList!.sort((a,b) => int.parse(b.matchPercent.toString()).compareTo(int.parse(a.matchPercent.toString())));
 
           _photosIndexes = List<int>.generate(_matchedUsersList!.length, (index){
             return 1;
           });
 
-          _upperUsersCount = ((_matchedUsersList!.length * 10) / 100).ceil();
 
           return Padding(
             padding: EdgeInsets.only(bottom: 95),
@@ -217,6 +436,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
       shrinkWrap: true,
       itemCount: _matchedUsersList!.length,
       itemBuilder: (context, index) {
+
         Matches matchedUser = _matchedUsersList![index];
 
         int year = int.parse(matchedUser.dateOfBirth.toString().split('-')[0]);
@@ -226,7 +446,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
         DateTime birthDay = DateTime(year, month, day);
 
         return GestureDetector(
-          onTap: () async {
+          onTap: () {
              Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => OtherUsersPage(user: matchedUser))
@@ -372,7 +592,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                           animationDuration: 0,
                           backStrokeWidth: 10,
                           progressStrokeWidth: 10,
-                          startAngle: 200,
+                          startAngle: 187,
                           progressColors: [
                             Colors.red,
                             Colors.yellowAccent,
@@ -463,51 +683,47 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                   child: Container(
                     height: 100,
                     width: width,
-                    child: SingleChildScrollView(
+                    child: MasonryGridView.count(
+                        padding: EdgeInsets.only(left: 10, bottom: 10),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 7,
+                        mainAxisSpacing: 9,
                         scrollDirection: Axis.horizontal,
-                        child: Container(
-                            padding: EdgeInsets.only(left: 10, bottom: 5),
-                            width: width * 3,
-                            child: Wrap(
-                                spacing: 7.0,
-                                runSpacing: 9.0,
-                                direction: Axis.horizontal,
-                                children: List.generate(matchedUser.interests!.length, (index) {
-                                  InterestsDataModel _interests = matchedUser.interests![index];
-                                  return Material(
-                                    child: InkWell(
-                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                        child: Container(
-                                          height: 40,
-                                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                                          child: Center(
-                                            widthFactor: 1,
-                                            child: Text(
-                                              _interests.interest!,
-                                              style: const TextStyle(color: Colors.white),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                          decoration: BoxDecoration(
-                                              borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _interests.color!)),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                    color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
-                                                    offset: const Offset(3, 3),
-                                                    blurRadius: 0,
-                                                    spreadRadius: 0
-                                                )
-                                              ]
-                                          ),
-                                        )
+                        itemCount: matchedUser.interests!.length,
+                        itemBuilder: (context, index){
+                          InterestsDataModel _interests = matchedUser.interests![index];
+                          return Material(
+                            child: InkWell(
+                                borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                child: Container(
+                                  height: 40,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Center(
+                                    widthFactor: 1,
+                                    child: Text(
+                                      _interests.interest!,
+                                      style: const TextStyle(color: Colors.white),
+                                      textAlign: TextAlign.center,
                                     ),
-                                  );
-                                })
-                            )
-                        )
+                                  ),
+                                  decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                      color: Color(int.parse('0x' + _interests.color!)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
+                                            offset: const Offset(3, 3),
+                                            blurRadius: 0,
+                                            spreadRadius: 0
+                                        )
+                                      ]
+                                  ),
+                                )
+                            ),
+                          );
+                        }
                     ),
-                  )
+                  ),
               ),
               Positioned(
                 bottom: 0,
@@ -580,6 +796,384 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget showSearchFilterOptions() {
+    return StatefulBuilder(
+      builder: (context1, setState) {
+        return Material(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+            child: GestureDetector(
+                child: Container(
+                  height: height,
+                  padding: EdgeInsets.symmetric(horizontal: width / 30),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 5),
+                      Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            TextButton(
+                              onPressed: (){
+                                ShPreferences.clear();
+                                setState((){
+                                  Provider.of<InterestsCounterProvider>(context,listen: false).resetCounter();
+
+                                  _isManSelected = false;
+                                  _isWomanSelected = false;
+                                  _isAnotherSelected = false;
+                                });
+
+                                _startAgeFieldTextController.clear();
+                                _endAgeFieldTextController.clear();
+                              },
+                              child: Text(
+                                'Сбросить',
+                                style: TextStyle(fontSize: 16, color: Color.fromRGBO(145, 10, 251, 5)),
+                              ),
+                            ),
+                            SizedBox(width: 20),
+                            Text('Фильтры', style:
+                            TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                            SizedBox(width: 50),
+                            IconButton(
+                              icon: Icon(CupertinoIcons.clear_thick_circled),
+                              color: Colors.grey.withOpacity(0.5),
+                              onPressed: () => Navigator.pop(context),
+                            )
+                          ],
+                        ),
+                      ),
+                      Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 20),
+                            Text(
+                              'Интересы',
+                              style: TextStyle(fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                            ),
+                            SizedBox(height: 10),
+                            TextFormField(
+                              cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                              style: TextStyle(color: Colors.black),
+                              textInputAction: TextInputAction.done,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                fillColor: Colors.grey.withOpacity(0.3),
+                                filled: true,
+                                prefixIcon: Row(
+                                  children: [
+                                    SvgPicture.asset('assets/filter_prefix_icon.svg'),
+                                    Text(
+                                      'Выбрать интересы',
+                                      style: TextStyle(
+                                          fontSize: 17, color: Colors.black),
+                                    )
+                                  ],
+                                ),
+                                suffixIcon: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      height: 20,
+                                      width: 20,
+                                      child: Center(
+                                          child: Consumer<InterestsCounterProvider>(
+                                            builder: (providerContext, viewModel, child){
+                                              return Text(
+                                                '${viewModel.counter}',
+                                                style: TextStyle(color: Colors.white),
+                                              );
+                                            },
+                                          )
+                                      ),
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Color.fromRGBO(255, 83, 155, 5),
+                                                Color.fromRGBO(237, 48, 48, 5)
+                                              ]
+                                          )
+                                      ),
+                                    ),
+                                    SizedBox(width: 5),
+                                    Icon(CupertinoIcons.forward, color: Colors.grey),
+                                    SizedBox(width: 10)
+                                  ],
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.grey.withOpacity(0.5)),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              onTap: () async {
+                                await Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) => FilterInterestsVideoPage()
+                                    )
+                                );
+                              },
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              'Возраст',
+                              style: TextStyle(fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: TextFormField(
+                                    controller: _startAgeFieldTextController,
+                                    cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                                    style: TextStyle(color: Colors.black),
+                                    textInputAction: TextInputAction.done,
+                                    focusNode: _startAgeFieldFocusNode,
+                                    maxLength: 2,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                    decoration: InputDecoration(
+                                      hintText: 'От 18',
+                                      counterText: "",
+                                      fillColor: Colors.grey.withOpacity(0.3),
+                                      filled: true,
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: _isSmaller18StartAgeField || _isGreater100StartAgeField ? Colors.red : Colors.white),
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: _isSmaller18StartAgeField || _isGreater100StartAgeField ? Colors.red : Colors.grey.withOpacity(0.5)),
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                    ),
+                                    onChanged: (value){
+                                      if(int.parse(value) < 18){
+                                        setState((){
+                                          _isSmaller18StartAgeField = true;
+                                        });
+                                      }else if(int.parse(value) > 100){
+                                        setState((){
+                                          _isGreater100StartAgeField = true;
+                                        });
+                                      }else{
+                                        setState((){
+                                          _isSmaller18StartAgeField = false;
+                                          _isGreater100StartAgeField = false;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: width / 80),
+                                Flexible(
+                                  child: TextFormField(
+                                    controller: _endAgeFieldTextController,
+                                    cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                                    style: TextStyle(color: Colors.black),
+                                    textInputAction: TextInputAction.done,
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 2,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    focusNode: _endAgeFieldFocusNode,
+                                    decoration: InputDecoration(
+                                      hintText: 'До 35',
+                                      counterText: "",
+                                      fillColor: Colors.grey.withOpacity(0.3),
+                                      filled: true,
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: _isSmaller18EndAgeField || _isGreater100EndAgeField ? Colors.red : Colors.white),
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: _isSmaller18EndAgeField || _isGreater100EndAgeField ? Colors.red : Colors.grey.withOpacity(0.5)),
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                    ),
+                                    onChanged: (value){
+                                      if(int.parse(value) < 18){
+                                        setState((){
+                                          _isSmaller18EndAgeField = true;
+                                        });
+                                      }else if(int.parse(value) > 100){
+                                        setState((){
+                                          _isGreater100EndAgeField = true;
+                                        });
+                                      }else{
+                                        setState((){
+                                          _isSmaller18EndAgeField = false;
+                                          _isGreater100EndAgeField = false;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              'Пол',
+                              style: TextStyle(fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _isManSelected = !_isManSelected;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                                  child: Container(
+                                    height: 35,
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
+                                    child: Center(child: Text('Мужчина',
+                                        style: TextStyle(fontSize: 15,
+                                            color: _isManSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontWeight: FontWeight.bold))),
+                                    decoration: BoxDecoration(
+                                        color: _isManSelected ? Color.fromRGBO(
+                                            145, 10, 251, 5) : Colors.grey
+                                            .withOpacity(0.2),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(8)),
+                                        border: Border.all(
+                                            color: _isManSelected ? Color.fromRGBO(
+                                                145, 10, 251, 5) : Colors.grey
+                                                .withOpacity(0.2)
+                                        )
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _isWomanSelected = !_isWomanSelected;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                                  child: Container(
+                                    height: 35,
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
+                                    child: Center(child: Text('Женщина',
+                                        style: TextStyle(fontSize: 15,
+                                            color: _isWomanSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontWeight: FontWeight.bold))),
+                                    decoration: BoxDecoration(
+                                        color: _isWomanSelected ? Color.fromRGBO(
+                                            145, 10, 251, 5) : Colors.grey
+                                            .withOpacity(0.2),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(8)),
+                                        border: Border.all(
+                                            color: _isWomanSelected ? Color.fromRGBO(
+                                                145, 10, 251, 5) : Colors.grey
+                                                .withOpacity(0.2)
+                                        )
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _isAnotherSelected = !_isAnotherSelected;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                                  child: Container(
+                                    height: 35,
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
+                                    child: Center(child: Text('Другое',
+                                        style: TextStyle(fontSize: 15,
+                                            color: _isAnotherSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontWeight: FontWeight.bold))),
+                                    decoration: BoxDecoration(
+                                        color: _isAnotherSelected ? Color.fromRGBO(
+                                            145, 10, 251, 5) : Colors.grey
+                                            .withOpacity(0.2),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(8)),
+                                        border: Border.all(
+                                            color: Colors.grey.withOpacity(0.2)
+                                        )
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: height / 20),
+                            InkWell(
+                              onTap: _isSmaller18StartAgeField
+                                  || _isSmaller18EndAgeField
+                                  || _isGreater100StartAgeField
+                                  || _isGreater100EndAgeField ? null : () => null,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.all(Radius.circular(15)),
+                                child: Container(
+                                    width: 400,
+                                    height: 50,
+                                    color: _isSmaller18StartAgeField
+                                        || _isSmaller18EndAgeField
+                                        || _isGreater100StartAgeField
+                                        || _isGreater100EndAgeField ? Colors.grey : Color.fromRGBO(145, 10, 251, 5),
+                                    child: Center(
+                                      child: Text(
+                                          'Показать результаты', style: TextStyle(
+                                          color: Colors.white, fontSize: 17)),
+                                    )
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                onTap: (){
+                  if(_startAgeFieldFocusNode.hasFocus){
+                    _startAgeFieldFocusNode.unfocus();
+                  }else if(_endAgeFieldFocusNode.hasFocus){
+                    _endAgeFieldFocusNode.unfocus();
+                  }
+                }
+            )
         );
       },
     );

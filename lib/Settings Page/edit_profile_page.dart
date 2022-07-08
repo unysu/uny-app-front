@@ -517,6 +517,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _companyNameTextController,
                   textInputAction: TextInputAction.done,
+                  textCapitalization: TextCapitalization.sentences,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
@@ -545,6 +546,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: _positionTextController,
                   textInputAction: TextInputAction.done,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                  textCapitalization: TextCapitalization.sentences,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
                   ],

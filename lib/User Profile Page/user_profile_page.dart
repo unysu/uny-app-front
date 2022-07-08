@@ -8,6 +8,7 @@ import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -105,15 +106,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
       initialPage: _bottomNavBarIndex
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // var data = {
-      //   'limit' : 100
-      // };
-      //
-      // await UnyAPI.create(Constants.ALL_MESSAGES_MODEL_CONVERTER).getAllChats(token, data).then((value){
-      //   Provider.of<ChatsDataProvider>(context, listen: false).setAllRooms(value.body!.chats!);
-      // });
-    });
 
     super.initState();
   }
@@ -140,6 +132,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
            Scaffold(
              resizeToAvoidBottomInset: false,
              extendBodyBehindAppBar: true,
+             extendBody: false,
              appBar: AppBar(
                elevation: 0,
                automaticallyImplyLeading: false,
@@ -288,7 +281,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         bottomLeft: Radius.circular(20)
                     ),
                     child: Container(
-                        height: height / 4.8,
+                        height: 180,
                         decoration: BoxDecoration(
                             gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -307,7 +300,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               Consumer<UserDataProvider>(
                                 builder: (context, viewModel, child){
                                   return  Container(
-                                    height: height / 9,
+                                    margin: EdgeInsets.symmetric(vertical: 25),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -316,15 +309,17 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                           width: 150,
                                           child: Text('${viewModel.userDataModel!.firstName} ${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 2)
                                         ),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            viewModel.userDataModel!.job != null
-                                                ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container(),
-                                            SizedBox(height: 5),
-                                            viewModel.userDataModel!.jobCompany != null
-                                                ? Text(viewModel.userDataModel!.jobCompany, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
-                                          ],
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              viewModel.userDataModel!.job != null
+                                                  ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container(),
+                                              SizedBox(height: 5),
+                                              viewModel.userDataModel!.jobCompany != null
+                                                  ? Text(viewModel.userDataModel!.jobCompany, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
+                                            ],
+                                          ),
                                         )
                                       ],
                                     ),
@@ -446,53 +441,51 @@ class _UserProfilePageState extends State<UserProfilePage>{
               ),
               SizedBox(height: 10),
               Container(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Container(
-                    padding: EdgeInsets.only(left: 10, bottom: 5),
-                    width: width * 2,
-                    child: Consumer<UserDataProvider>(
-                      builder: (context, viewModel, child){
-                        _interests = viewModel.interestsDataModel;
-                        return Wrap(
-                            spacing: 7.0,
-                            runSpacing: 9.0,
-                            children: List.generate(_interests!.length, (index) {
-                              return Material(
-                                child: InkWell(
-                                    borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                    child: Container(
-                                      height: 40,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                                      child: Center(
-                                        widthFactor: 1,
-                                        child: Text(
-                                          _interests![index].interest!,
-                                          style: const TextStyle(color: Colors.white),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                          color: Color(int.parse('0x' + _interests![index].color!)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: Color(int.parse('0x' + _interests![index].color!)).withOpacity(0.7),
-                                                offset: const Offset(3, 3),
-                                                blurRadius: 0,
-                                                spreadRadius: 0
-                                            )
-                                          ]
-                                      ),
-                                    )
-                                ),
-                              );
-                            })
-                        );
-                      },
-                    )
-                  )
-                )
+                height: 100,
+                padding: EdgeInsets.only(left: 10),
+                child: Consumer<UserDataProvider>(
+                  builder: (context, viewModel, child){
+                    return MasonryGridView.count(
+                        padding: EdgeInsets.only(bottom: 10),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 7,
+                        mainAxisSpacing: 9,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _interests!.length,
+                        itemBuilder: (context, index){
+                          return Material(
+                            child: InkWell(
+                                borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                child: Container(
+                                  height: 40,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Center(
+                                    widthFactor: 1,
+                                    child: Text(
+                                      _interests![index].interest!,
+                                      style: const TextStyle(color: Colors.white),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                      color: Color(int.parse('0x' + _interests![index].color!)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Color(int.parse('0x' + _interests![index].color!)).withOpacity(0.7),
+                                            offset: const Offset(3, 3),
+                                            blurRadius: 0,
+                                            spreadRadius: 0
+                                        )
+                                      ]
+                                  ),
+                                )
+                            ),
+                          );
+                        }
+                    );
+                  },
+                ),
               )
             ],
           ),

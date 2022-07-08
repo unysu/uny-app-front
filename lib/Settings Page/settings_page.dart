@@ -203,8 +203,8 @@ class _SettingsPageState extends State<SettingsPage>{
                 },
               ),
               Positioned(
-                  top: height / 8,
-                  left: width / 1.7,
+                  bottom: 10,
+                  right: 165,
                   child: InkWell(
                     onTap: () {
                       if(UniversalPlatform.isIOS){

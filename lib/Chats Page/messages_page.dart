@@ -1,6 +1,7 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -91,11 +92,11 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
   Widget mainBody(){
     return Column(
       children: [
-        SizedBox(height: height / 15),
+        SizedBox(height: height * 0.07),
         StatefulBuilder(
           builder: (context, setState){
             return Container(
-              height: height / 20,
+              height: 50,
               padding: EdgeInsets.symmetric(horizontal: width / 20),
               child: TextFormField(
                 cursorColor: Color.fromRGBO(145, 10, 251, 5),
@@ -113,8 +114,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                           style: TextStyle(
                               fontSize: 17, color: Colors.grey))
                     ],
-                  )
-                      : null,
+                  ) : null,
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(30)),
                       borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
@@ -131,8 +131,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                 onChanged: (value){
 
                   _chatsFilteredList = _chatsList!.where((element) =>
-                  element.participants![0].firstName.toString().toLowerCase().contains(value.toLowerCase())
-                      || element.participants![0].lastName.toString().toLowerCase().contains(value.toLowerCase())
+                  element.participants![1].firstName.toString().toLowerCase().contains(value.toLowerCase())
+                      || element.participants![1].lastName.toString().toLowerCase().contains(value.toLowerCase())
                   ).toList();
 
                   _recentMessagesState!((){});
@@ -383,14 +383,14 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                       );
                     },
                     child: Container(
-                      height: height / 11,
+                      height: 90,
                       width: width,
                       child: Stack(
                         children: [
                           Row(
                             children: [
                               Container(
-                                  padding: EdgeInsets.only(top: 10, left: 10),
+                                  padding: EdgeInsets.only(top: 10, left: 10, bottom: 10),
                                   child: Center(
                                     child: Stack(
                                       alignment: Alignment.centerLeft,
@@ -400,8 +400,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                             child: Container(
                                               width: 52,
                                               height: 52,
-                                              child: _chatsFilteredList![index].participants![0].media!.mainPhoto != null ? CachedNetworkImage(
-                                                imageUrl: _chatsFilteredList![index].participants![0].media!.mainPhoto!.url,
+                                              child: _chatsFilteredList![index].participants![1].media!.mainPhoto != null ? CachedNetworkImage(
+                                                imageUrl: _chatsFilteredList![index].participants![1].media!.mainPhoto!.url,
                                                 imageBuilder: (context, imageProvider) => Container(
                                                   width: 52,
                                                   height: 52,
@@ -444,13 +444,12 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                             height: 60,
                                             width: 60,
                                             child: SimpleCircularProgressBar(
-                                              valueNotifier: ValueNotifier(double.parse(_chatsFilteredList![index].participants![0].matchPercent.toString())),
+                                              valueNotifier: ValueNotifier(double.parse(_chatsFilteredList![index].participants![1].matchPercent.toString())),
                                               backColor: Colors.grey[300]!,
                                               animationDuration: 0,
-                                              mergeMode: true,
                                               backStrokeWidth: 5,
                                               progressStrokeWidth: 5,
-                                              startAngle: 210,
+                                              startAngle: 187,
                                               progressColors: [
                                                 Colors.deepOrange,
                                                 Colors.yellowAccent,
@@ -469,13 +468,13 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                               padding: EdgeInsets.symmetric(horizontal: 3),
                                               child: Center(
                                                 widthFactor: 1,
-                                                child: Text('${_chatsFilteredList![index].participants![0].matchPercent.toString()} %', style: TextStyle(
+                                                child: Text('${_chatsFilteredList![index].participants![1].matchPercent.toString()} %', style: TextStyle(
                                                     color: Colors.white)),
                                               ),
                                               decoration: BoxDecoration(
-                                                color: _chatsFilteredList![index].participants![0].matchPercent < 49 ? Colors.red
-                                                    : (_chatsFilteredList![index].participants![0].matchPercent > 49 && _chatsFilteredList![index].participants![0].matchPercent < 65)
-                                                    ? Colors.orange : (_chatsFilteredList![index].participants![0].matchPercent > 65) ? Colors.green : null,
+                                                color: _chatsFilteredList![index].participants![1].matchPercent < 49 ? Colors.red
+                                                    : (_chatsFilteredList![index].participants![1].matchPercent > 49 && _chatsFilteredList![index].participants![1].matchPercent < 65)
+                                                    ? Colors.orange : (_chatsFilteredList![index].participants![1].matchPercent > 65) ? Colors.green : null,
                                                 borderRadius: BorderRadius.all(Radius.circular(20)),
                                               ),
                                             ),
@@ -495,7 +494,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                       children: [
                                         Container(
                                           width: width / 2,
-                                          child: Text(_chatsFilteredList![index].participants![0].firstName, style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          child: Text(_chatsFilteredList![index].participants![1].firstName, style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
                                         ),
                                         SizedBox(height: 5),
                                         Padding(

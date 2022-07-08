@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:uny_app/Data%20Models/Chats%20Data%20Model/all_chats_model.dart';
-import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 
@@ -25,10 +24,11 @@ class SocketSettings{
     _socketBroadcastStream = _channel!.stream.asBroadcastStream();
   }
 
+
   Stream? getStream() => _socketBroadcastStream;
 
-  void joinRoom(String chatRoomId){
-    var bytes = utf8.encode(chatRoomId);
+  void joinRoom(String participantId){
+    var bytes = utf8.encode(participantId);
     String idHash = sha256.convert(bytes).toString();
 
     var data = {
@@ -38,13 +38,49 @@ class SocketSettings{
     _channel!.sink.add(jsonEncode(data));
   }
 
-  void sendMessage(String chatRoomId, Message msg){
-    var bytes = utf8.encode(chatRoomId);
+  void sendMessage(String participantId, Message msg){
+    var bytes = utf8.encode(participantId);
     String idHash = sha256.convert(bytes).toString();
 
     var data = {
       'room' : idHash,
       'msg' : jsonEncode(msg)
+    };
+
+    _channel!.sink.add(jsonEncode(data));
+  }
+
+  void editMessage(String participantId, Message msg){
+    var bytes = utf8.encode(participantId);
+    String idHash = sha256.convert(bytes).toString();
+
+    var data = {
+      'room' : idHash,
+      'edited_message' : jsonEncode(msg)
+    };
+
+    _channel!.sink.add(jsonEncode(data));
+  }
+
+  void removeMessageForEveryone(String participantId, String id){
+    var bytes = utf8.encode(participantId);
+    String idHash = sha256.convert(bytes).toString();
+
+    var data = {
+      'room' : idHash,
+      'deleted_message_id' : id
+    };
+
+    _channel!.sink.add(jsonEncode(data));
+  }
+
+  void clearChat(String participantId, bool isChatCleared){
+    var bytes = utf8.encode(participantId);
+    String idHash = sha256.convert(bytes).toString();
+
+    var data = {
+      'room' : idHash,
+      'clear_chat' : isChatCleared
     };
 
     _channel!.sink.add(jsonEncode(data));

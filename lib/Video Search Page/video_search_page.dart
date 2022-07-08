@@ -1,17 +1,16 @@
-import 'dart:math';
 import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
@@ -33,6 +32,7 @@ class VideoSearchPage extends StatefulWidget {
 
 class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderStateMixin {
 
+
   PageController? _pageController;
 
   List<String>? _videoUrls = [];
@@ -40,7 +40,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
   AnimationController? controller;
   AnimationController? emojisAnimationController;
 
-  StateSetter? _videoPageState;
+  StateSetter? _reactionsState;
 
   Future<Response<PhotoSearchDataModel>>? _videoSearchFuture;
 
@@ -235,16 +235,17 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                   ),
                 ],
               ),
-              body: GestureDetector(
-                child: getMatches(),
-                onTap: () {
-                  if (_isReactionButtonTapped == false) {
-                    return;
-                  } else {
-
-                  }
-                },
-              ),
+              body: Container(
+                height: height,
+                child: GestureDetector(
+                  child: getMatches(),
+                  onTap: () {
+                    if (_isReactionButtonTapped == false) {
+                      return;
+                    }
+                  },
+                ),
+              )
           ),
           maxWidth: 800,
           minWidth: 450,
@@ -275,18 +276,21 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
         if(snapshot.connectionState == ConnectionState.done){
           _matchedUsersList = snapshot.data!.body!.matches;
 
-          _matchedUsersList!.forEach((matches) {
-            if(matches.media!.otherPhotosList != null){
-              matches.media!.otherPhotosList!.forEach((media) {
-                if(media.type.toString().startsWith('video')){
-                  _usersWithVideo!.add(matches);
+          final list = [];
+
+          for(int i = 0; i < _matchedUsersList!.length; i++){
+            if(_matchedUsersList![i].media!.otherPhotosList != null){
+              for(int j = 0; j < _matchedUsersList![i].media!.otherPhotosList!.length; j++){
+                if(_matchedUsersList![i].media!.otherPhotosList![j].type.toString().startsWith('video')){
+                  list.add(_matchedUsersList![i]);
+
+                  _usersWithVideo = [...{...list}];
                 }
-              });
+              }
             }
-          });
+          }
 
 
-          _usersWithVideo!.shuffle();
           for(int i = 0; i < _usersWithVideo!.length; ++i){
             _videoUrls!.add(_usersWithVideo![i].media!.otherPhotosList![0].url.toString());
           }
@@ -315,203 +319,206 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                 Container(
                     height: MediaQuery.of(context).size.height,
                     color: Colors.black,
-                    child: VideoPlayerWidget(
-                      url: _videoUrls![index],
-                    )
+                    child: VideoPlayerWidget(url: _videoUrls![index])
                 ),
-                Positioned(
-                  top: height / 4.5,
-                  width: 500,
-                  child: _isReactionButtonTapped ? TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: _begin, end: _end),
-                    duration: Duration(milliseconds: 250),
-                    curve: Curves.easeIn,
-                    builder: (_, value, __){
-                      return BackdropFilter(
-                        filter: ImageFilter.blur(
-                            sigmaX: value,
-                            sigmaY: value
-                        ),
-                        child: AnimatedSwitcher(
-                            duration: Duration(milliseconds: 400),
-                            transitionBuilder: (child, transition) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                    begin: Offset(0, 5),
-                                    end: Offset.zero
-                                ).animate(
-                                  CurvedAnimation(
-                                      parent: emojisAnimationController!,
-                                      curve: Curves.fastOutSlowIn),
-                                ),
-                                child: child,
-                              );
-                            },
-                            child: Container(
-                              height: height,
-                              child: Stack(
-                                clipBehavior: Clip.antiAlias,
-                                children: [
-                                  Positioned(
-                                    top: height / 2.7,
-                                    left: width / 2,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 5,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/angry.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
+                StatefulBuilder(
+                  builder: (context, setState){
+                    _reactionsState = setState;
+                    return Positioned(
+                      top: height / 4.5,
+                      width: 500,
+                      child: _isReactionButtonTapped ? TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: _begin, end: _end),
+                        duration: Duration(milliseconds: 250),
+                        curve: Curves.easeIn,
+                        builder: (_, value, __){
+                          return BackdropFilter(
+                            filter: ImageFilter.blur(
+                                sigmaX: value,
+                                sigmaY: value
+                            ),
+                            child: AnimatedSwitcher(
+                                duration: Duration(milliseconds: 400),
+                                transitionBuilder: (child, transition) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                        begin: Offset(0, 5),
+                                        end: Offset.zero
+                                    ).animate(
+                                      CurvedAnimation(
+                                          parent: emojisAnimationController!,
+                                          curve: Curves.fastOutSlowIn),
                                     ),
-                                  ),
-                                  Positioned(
-                                    top: height / 2.7,
-                                    left: width / 3.5,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 5,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/surprised.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: height / 4,
-                                    left: width / 2.46,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 6,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/wink.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: height / 4,
-                                    left: width / 7,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 4,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/happy.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: height / 4,
-                                    left: width / 1.7,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 4,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/fire.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: height / 7.5,
-                                    left: width / 3.9,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 4,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/loved.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: height / 7.3,
-                                    left: width / 2.1,
-                                    child: InkWell(
-                                      child: Container(
-                                        height: height / 12,
-                                        width: width / 4,
-                                        decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage('assets/crazy.png'),
-                                                fit: BoxFit.contain
-                                            )
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                      top: height / 2.1,
-                                      left: width / 3.8,
-                                      child: Text(
-                                        'Отправьте вашу реакцию',
-                                        style: TextStyle(fontSize: 17, color: Colors.white),
-                                      )
-                                  ),
-                                  Positioned(
-                                      top: height / 1.9,
-                                      left: width / 2.6,
-                                      child: InkWell(
-                                        onTap: (){
-                                          setState(() {
-                                            _isReactionButtonTapped = false;
-                                          });
-
-                                          controller!.reverse();
-                                          emojisAnimationController!.reverse();
-
-                                          animateBlur();
-                                        },
-                                        child: Container(
-                                          height: 40,
-                                          width: 100,
-                                          child: Center(
-                                            child: Text(
-                                              'Закрыть',
-                                              style: TextStyle(fontSize: 17, color: Colors.white),
+                                    child: child,
+                                  );
+                                },
+                                child: Container(
+                                  height: height,
+                                  child: Stack(
+                                    clipBehavior: Clip.antiAlias,
+                                    children: [
+                                      Positioned(
+                                        top: height / 2.7,
+                                        left: width / 2,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 5,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/angry.png'),
+                                                    fit: BoxFit.contain
+                                                )
                                             ),
                                           ),
-                                          decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.3),
-                                              borderRadius: BorderRadius.all(Radius.circular(20))
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 2.7,
+                                        left: width / 3.5,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 5,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/surprised.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
                                           ),
                                         ),
+                                      ),
+                                      Positioned(
+                                        top: height / 4,
+                                        left: width / 2.46,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 6,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/wink.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 4,
+                                        left: width / 7,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/happy.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 4,
+                                        left: width / 1.7,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/fire.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 7.5,
+                                        left: width / 3.9,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/loved.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 7.3,
+                                        left: width / 2.1,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/crazy.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                          top: height / 2.1,
+                                          left: width / 3.8,
+                                          child: Text(
+                                            'Отправьте вашу реакцию',
+                                            style: TextStyle(fontSize: 17, color: Colors.white),
+                                          )
+                                      ),
+                                      Positioned(
+                                          top: height / 1.9,
+                                          left: width / 2.6,
+                                          child: InkWell(
+                                            onTap: (){
+                                              setState(() {
+                                                _isReactionButtonTapped = false;
+                                              });
+
+                                              controller!.reverse();
+                                              emojisAnimationController!.reverse();
+
+                                              animateBlur();
+                                            },
+                                            child: Container(
+                                              height: 40,
+                                              width: 100,
+                                              child: Center(
+                                                child: Text(
+                                                  'Закрыть',
+                                                  style: TextStyle(fontSize: 17, color: Colors.white),
+                                                ),
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.3),
+                                                  borderRadius: BorderRadius.all(Radius.circular(20))
+                                              ),
+                                            ),
+                                          )
                                       )
-                                  )
-                                ],
-                              ),
-                            )
-                        ),
-                      );
-                    },
-                  ) : Container(),
+                                    ],
+                                  ),
+                                )
+                            ),
+                          );
+                        },
+                      ) : Container(),
+                    );
+                  },
                 ),
                 Positioned(
-                    top: height / 2.3,
+                    top: height / 2.5,
                     left: width / 1.21,
                     child: Column(
                       children: [
@@ -530,57 +537,114 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                             },
                             child: InkWell(
                                 onTap: (){
+
+                                  Provider.of<InterestsCounterProvider>(context, listen: false).setPlay(false);
+
                                   Navigator.push(
                                     context,
                                     CupertinoPageRoute(
                                       builder: (context) => OtherUsersPage(user: _usersWithVideo![index])
                                     )
-                                  );
+                                  ).whenComplete((){
+                                    Provider.of<InterestsCounterProvider>(context, listen: false).setPlay(true);
+                                  });
                                 },
                                 child: Stack(
+                                  clipBehavior: Clip.antiAlias,
                                   children: [
-                                    Container(
-                                      height: height / 14,
-                                      width: width / 8,
-                                      child: _usersWithVideo![index].media!.mainPhotosList != null ? CachedNetworkImage(
-                                        imageUrl: _usersWithVideo![index].media!.mainPhotosList![0].url,
-                                        imageBuilder: (context, imageProvider) => Container(
-                                          width: 100,
-                                          height: 100,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.white.withOpacity(0.4),
-                                                spreadRadius: 10,
-                                                blurRadius: 7,
+                                    ClipOval(
+                                      child: Container(
+                                        height: 60,
+                                        width: 60,
+                                        child: _usersWithVideo![index].media!.mainPhotosList != null ? CachedNetworkImage(
+                                          imageUrl: _usersWithVideo![index].media!.mainPhotosList![0].url,
+                                          imageBuilder: (context, imageProvider) => Container(
+                                            width: 100,
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                            ),
+                                          ),
+                                          placeholder: (context, url) => Shimmer.fromColors(
+                                            baseColor: Colors.grey[300]!,
+                                            highlightColor: Colors.white,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.grey,
                                               ),
+                                            ),
+                                          ),
+                                        ) : Container(
+                                          child: Icon(Icons.account_circle_rounded, size: 60, color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                    _usersWithVideo![index].media!.mainPhotosList == null ? Positioned(
+                                      top: 5,
+                                      left: 5,
+                                      child: ClipOval(
+                                        child: Container(
+                                          height: 50,
+                                          width: 50,
+                                          child: SimpleCircularProgressBar(
+                                            valueNotifier: ValueNotifier(double.parse(_usersWithVideo![index].matchPercent.toString())),
+                                            backColor: Colors.grey[300]!,
+                                            animationDuration: 0,
+                                            backStrokeWidth: 8,
+                                            progressStrokeWidth: 8,
+                                            startAngle: 187,
+                                            progressColors: [
+                                              Colors.red,
+                                              Colors.yellowAccent,
+                                              Colors.green
                                             ],
                                           ),
                                         ),
-                                        placeholder: (context, url) => Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.white,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.grey,
-                                            ),
+                                      )
+                                    ) : Positioned(
+                                      child: ClipOval(
+                                        child: Container(
+                                          height: 60,
+                                          width: 60,
+                                          child: SimpleCircularProgressBar(
+                                            valueNotifier: ValueNotifier(double.parse(_usersWithVideo![index].matchPercent.toString())),
+                                            backColor: Colors.grey[300]!,
+                                            backStrokeWidth: 8,
+                                            animationDuration: 0,
+                                            progressStrokeWidth: 8,
+                                            startAngle: 187,
+                                            mergeMode: true,
+                                            progressColors: [
+                                              Colors.red,
+                                              Colors.yellowAccent,
+                                              Colors.green
+                                            ],
+                                          ),
+                                          decoration: BoxDecoration(
+                                              shape: BoxShape.circle
                                           ),
                                         ),
-                                      ) : Container(
-                                          width: 100,
-                                          height: 100,
-                                        child: Icon(Icons.account_circle_rounded, size: 60, color: Colors.white),
-                                       ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle
-                                      ),
+                                      )
                                     ),
-                                    Positioned(
-                                      top: height / 20,
-                                      left: width / 67,
+                                    _usersWithVideo![index].media!.mainPhotosList != null ? Positioned(
+                                      top: 43,
+                                      left: 5,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 8),
+                                        child: Text('${_usersWithVideo![index].matchPercent} %', style: TextStyle(
+                                            color: Colors.white)),
+                                        decoration: BoxDecoration(
+                                          color: _usersWithVideo![index].matchPercent < 49 ? Colors.red
+                                              : (_usersWithVideo![index].matchPercent > 49 && _usersWithVideo![index].matchPercent < 65)
+                                              ? Colors.orange : (_usersWithVideo![index].matchPercent > 65) ? Colors.green : null,
+                                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                                        ),
+                                      ),
+                                    ) : Positioned(
+                                      top: 42,
+                                      left: 8,
                                       child: Container(
                                         padding: EdgeInsets.symmetric(horizontal: 6),
                                         child: Text('${_usersWithVideo![index].matchPercent} %', style: TextStyle(
@@ -592,7 +656,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                           borderRadius: BorderRadius.all(Radius.circular(20)),
                                         ),
                                       ),
-                                    )
+                                    ),
                                   ],
                                 )
                             )
@@ -601,7 +665,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                     )
                 ),
                 Positioned(
-                    top: height / 1.9,
+                    top: height / 2,
                     left: width / 1.21,
                     child: AnimatedSwitcher(
                       duration: Duration(milliseconds: 250),
@@ -742,7 +806,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                     )
                 ),
                 Positioned(
-                    top: height / 1.57,
+                    top: height / 1.59,
                     left: width / 1.21,
                     child: AnimatedSwitcher(
                       duration: Duration(milliseconds: 250),
@@ -760,9 +824,10 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                         children: [
                           InkWell(
                             onTap: () {
-                              setState(() {
+                              _reactionsState!(() {
                                 _isReactionButtonTapped = !_isReactionButtonTapped;
                               });
+
                               _isReactionButtonTapped
                                   ? controller!.forward()
                                   : controller!.reverse();
@@ -799,8 +864,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                         return SlideTransition(
                           position: Tween<Offset>(begin: Offset.zero, end: Offset(3, 0))
                               .animate(
-                            CurvedAnimation(
-                                parent: controller!, curve: Curves.fastOutSlowIn),
+                            CurvedAnimation(parent: controller!, curve: Curves.fastOutSlowIn),
                           ),
                           child: child,
                         );
@@ -829,7 +893,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                     )
                 ),
                 Positioned(
-                    top: height / 1.2,
+                    top: height / 1.15,
                     left: width / 20,
                     child: AnimatedSwitcher(
                       duration: Duration(milliseconds: 250),
@@ -850,51 +914,48 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                               style: TextStyle(fontSize: 24, color: Colors.white)),
                           SizedBox(height: 10),
                           Container(
-                              height: 100,
-                              width: width,
-                              child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Container(
-                                      padding: EdgeInsets.only(top: 5, bottom: 5),
-                                      width: width * 3,
-                                      child: Wrap(
-                                          spacing: 7.0,
-                                          runSpacing: 9.0,
-                                          children: List.generate(_usersWithVideo![index].interests!.length, (intIndex) {
-                                            return Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                  borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                                  child: Container(
-                                                    height: 40,
-                                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                                    child: Center(
-                                                      widthFactor: 1,
-                                                      child: Text(
-                                                        _usersWithVideo![index].interests![intIndex].interest!,
-                                                        style: const TextStyle(color: Colors.white),
-                                                        textAlign: TextAlign.center,
-                                                      ),
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                                        color: Color(int.parse('0x' + _usersWithVideo![index].interests![intIndex].color!)),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Color(int.parse('0x' + _usersWithVideo![index].interests![intIndex].color!)).withOpacity(0.7),
-                                                              offset: const Offset(3, 3),
-                                                              blurRadius: 0,
-                                                              spreadRadius: 0
-                                                          )
-                                                        ]
-                                                    ),
-                                                  )
-                                              ),
-                                            );
-                                          })
-                                      )
-                                  )
-                              )
+                            height: 100,
+                            width: width,
+                            child: MasonryGridView.count(
+                                padding: EdgeInsets.only(bottom: 60),
+                                crossAxisCount: 1,
+                                crossAxisSpacing: 7,
+                                mainAxisSpacing: 9,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _usersWithVideo![index].interests!.length,
+                                itemBuilder: (context, indx){
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                        child: Container(
+                                          height: 40,
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                                          child: Center(
+                                            widthFactor: 1,
+                                            child: Text(
+                                              _usersWithVideo![index].interests![indx].interest!,
+                                              style: const TextStyle(color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                          decoration: BoxDecoration(
+                                              borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                              color: Color(int.parse('0x' + _usersWithVideo![index].interests![indx].color!)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Color(int.parse('0x' + _usersWithVideo![index].interests![indx].color!)).withOpacity(0.7),
+                                                    offset: const Offset(3, 3),
+                                                    blurRadius: 0,
+                                                    spreadRadius: 0
+                                                )
+                                              ]
+                                          ),
+                                        )
+                                    ),
+                                  );
+                                }
+                            ),
                           )
                         ],
                       ),
@@ -1349,14 +1410,13 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
 }
 
 
-
-
 class VideoPlayerWidget extends StatefulWidget {
 
   final String? url;
 
   @override
   _VideoPlayerState createState() => _VideoPlayerState();
+
 
   VideoPlayerWidget({Key? key, this.url}) : super(key: key);
 }
@@ -1365,7 +1425,8 @@ class VideoPlayerWidget extends StatefulWidget {
 class _VideoPlayerState extends State<VideoPlayerWidget>{
 
   ValueNotifier<VideoPlayerValue?> currentPosition = ValueNotifier(null);
-  VideoPlayerController? controller;
+
+  late VideoPlayerController controller;
   late Future<void> futureController;
 
   StateSetter? _videoState;
@@ -1374,7 +1435,7 @@ class _VideoPlayerState extends State<VideoPlayerWidget>{
 
   initVideo() {
     controller = VideoPlayerController.network(widget.url!, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false));
-    futureController = controller!.initialize();
+    futureController = controller.initialize();
   }
 
 
@@ -1383,18 +1444,19 @@ class _VideoPlayerState extends State<VideoPlayerWidget>{
     super.initState();
 
     initVideo();
-    controller!.addListener(() {
-      if (controller!.value.isInitialized) {
-        currentPosition.value = controller!.value;
+    controller.addListener(() {
+      if (controller.value.isInitialized) {
+        currentPosition.value = controller.value;
       }
     });
   }
 
   @override
   void dispose() {
+    controller.dispose();
     super.dispose();
-    controller!.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1413,53 +1475,64 @@ class _VideoPlayerState extends State<VideoPlayerWidget>{
 
         if(snapshot.connectionState == ConnectionState.done){
 
-          controller!.setLooping(true);
-          controller!.play();
+          controller.setLooping(true);
+          controller.play();
 
           return GestureDetector(
             onTap: (){
-              if(controller!.value.isPlaying){
+              if(controller.value.isPlaying){
                 _videoState!((){
-                  controller!.pause();
+                  controller.pause();
                   _showIcon = true;
                 });
               }else{
                 _videoState!((){
-                  controller!.play();
+                  controller.play();
                   _showIcon = false;
                 });
               }
             },
-            child: StatefulBuilder(
-              builder: (context, setState){
-                _videoState = setState;
+            child: Consumer<InterestsCounterProvider>(
+              builder: (context, viewModel, child){
+                if(!viewModel.isPlaying){
+                  controller.pause();
+                }else{
+                  if(!_showIcon){
+                    controller.play();
+                  }
+                };
                 return Center(
                     child: Stack(
                       children: [
                         Center(
                           child: SizedBox.expand(
                               child: AspectRatio(
-                                aspectRatio: controller!.value.aspectRatio,
-                                child: VideoPlayer(controller!),
+                                aspectRatio: controller.value.aspectRatio,
+                                child: VideoPlayer(controller),
                               )
                           ),
                         ),
-                        Center(
-                            child: AnimatedOpacity(
-                              opacity: _showIcon ? 1.0 : 0.0,
-                              duration: Duration(milliseconds: 150),
-                              child: IconButton(
-                                  icon: Icon(CupertinoIcons.play_fill, size: 60, color: Colors.white),
-                                  onPressed: (){
-                                    controller!.play();
+                        StatefulBuilder(
+                          builder: (context, setState){
+                            _videoState = setState;
+                            return Center(
+                                child: AnimatedOpacity(
+                                  opacity: _showIcon ? 1.0 : 0.0,
+                                  duration: Duration(milliseconds: 150),
+                                  child: IconButton(
+                                      icon: Icon(CupertinoIcons.play_fill, size: 60, color: Colors.white),
+                                      onPressed: (){
+                                        controller.play();
 
-                                    setState((){
-                                      _showIcon = false;
-                                    });
-                                  }
-                              ),
-                            )
-                        ),
+                                        setState((){
+                                          _showIcon = false;
+                                        });
+                                      }
+                                  ),
+                                )
+                            );
+                          },
+                        )
                       ],
                     )
                 );

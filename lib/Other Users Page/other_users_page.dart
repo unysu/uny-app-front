@@ -5,6 +5,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -22,12 +23,11 @@ import 'package:uny_app/Other%20Users%20Page/other_users_video_player.dart';
 import 'package:uny_app/Report%20Page%20Android/report_page_android.dart';
 import 'package:uny_app/Report%20Types/report_types.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
-import 'package:uny_app/User%20Profile%20Page/all_photos_page.dart';
-import 'package:uny_app/User%20Profile%20Page/video_page.dart';
+import 'package:uny_app/Web%20Socket%20Settings/web_socket_settings.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
 
 class OtherUsersPage extends StatefulWidget{
-
+  
   Matches? user;
 
   OtherUsersPage({required this.user});
@@ -42,6 +42,8 @@ class _OtherUsersPage extends State<OtherUsersPage>{
 
   late double height;
   late double width;
+  
+  late SocketSettings _socket;
 
   FToast? _fToast;
   Reports? _reports;
@@ -60,6 +62,8 @@ class _OtherUsersPage extends State<OtherUsersPage>{
   @override
   void initState() {
     super.initState();
+    
+    _socket = SocketSettings.init();
 
     token = 'Bearer ' + TokenData.getUserToken();
 
@@ -76,7 +80,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
     }
 
     if(userProfilePhoto != null){
-      mainPhotos!..add(userProfilePhoto!);
+      mainPhotos!.add(userProfilePhoto!);
     }
 
     if(user!.media!.otherPhotosList != null){
@@ -104,10 +108,11 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 body: NestedScrollView(
                     physics: BouncingScrollPhysics(),
                     headerSliverBuilder: (context, innerBoxIsScrolled) {
-                      return[
+                      return
+                        [
                         SliverAppBar(
                           backgroundColor: Colors.white,
-                          expandedHeight: height * 0.4,
+                          expandedHeight: 300,
                           automaticallyImplyLeading: false,
                           systemOverlayStyle: SystemUiOverlayStyle.light,
                           toolbarHeight: mainPhotos!.length > 1 ? 120 : 90,
@@ -128,9 +133,21 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             SizedBox(height: 10),
-                                            Text(
-                                              '${user!.firstName} ' + '${user!.lastName[0]}' + ' ' + '${user!.age}',
-                                              style: TextStyle(fontSize: 24, color: Colors.white),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                '${user!.firstName} ' + '${user!.lastName[0]}' + ' ' + '${user!.age}',
+                                                style: TextStyle(fontSize: 24, color: Colors.white),
+                                              ),
+                                                SizedBox(width: 10),
+                                                Container(
+                                                    height: 20,
+                                                    width: 20,
+                                                    child: ClipOval(
+                                                      child: SvgPicture.asset('assets/russian_flag.svg'),
+                                                    )
+                                                ),
+                                              ],
                                             ),
                                             user!.job != null ? Text('${user!.job}') : Container(),
                                             Row(
@@ -220,7 +237,9 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                             baseColor: Colors.grey[300]!,
                                             highlightColor: Colors.white,
                                             child: Container(
-
+                                              decoration: BoxDecoration(
+                                                  color: Colors.grey,
+                                              ),
                                             ),
                                           ),
                                         );
@@ -231,7 +250,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                     builder: (context, setState){
                                       picsState = setState;
                                       return Positioned(
-                                        top: 50,
+                                        top: height * 0.07,
                                         left: 10,
                                         right: 10,
                                         child: Container(
@@ -266,7 +285,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                     body: MediaQuery.removePadding(
                       context: context,
                       removeTop: true,
-                      child: mainBody(),
+                      child: mainBody()
                     )
                 ),
               ),
@@ -289,8 +308,8 @@ class _OtherUsersPage extends State<OtherUsersPage>{
       children: [
         Container(height: 10),
         Container(
-          height: height,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: EdgeInsets.only(left: 10, right: 10),
@@ -350,46 +369,47 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                           child: Text('Реакция', style: TextStyle(color: Colors.black)),
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: Colors.deepOrange)
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: Colors.deepOrange)
                         ),
                       ),
                     ),
                     SizedBox(width: 10),
                     Expanded(
                         child: GestureDetector(
-                            onTap: () async {
-                              var data = {
-                                'user_id' : user!.id
-                              };
+                          onTap: () async {
+                            var data = {
+                              'user_id' : user!.id
+                            };
 
-                              await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).startChat(token, data).whenComplete((){
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Перейдите в раздел сообщения', style: TextStyle(fontWeight: FontWeight.bold))));
-                              });
-                            },
-                            child: Container(
-                              height: 50,
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
-                                    SizedBox(width: 5),
-                                    Text('Отправить подарок', style: TextStyle(
-                                        color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500))
-                                  ],
-                                ),
-                              ),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  gradient: LinearGradient(
-                                      colors: [
-                                        Color.fromRGBO(255, 0, 92, 10),
-                                        Color.fromRGBO(255, 172, 47, 10),
-                                      ]
-                                  )
+                            await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).startChat(token, data).whenComplete((){
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Перейдите в раздел сообщения', style: TextStyle(fontWeight: FontWeight.bold))));
+
+                            });
+                          },
+                          child: Container(
+                            height: 50,
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
+                                  SizedBox(width: 5),
+                                  Text('Отправить подарок', style: TextStyle(
+                                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500))
+                                ],
                               ),
                             ),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                gradient: LinearGradient(
+                                    colors: [
+                                      Color.fromRGBO(255, 0, 92, 10),
+                                      Color.fromRGBO(255, 172, 47, 10),
+                                    ]
+                                )
+                            ),
+                          ),
                         )
                     ),
                   ],
@@ -397,52 +417,47 @@ class _OtherUsersPage extends State<OtherUsersPage>{
               ),
               SizedBox(height: height / 40),
               Container(
-                height: 100,
-                width: width * 3,
-                child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                        padding: EdgeInsets.only(left: 10),
-                        width: width * 3,
-                        child: Wrap(
-                            spacing: 7.0,
-                            runSpacing: 9.0,
-                            direction: Axis.horizontal,
-                            children: List.generate(user!.interests!.length, (index) {
-                              InterestsDataModel _interests = user!.interests![index];
-                              return Material(
-                                child: InkWell(
-                                    borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                    child: Container(
-                                      height: 40,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                                      child: Center(
-                                        widthFactor: 1,
-                                        child: Text(
-                                          _interests.interest!,
-                                          style: const TextStyle(color: Colors.white),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                          color: Color(int.parse('0x' + _interests.color!)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
-                                                offset: const Offset(3, 3),
-                                                blurRadius: 0,
-                                                spreadRadius: 0
-                                            )
-                                          ]
-                                      ),
-                                    )
+                  height: 100,
+                  child: MasonryGridView.count(
+                      padding: EdgeInsets.only(left: 10, bottom: 10),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 7,
+                      mainAxisSpacing: 9,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: user!.interests!.length,
+                      itemBuilder: (context, index){
+                        InterestsDataModel _interests = user!.interests![index];
+                        return Material(
+                          child: InkWell(
+                              borderRadius: const BorderRadius.all(Radius.circular(30)),
+                              child: Container(
+                                height: 40,
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: Center(
+                                  widthFactor: 1,
+                                  child: Text(
+                                    _interests.interest!,
+                                    style: const TextStyle(color: Colors.white),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                              );
-                            })
-                        )
-                    )
-                ),
+                                decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                    color: Color(int.parse('0x' + _interests.color!)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
+                                          offset: const Offset(3, 3),
+                                          blurRadius: 0,
+                                          spreadRadius: 0
+                                      )
+                                    ]
+                                ),
+                              )
+                          ),
+                        );
+                      }
+                  )
               ),
               Container(
                 child: Divider(
@@ -475,7 +490,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
               ),
               Container(
                 height: 200,
-                padding: EdgeInsets.only(left: 10, top: 10),
+                padding: EdgeInsets.only(left: 20, top: 10),
                 child:  videos != null ? GridView.count(
                   crossAxisCount: 1,
                   childAspectRatio: 16 / 8,
@@ -526,9 +541,8 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 ),
               ),
               photos != null ? Container(
-                  height: height / 3,
+                  height: 250,
                   width: width,
-                  padding: EdgeInsets.only(top: 10),
                   child: GridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 8,
@@ -536,6 +550,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                     shrinkWrap: true,
                     physics: const ClampingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.only(top: 10, left: 20),
                     children: List.generate(photos!.length, (index){
                       return InkWell(
                         onTap: (){
@@ -557,9 +572,9 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.all(Radius.circular(15)),
                                     image: DecorationImage(
-                                       image: imageProvider,
-                                       fit: BoxFit.cover
-                                  )
+                                        image: imageProvider,
+                                        fit: BoxFit.cover
+                                    )
                                 ),
                               ),
                               placeholder: (context, url) => Shimmer.fromColors(
