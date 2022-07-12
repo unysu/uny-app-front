@@ -58,23 +58,23 @@ class _InterestsPageState extends State<InterestsPage>{
 
   List<InterestsModel>? _familyInterestsList = [];
   List<InterestsModel>? _familyFilteredList = [];
-  List<InterestsModel>? _selectedFamilyInterests = [];
+  final List<InterestsModel>? _selectedFamilyInterests = [];
 
   List<InterestsModel>? _careerInterestsList = [];
   List<InterestsModel>? _careerFilteredList = [];
-  List<InterestsModel>? _selectedCareerInterests = [];
+  final List<InterestsModel>? _selectedCareerInterests = [];
 
   List<InterestsModel>? _sportInterestsList = [];
   List<InterestsModel>? _sportFilteredList = [];
-  List<InterestsModel>? _selectedSportInterests = [];
+  final List<InterestsModel>? _selectedSportInterests = [];
 
   List<InterestsModel>? _travelingInterestsList = [];
   List<InterestsModel>? _travelingFilteredList = [];
-  List<InterestsModel>? _selectedTravelingInterests = [];
+  final List<InterestsModel>? _selectedTravelingInterests = [];
 
   List<InterestsModel>? _generalInterestsList = [];
   List<InterestsModel>? _generalFilteredList = [];
-  List<InterestsModel>? _selectedGeneralInterests = [];
+  final List<InterestsModel>? _selectedGeneralInterests = [];
 
   double _selectedFamilyInterestsValue = 0.0;
   double _selectedCareerInterestsValue = 0.0;
@@ -388,7 +388,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             Positioned(
                                 top: 50,
                                 left: 45,
-                                child: Container(
+                                child: SizedBox(
                                   width: 300,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -409,7 +409,7 @@ class _InterestsPageState extends State<InterestsPage>{
                                           ),
                                           Positioned(
                                               top: 1,
-                                              child: Container(
+                                              child: SizedBox(
                                                   height: 83,
                                                   width: 83,
                                                   child: SimpleCircularProgressBar(
@@ -420,7 +420,7 @@ class _InterestsPageState extends State<InterestsPage>{
                                                     backStrokeWidth: 6,
                                                     progressStrokeWidth: 6,
                                                     startAngle: 210,
-                                                    progressColors: [
+                                                    progressColors: const [
                                                       Colors.deepOrange,
                                                       Colors.yellowAccent,
                                                       Colors.lightGreen
@@ -441,7 +441,7 @@ class _InterestsPageState extends State<InterestsPage>{
                                               decoration: BoxDecoration(
                                                   borderRadius: BorderRadius.all(Radius.circular(30)),
                                                   gradient: LinearGradient(
-                                                      colors: [
+                                                      colors: const [
                                                         Colors.deepOrange,
                                                         Colors.orange,
                                                       ]
@@ -505,7 +505,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             Positioned(
                                 top: 25,
                                 left: 50,
-                                child: Container(
+                                child: SizedBox(
                                     width: 120,
                                     child: Text(
                                       'Расскажи о своей карьере',
@@ -559,7 +559,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             Positioned(
                                 top: 25,
                                 left: 50,
-                                child: Container(
+                                child: SizedBox(
                                     width: 120,
                                     child: Text(
                                       'Какой спорт ты предпочитаешь?',
@@ -613,7 +613,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             Positioned(
                                 top: 25,
                                 left: 45,
-                                child: Container(
+                                child: SizedBox(
                                     width: 250,
                                     child: Text(
                                       'Любишь ли ты путешествовать и какой формат путешествий ты предпочитаешь?',
@@ -667,7 +667,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             Positioned(
                                 top: 25,
                                 left: 45,
-                                child: Container(
+                                child: SizedBox(
                                     width: 250,
                                     child: Text(
                                       'Почти готово, посмотри последний список интересов и добавь свои интересы',
@@ -1773,7 +1773,7 @@ class _InterestsPageState extends State<InterestsPage>{
                       borderRadius: const BorderRadius.all(Radius.circular(15)),
                       child: Stack(
                         children: [
-                          Container(
+                          SizedBox(
                             height: height,
                             child: LinearProgressIndicator(
                               backgroundColor: Colors.orange.withOpacity(0.3),
@@ -1785,7 +1785,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             alignment: Alignment.centerRight,
                             padding: EdgeInsets.only(right: 10),
                             child: Text(
-                              '${_travelingInterestsCounter}',
+                              '$_travelingInterestsCounter',
                               style: TextStyle(
                                   fontSize: 15, color: Colors.orange),
                             ),
@@ -1793,7 +1793,7 @@ class _InterestsPageState extends State<InterestsPage>{
                         ],
                       ))),
               InkWell(
-                onTap: _selectedTravelingInterests!.length != 0 ? () {
+                onTap: _selectedTravelingInterests!.isNotEmpty ? () {
                   setState(() {
                     _isTravelingEnabled = false;
 
@@ -2026,7 +2026,7 @@ class _InterestsPageState extends State<InterestsPage>{
                       borderRadius: BorderRadius.all(Radius.circular(15)),
                       child: Stack(
                         children: [
-                          Container(
+                          SizedBox(
                             height: height,
                             child: LinearProgressIndicator(
                               backgroundColor: Colors.deepPurpleAccent
@@ -2039,7 +2039,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             alignment: Alignment.centerRight,
                             padding: EdgeInsets.only(right: 10),
                             child: Text(
-                              '${_generalInterestsCounter}',
+                              '$_generalInterestsCounter',
                               style: TextStyle(
                                   fontSize: 15, color: Colors.deepPurpleAccent),
                             ),
@@ -2047,7 +2047,7 @@ class _InterestsPageState extends State<InterestsPage>{
                         ],
                       ))),
               InkWell(
-                onTap: _selectedGeneralInterests!.length != 0 ? () {
+                onTap: _selectedGeneralInterests!.isNotEmpty ? () {
                   setState(() {
                     _showLoading = true;
                   });
@@ -2060,7 +2060,7 @@ class _InterestsPageState extends State<InterestsPage>{
                       child: !_showLoading
                           ? Text('Готово',
                           style: TextStyle(fontSize: 15, color: Colors.white))
-                          : Container(
+                          : SizedBox(
                         height: 30,
                         width: 30,
                         child: CircularProgressIndicator(
@@ -2078,9 +2078,9 @@ class _InterestsPageState extends State<InterestsPage>{
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            _selectedGeneralInterests!.length != 0 ? Colors
+                            _selectedGeneralInterests!.isNotEmpty ? Colors
                                 .deepPurpleAccent : Colors.grey,
-                            _selectedGeneralInterests!.length != 0 ? Colors
+                            _selectedGeneralInterests!.isNotEmpty ? Colors
                                 .blueAccent : Colors.grey
                           ])),
                 ),
@@ -2088,7 +2088,7 @@ class _InterestsPageState extends State<InterestsPage>{
             ],
           ),
           SizedBox(height: height / 100),
-          _selectedGeneralInterests!.length == 0
+          _selectedGeneralInterests!.isEmpty
               ? Center(
             child: Text(
               'Выберите минимум один интерес для продолжения',
@@ -2149,7 +2149,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             boxShadow: const [
                               BoxShadow(
                                   color: Colors.deepPurple,
-                                  offset: const Offset(3, 3),
+                                  offset: Offset(3, 3),
                                   blurRadius: 0,
                                   spreadRadius: 0
                               )
@@ -2166,7 +2166,7 @@ class _InterestsPageState extends State<InterestsPage>{
             thickness: 1,
             color: Colors.grey.withOpacity(0.5),
           ),
-          _generalFilteredList!.length != 0 ? SizedBox(
+          _generalFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.35,
               child: SafeArea(
                 top: false,
@@ -2227,7 +2227,7 @@ class _InterestsPageState extends State<InterestsPage>{
                                               boxShadow: const [
                                                 BoxShadow(
                                                     color: Colors.deepPurple,
-                                                    offset: const Offset(3, 3),
+                                                    offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
                                                 )
@@ -2335,7 +2335,7 @@ class _InterestsPageState extends State<InterestsPage>{
 
                           Navigator.pop(context);
                         },
-                        child: Container(
+                        child: SizedBox(
                           height: height * 0.10,
                           child: Center(
                               child: Text('Отмена',
@@ -2363,7 +2363,7 @@ class _InterestsPageState extends State<InterestsPage>{
                             });
                             Navigator.pop(context);
                           },
-                          child: Container(
+                          child: SizedBox(
                             height: height * 0.10,
                             child: Center(
                                 child: Text('Продолжить',
@@ -2393,7 +2393,7 @@ class _InterestsPageState extends State<InterestsPage>{
             height: 50,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: const [
                   Icon(CupertinoIcons.add_circled, color: Colors.white),
                   SizedBox(width: 5),
                   Text('Добавить новый интерес', style: TextStyle(fontSize: 17, color: Colors.white))
@@ -2546,7 +2546,7 @@ class _InterestsPageState extends State<InterestsPage>{
                 TextSpan(
                   text: 'Нажимая "Отправить", вы подтверждаете согласие с ',
                   style: TextStyle(color: Colors.black),
-                  children: [
+                  children: const [
                     TextSpan(
                         text: 'условиями использования UnyApp',
                         style: TextStyle(color: Colors.blue)
@@ -2692,7 +2692,7 @@ class _InterestsPageState extends State<InterestsPage>{
     List<Map<String, String>> _interestsList = [];
 
     for (int i = 0; i < _selectedFamilyInterests!.length; i++) {
-      _familyInterestsMap = Map();
+      _familyInterestsMap = {};
 
       _familyInterestsMap.addAll({
         'type' : 'family',
@@ -2704,7 +2704,7 @@ class _InterestsPageState extends State<InterestsPage>{
     }
 
     for (int i = 0; i < _selectedCareerInterests!.length; i++) {
-      _careerInterestsMap = Map();
+      _careerInterestsMap = {};
 
       _careerInterestsMap.addAll({
         'type' : 'career',
@@ -2716,7 +2716,7 @@ class _InterestsPageState extends State<InterestsPage>{
     }
 
     for (int i = 0; i < _selectedSportInterests!.length; i++) {
-      _sportInterestsMap = Map();
+      _sportInterestsMap = {};
 
       _sportInterestsMap.addAll({
         'type' : 'sport',
@@ -2728,7 +2728,7 @@ class _InterestsPageState extends State<InterestsPage>{
     }
 
     for (int i = 0; i < _selectedTravelingInterests!.length; i++) {
-      _travelingInterestsMap = Map();
+      _travelingInterestsMap = {};
 
       _travelingInterestsMap.addAll({
         'type' : 'traveling',
@@ -2740,7 +2740,7 @@ class _InterestsPageState extends State<InterestsPage>{
     }
 
     for (int i = 0; i < _selectedGeneralInterests!.length; i++) {
-      _generalInterestsMap = Map();
+      _generalInterestsMap = {};
 
       _generalInterestsMap.addAll({
         'type' : 'general',

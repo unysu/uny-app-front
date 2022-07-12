@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cached_memory_image/cached_memory_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -167,7 +165,7 @@ class _AllVideosPageState extends State<AllVideosPage> {
                                           MaterialPageRoute(builder: (context) => VideoPage(videoId: _videos![index].id))
                                       );
                                     },
-                                    child: Container(
+                                    child: SizedBox(
                                         height: 500,
                                         child: CachedNetworkImage(
                                           imageUrl: _videos![index].thumbnail,

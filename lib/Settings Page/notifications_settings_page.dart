@@ -1,6 +1,4 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:chopper/chopper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -67,7 +65,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
               actions: [
                 _showLoading ? Padding(
                   padding: EdgeInsets.symmetric(vertical: 18, horizontal: 10),
-                  child: Container(
+                  child: SizedBox(
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(

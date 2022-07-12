@@ -1,10 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:sizer/sizer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/Report%20Types/report_types.dart';
-import 'package:uny_app/main.dart';
 
 class ReportPageAndroid extends StatefulWidget{
   @override
@@ -59,7 +57,7 @@ class _ReportPageAndroidState extends State<ReportPageAndroid>{
 
 
   Widget mainBody(){
-    return Container(
+    return SizedBox(
         height: height,
         child: Column(
           children: [

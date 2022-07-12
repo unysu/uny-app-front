@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -25,7 +24,6 @@ import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/Other%20Users%20Page/other_users_page.dart';
 import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
-
 import '../Video Search Page/filter_interests_page.dart';
 
 class PhotoSearchPage extends StatefulWidget{
@@ -75,7 +73,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
     token = 'Bearer ' + TokenData.getUserToken();
 
     var data = {
-      'only_above_percent' : 20
+      'only_above_percent' : 10
     };
 
     _photoSearchFuture = UnyAPI.create(Constants.PHOTO_SEARCH_MODEL_CONVERTER).getUserPhotoSearch(token, data);
@@ -228,7 +226,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                 ),
                                 _secondaryUsersList![index].media!.mainPhoto != null ? Positioned(
                                     child: ClipOval(
-                                      child: Container(
+                                      child: SizedBox(
                                         height: 70,
                                         width: 70,
                                         child: SimpleCircularProgressBar(
@@ -238,7 +236,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                           backStrokeWidth: 10,
                                           progressStrokeWidth: 10,
                                           startAngle: 187,
-                                          progressColors: [
+                                          progressColors: const [
                                             Colors.red,
                                             Colors.yellowAccent,
                                             Colors.green
@@ -250,7 +248,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                     left: 2,
                                     top: 2,
                                     child: ClipOval(
-                                      child: Container(
+                                      child: SizedBox(
                                         height: 70,
                                         width: 70,
                                         child: SimpleCircularProgressBar(
@@ -260,7 +258,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                           backStrokeWidth: 10,
                                           progressStrokeWidth: 10,
                                           startAngle: 187,
-                                          progressColors: [
+                                          progressColors: const [
                                             Colors.red,
                                             Colors.yellowAccent,
                                             Colors.green
@@ -296,76 +294,76 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Знакомства', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500)),
-                          ClipRRect(
-                            borderRadius: BorderRadius.all(Radius.circular(7)),
-                            child: Container(
-                              width: 120,
-                              height: 35,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SvgPicture.asset('assets/settings.svg'),
-                                  SizedBox(width: 5),
-                                  GestureDetector(
-                                      onTap: () {
-                                        if (UniversalPlatform.isIOS) {
-                                          showCupertinoModalBottomSheet(
-                                              context: context,
-                                              duration: Duration(milliseconds: 250),
-                                              topRadius: Radius.circular(25),
-                                              builder: (context) {
-                                                return DraggableScrollableSheet(
-                                                  initialChildSize: _startAgeFieldFocusNode.hasFocus || _endAgeFieldFocusNode.hasFocus ? 0.9 : 0.6,
-                                                  maxChildSize: 1,
-                                                  minChildSize: 0.6,
-                                                  expand: false,
-                                                  builder: (context, scrollController) {
-                                                    return SingleChildScrollView(
-                                                        controller: scrollController,
-                                                        physics: ClampingScrollPhysics(),
-                                                        child: showSearchFilterOptions()
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                          );
-                                        } else if (UniversalPlatform.isAndroid) {
-                                          showCupertinoModalBottomSheet(
-                                              context: context,
-                                              duration: Duration(milliseconds: 250),
-                                              builder: (context) {
-                                                return DraggableScrollableSheet(
-                                                  initialChildSize: _startAgeFieldFocusNode.hasFocus || _endAgeFieldFocusNode.hasFocus ? 0.9 : 0.6,
-                                                  maxChildSize: 1,
-                                                  minChildSize: 0.6,
-                                                  expand: false,
-                                                  builder: (context, scrollController) {
-                                                    return SingleChildScrollView(
-                                                        controller: scrollController,
-                                                        physics: ClampingScrollPhysics(),
-                                                        child: showSearchFilterOptions()
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                          );
-                                        }
-                                      },
-                                    child: Text('Фильтры', style: TextStyle(
+                          GestureDetector(
+                              onTap: () {
+                                if (UniversalPlatform.isIOS) {
+                                  showCupertinoModalBottomSheet(
+                                      context: context,
+                                      duration: Duration(milliseconds: 250),
+                                      topRadius: Radius.circular(25),
+                                      builder: (context) {
+                                        return DraggableScrollableSheet(
+                                          initialChildSize: _startAgeFieldFocusNode.hasFocus || _endAgeFieldFocusNode.hasFocus ? 0.9 : 0.6,
+                                          maxChildSize: 1,
+                                          minChildSize: 0.6,
+                                          expand: false,
+                                          builder: (context, scrollController) {
+                                            return SingleChildScrollView(
+                                                controller: scrollController,
+                                                physics: ClampingScrollPhysics(),
+                                                child: showSearchFilterOptions()
+                                            );
+                                          },
+                                        );
+                                      }
+                                  );
+                                } else if (UniversalPlatform.isAndroid) {
+                                  showCupertinoModalBottomSheet(
+                                      context: context,
+                                      duration: Duration(milliseconds: 250),
+                                      builder: (context) {
+                                        return DraggableScrollableSheet(
+                                          initialChildSize: _startAgeFieldFocusNode.hasFocus || _endAgeFieldFocusNode.hasFocus ? 0.9 : 0.6,
+                                          maxChildSize: 1,
+                                          minChildSize: 0.6,
+                                          expand: false,
+                                          builder: (context, scrollController) {
+                                            return SingleChildScrollView(
+                                                controller: scrollController,
+                                                physics: ClampingScrollPhysics(),
+                                                child: showSearchFilterOptions()
+                                            );
+                                          },
+                                        );
+                                      }
+                                  );
+                                }
+                              },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(7)),
+                              child: Container(
+                                width: 120,
+                                height: 35,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SvgPicture.asset('assets/settings.svg'),
+                                    SizedBox(width: 5),
+                                    Text('Фильтры', style: TextStyle(
                                         color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  )
-                                ],
-                              ),
-                              decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                      colors: [
-                                        Color.fromRGBO(255, 0, 92, 10),
-                                        Color.fromRGBO(255, 172, 47, 10),
-                                      ]
-                                  )
+                                  ],
+                                ),
+                                decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                        colors: const [
+                                          Color.fromRGBO(255, 0, 92, 10),
+                                          Color.fromRGBO(255, 172, 47, 10),
+                                        ]
+                                    )
+                                ),
                               ),
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),
@@ -454,12 +452,12 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
           },
           child: Stack(
             children: [
-              Container(
+              SizedBox(
                 height: 720,
                 child: Stack(
                   children: [
                     Positioned(
-                      child: Container(
+                      child: SizedBox(
                         height: height * 0.5,
                         child: CarouselSlider(
                           options: CarouselOptions(
@@ -544,7 +542,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                 right: 335,
                 child: Stack(
                   children: [
-                    Container(
+                    SizedBox(
                       height: 110,
                       width: 110,
                       child: matchedUser.media!.mainPhoto != null ? CachedNetworkImage(
@@ -574,7 +572,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                             ),
                           ),
                         ),
-                      ) : Container(
+                      ) : SizedBox(
                         height: 110,
                         width: 110,
                         child: Icon(Icons.account_circle_rounded, size: 110, color: Colors.grey),
@@ -583,7 +581,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                     Positioned(
                       top: 5,
                       left: 5,
-                      child: Container(
+                      child: SizedBox(
                         height: 100,
                         width: 100,
                         child: SimpleCircularProgressBar(
@@ -593,7 +591,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                           backStrokeWidth: 10,
                           progressStrokeWidth: 10,
                           startAngle: 187,
-                          progressColors: [
+                          progressColors: const [
                             Colors.red,
                             Colors.yellowAccent,
                             Colors.green
@@ -660,7 +658,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                     gradient: LinearGradient(
                                         begin: Alignment.topLeft,
                                         end: Alignment.topRight,
-                                        colors: [
+                                        colors: const [
                                           Color.fromRGBO(145, 10, 251, 10),
                                           Color.fromRGBO(217, 10, 251, 10)
                                         ]
@@ -680,7 +678,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
               ),
               Positioned(
                   bottom: 75,
-                  child: Container(
+                  child: SizedBox(
                     height: 100,
                     width: width,
                     child: MasonryGridView.count(
@@ -740,7 +738,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                         height: 60,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                          children: const [
                             Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
                             SizedBox(width: 5),
                             Text('Отправить подарок', style: TextStyle(
@@ -749,7 +747,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                         ),
                         decoration: BoxDecoration(
                             gradient: LinearGradient(
-                                colors: [
+                                colors: const [
                                   Color.fromRGBO(255, 0, 92, 10),
                                   Color.fromRGBO(255, 172, 47, 10),
                                 ]
@@ -773,7 +771,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                             height: 60,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                              children: const [
                                 Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
                                 SizedBox(width: 5),
                                 Text('Отправить подарок', style: TextStyle(
@@ -782,7 +780,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                             ),
                             decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                    colors: [
+                                    colors: const [
                                       Color.fromRGBO(255, 0, 92, 10),
                                       Color.fromRGBO(255, 172, 47, 10),
                                     ]
@@ -905,7 +903,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                           gradient: LinearGradient(
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
-                                              colors: [
+                                              colors: const [
                                                 Color.fromRGBO(255, 83, 155, 5),
                                                 Color.fromRGBO(237, 48, 48, 5)
                                               ]

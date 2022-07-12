@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,7 +37,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   TabController? _tabController;
   PageController? _pageViewController;
 
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   ScrollController? _allInterestsScrollController;
   ScrollController? _careerInterestsScrollController;
@@ -71,27 +70,27 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
 
   List<InterestsModel>? _allInterestsList = [];
   List<InterestsModel>? _allInterestsFilteredList = [];
-  List<InterestsModel>? _selectedAllInterests = [];
+  final List<InterestsModel>? _selectedAllInterests = [];
 
   List<InterestsModel>? _familyInterestsList = [];
   List<InterestsModel>? _familyFilteredList = [];
-  List<InterestsModel>? _selectedFamilyInterests = [];
+  final List<InterestsModel>? _selectedFamilyInterests = [];
 
   List<InterestsModel>? _careerInterestsList = [];
   List<InterestsModel>? _careerFilteredList = [];
-  List<InterestsModel>? _selectedCareerInterests = [];
+  final List<InterestsModel>? _selectedCareerInterests = [];
 
   List<InterestsModel>? _sportInterestsList = [];
   List<InterestsModel>? _sportFilteredList = [];
-  List<InterestsModel>? _selectedSportInterests = [];
+  final List<InterestsModel>? _selectedSportInterests = [];
 
   List<InterestsModel>? _travelingInterestsList = [];
   List<InterestsModel>? _travelingFilteredList = [];
-  List<InterestsModel>? _selectedTravelingInterests = [];
+  final List<InterestsModel>? _selectedTravelingInterests = [];
 
   List<InterestsModel>? _generalInterestsList = [];
   List<InterestsModel>? _generalFilteredList = [];
-  List<InterestsModel>? _selectedGeneralInterests = [];
+  final List<InterestsModel>? _selectedGeneralInterests = [];
 
   List<InterestsDataModel>? _familyInterests;
   List<InterestsDataModel>? _careerInterests;
@@ -99,9 +98,9 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
   List<InterestsDataModel>? _travelingInterests;
   List<InterestsDataModel>? _generalInterests;
 
-  int _page = 0;
+  final int _page = 0;
 
-  List<String>? _deletedInterests = [];
+  final List<String>? _deletedInterests = [];
 
   @override
   void initState() {
@@ -273,7 +272,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                       fillColor: Colors.grey.withOpacity(0.1),
                       prefixIcon: _isSearching != true ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: const [
                           Icon(CupertinoIcons.search, color: Colors.grey),
                           Text('Поиск интересов',
                               style: TextStyle(
@@ -329,7 +328,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   labelColor: Color.fromRGBO(145, 10, 251, 5),
                   unselectedLabelColor: Colors.grey,
                   padding: EdgeInsets.symmetric(horizontal: width / 7),
-                  tabs: [
+                  tabs: const [
                     Tab(
                         text: 'Мои интересы'
                     ),
@@ -773,7 +772,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           Divider(
             thickness: 1,
           ),
-          _allInterestsFilteredList!.length != 0 ? SizedBox(
+          _allInterestsFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -868,7 +867,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса',
                     maxLines: 2,
@@ -888,7 +887,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           Divider(
             thickness: 1,
           ),
-          _familyFilteredList!.length != 0 ? SizedBox(
+          _familyFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea (
                 top: false,
@@ -956,7 +955,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса',
                     maxLines: 2,
@@ -976,7 +975,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           Divider(
             thickness: 1,
           ),
-          _careerFilteredList!.length != 0 ? SizedBox(
+          _careerFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -1046,7 +1045,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1066,7 +1065,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           Divider(
             thickness: 1,
           ),
-          _sportFilteredList!.length != 0 ? SizedBox(
+          _sportFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -1135,7 +1134,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1155,7 +1154,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           Divider(
             thickness: 1,
           ),
-          _travelingFilteredList!.length != 0 ? SizedBox(
+          _travelingFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -1225,7 +1224,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1245,7 +1244,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
           Divider(
             thickness: 1,
           ),
-          _generalFilteredList!.length != 0 ? SizedBox(
+          _generalFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -1291,7 +1290,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
                                               color: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                                              boxShadow: [
+                                              boxShadow: const [
                                                 BoxShadow(
                                                     color: Colors.deepPurple,
                                                     offset: Offset(3, 3),
@@ -1315,7 +1314,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1731,10 +1730,10 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
                       color: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                             color: Colors.deepPurple,
-                            offset: const Offset(3, 3),
+                            offset: Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
                         )
@@ -1760,7 +1759,7 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     });
 
     for(int i = 0; i < _selectedAllInterests!.length; i++){
-      newInterestsMap = Map();
+      newInterestsMap = {};
 
       newInterestsMap.addAll({
         'type' : '${_selectedAllInterests![i].type}',

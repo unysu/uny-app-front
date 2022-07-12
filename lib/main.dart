@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,19 @@ void main() async {
   await ShPreferences.init();
   await TokenData.init();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  AwesomeNotifications().initialize(
+    UniversalPlatform.isAndroid ? 'resource://drawable/uny_logo' : 'resource://Runner/Assets.xcassets/AppIcon.appiconset/uny_logo.png',
+    [
+      NotificationChannel(
+        channelKey: 'high_importance_channel',
+        channelName: 'Basic Notifications',
+        channelDescription: 'Uny App',
+        defaultRingtoneType: DefaultRingtoneType.Notification,
+        importance: NotificationImportance.High,
+        enableVibration: true,
+      )
+    ],
+  );
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<InterestsCounterProvider>(
@@ -59,14 +73,10 @@ void main() async {
     child: AdaptiveTheme(
       initial: AdaptiveThemeMode.light,
       light: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.red,
-        accentColor: Colors.amber,
+        colorScheme: ColorScheme.fromSwatch(brightness: Brightness.light)
       ),
       dark: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.red,
-        accentColor: Colors.amber,
+        colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark)
       ),
       builder: (theme, darkTheme){
         return MaterialApp(
@@ -89,7 +99,7 @@ class SplashScreenPage extends StatefulWidget{
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
 
-  RandomColor _randomColor = RandomColor();
+  final RandomColor _randomColor = RandomColor();
 
   late FamilyInterests familyInterests;
   late CareerInterests careerInterests;

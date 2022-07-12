@@ -5,7 +5,7 @@ class RussianCities{
     return _russianCities.where((element) => element.toLowerCase().startsWith(query.toLowerCase())).toList();
   }
 
-  static List<String> _russianCities = [
+  static final List<String> _russianCities = [
     'Абаза',
     'Абакан',
     'Абдулино',

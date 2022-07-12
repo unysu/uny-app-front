@@ -127,7 +127,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
+              colors: const [
                 Color.fromRGBO(165, 21, 215, 5),
                 Color.fromRGBO(38, 78, 215, 5)
               ]
@@ -265,13 +265,13 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               ? Padding(
             padding: EdgeInsets.only(left: 30, top: 12),
             child: Row(
-              children: [
-                Container(
+              children: const [
+                SizedBox(
                   width: 30,
                   height: 30,
                   child: Icon(Icons.error, color: Colors.red),
                 ),
-                const SizedBox(width: 3),
+                SizedBox(width: 3),
                 Text('Поля не должны быть пустыми', style: TextStyle(color: Colors.red, fontSize: 15))
               ],
             ),
@@ -395,7 +395,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                     child: Center(
                         child: !_showLoading
                          ? Text('Далее', style: TextStyle(color: Colors.black, fontSize: 17))
-                         : Container(
+                         : SizedBox(
                           height: 30,
                           width: 30,
                           child: CircularProgressIndicator(
@@ -476,7 +476,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                         ],
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       height: 200,
                       width: 500,
                       child: CupertinoDatePicker(
@@ -560,7 +560,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text("Возраст должен быть от 18 до 100", style: TextStyle(color: Colors.white)),
-          Container(
+          SizedBox(
             height: 20,
             width: 20,
             child: Center(child: SvgPicture.asset(_warningIconAsset)),

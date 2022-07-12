@@ -62,6 +62,9 @@ class Participants{
   @JsonKey(name: 'match_percent')
   var matchPercent;
 
+  @JsonKey(name: 'mute')
+  var mute;
+
   @JsonKey(name: 'media')
   MediaDataModel? media;
 

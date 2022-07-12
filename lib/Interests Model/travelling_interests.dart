@@ -9,7 +9,7 @@ class TravelingInterests {
     }
   }
 
-  List<String> _travellingInterests = [
+  final List<String> _travellingInterests = [
     'Паломнический-религиозный 🧘🏻‍♂️ ',
     'Музыкальные фестивали 🎼',
     'Оздоровительный отдых 💆‍♀️ ',

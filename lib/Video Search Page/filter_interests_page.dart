@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,7 @@ class FilterInterestsVideoPage extends StatefulWidget{
 
 class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   
   ScrollController? _allInterestsScrollController;
   ScrollController? _careerInterestsScrollController;
@@ -62,23 +61,23 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
   List<InterestsModel>? _familyInterestsList = [];
   List<InterestsModel>? _familyFilteredList = [];
-  List<InterestsModel>? _selectedFamilyInterests = [];
+  final List<InterestsModel>? _selectedFamilyInterests = [];
 
   List<InterestsModel>? _careerInterestsList = [];
   List<InterestsModel>? _careerFilteredList = [];
-  List<InterestsModel>? _selectedCareerInterests = [];
+  final List<InterestsModel>? _selectedCareerInterests = [];
 
   List<InterestsModel>? _sportInterestsList = [];
   List<InterestsModel>? _sportFilteredList = [];
-  List<InterestsModel>? _selectedSportInterests = [];
+  final List<InterestsModel>? _selectedSportInterests = [];
 
   List<InterestsModel>? _travelingInterestsList = [];
   List<InterestsModel>? _travelingFilteredList = [];
-  List<InterestsModel>? _selectedTravelingInterests = [];
+  final List<InterestsModel>? _selectedTravelingInterests = [];
 
   List<InterestsModel>? _generalInterestsList = [];
   List<InterestsModel>? _generalFilteredList = [];
-  List<InterestsModel>? _selectedGeneralInterests = [];
+  final List<InterestsModel>? _selectedGeneralInterests = [];
 
 
   @override
@@ -212,7 +211,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                     fillColor: Colors.grey.withOpacity(0.1),
                     prefixIcon: _isSearching != true ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                      children: const [
                         Icon(CupertinoIcons.search, color: Colors.grey),
                         Text('Поиск интересов', style: TextStyle(fontSize: 17, color: Colors.grey))
                       ],
@@ -248,7 +247,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                     setState(() {});
 
 
-                    if (value.length == 0) {
+                    if (value.isEmpty) {
                       setState(() {
                         _isSearching = false;
                       });
@@ -638,13 +637,13 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
 
 
   Widget allInterestsGridView() {
-    if(_allInterestsList!.length != 0){
+    if(_allInterestsList!.isNotEmpty){
       return Column(
         children: [
           Divider(
             thickness: 1,
           ),
-          _allInterestsFilteredList!.length != 0 ? SizedBox(
+          _allInterestsFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -713,7 +712,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса',
                     maxLines: 2,
@@ -731,13 +730,13 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget familyInterestsGridView() {
-    if(_familyInterestsList!.length != 0){
+    if(_familyInterestsList!.isNotEmpty){
       return Column(
         children: [
           Divider(
             thickness: 1,
           ),
-          _familyFilteredList!.length != 0 ? SizedBox(
+          _familyFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea (
                 top: false,
@@ -807,7 +806,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса',
                     maxLines: 2,
@@ -825,13 +824,13 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget careerInterestsGridView(){
-    if(_careerInterestsList!.length != 0){
+    if(_careerInterestsList!.isNotEmpty){
       return Column(
         children: [
           Divider(
             thickness: 1,
           ),
-          _careerFilteredList!.length != 0 ? SizedBox(
+          _careerFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -903,7 +902,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -921,13 +920,13 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget sportInterestsGridView() {
-    if(_sportInterestsList!.length != 0){
+    if(_sportInterestsList!.isNotEmpty){
       return Column(
         children: [
           Divider(
             thickness: 1,
           ),
-          _sportFilteredList!.length != 0 ? SizedBox(
+          _sportFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -998,7 +997,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1016,13 +1015,13 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget travelingInterestsGridView() {
-    if(_travelingInterestsList!.length != 0){
+    if(_travelingInterestsList!.isNotEmpty){
       return Column(
         children: [
           Divider(
             thickness: 1,
           ),
-          _travelingFilteredList!.length != 0 ? SizedBox(
+          _travelingFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -1094,7 +1093,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1112,13 +1111,13 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget generalInterestsGridView() {
-    if(_generalInterestsList!.length != 0){
+    if(_generalInterestsList!.isNotEmpty){
       return Column(
         children: [
           Divider(
             thickness: 1,
           ),
-          _generalFilteredList!.length != 0 ? SizedBox(
+          _generalFilteredList!.isNotEmpty ? SizedBox(
               height: height / 1.21,
               child: SafeArea(
                 top: false,
@@ -1166,7 +1165,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
                                               color: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                                              boxShadow: [
+                                              boxShadow: const [
                                                 BoxShadow(
                                                     color: Colors.deepPurple,
                                                     offset: Offset(3, 3),
@@ -1190,7 +1189,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text(
                     'По вашему запросу не найдено подходящего интереса. Вы можете добавить новый вручную',
                     maxLines: 2,
@@ -1303,7 +1302,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget familySelectedInterests(){
-    return _selectedFamilyInterests!.length == 0
+    return _selectedFamilyInterests!.isEmpty
         ? Container() : Container(
         width: width * 2,
         height: 50,
@@ -1368,7 +1367,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget careerSelectedInterests(){
-    return _selectedCareerInterests!.length == 0
+    return _selectedCareerInterests!.isEmpty
         ? Container(): Container(
         width: width * 2,
         height: 50,
@@ -1433,7 +1432,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget sportSelectedInterests(){
-    return _selectedSportInterests!.length == 0
+    return _selectedSportInterests!.isEmpty
         ? Container(): Container(
         width: width * 2,
         height: 50,
@@ -1498,7 +1497,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget travelingSelectedInterests(){
-    return _selectedTravelingInterests!.length == 0
+    return _selectedTravelingInterests!.isEmpty
         ? Container(): Container(
         width: width * 2,
         height: 50,
@@ -1563,7 +1562,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
   }
 
   Widget generalSelectedInterests(){
-    return _selectedGeneralInterests!.length == 0
+    return _selectedGeneralInterests!.isEmpty
         ? Container() : Container(
         width: width * 2,
         height: 50,
@@ -1610,10 +1609,10 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
                       color: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                             color: Colors.deepPurple,
-                            offset: const Offset(3, 3),
+                            offset: Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
                         )

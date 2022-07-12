@@ -10,7 +10,7 @@ class CareerInterests {
     }
   }
 
-  List<String> _careerInterests = [
+  final List<String> _careerInterests = [
     'Работа',
     'Карьера',
     'Офис ',

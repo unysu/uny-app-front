@@ -47,7 +47,6 @@ class _SettingsPageState extends State<SettingsPage>{
   final String _logoutAsset  = 'assets/logout.svg';
   final String _rearrangeAsset = 'assets/rearrange.svg';
   final String _newMediaImageAsset = 'assets/new_media.svg';
-  final String _noPhotoPlaceholder = 'assets/removed_avatar_pic.svg';
 
   final ImagePicker _picker = ImagePicker();
 
@@ -204,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage>{
               ),
               Positioned(
                   bottom: 10,
-                  right: 165,
+                  right: 160,
                   child: InkWell(
                     onTap: () {
                       if(UniversalPlatform.isIOS){
@@ -254,7 +253,7 @@ class _SettingsPageState extends State<SettingsPage>{
                 + ' ' + _phoneNumber[5] + _phoneNumber[6] + _phoneNumber[7] + '-'
                 + _phoneNumber[8] + _phoneNumber[9] + '-' + _phoneNumber[10] + _phoneNumber[11];
 
-            return Text('${_russianFormattedNumber}', style: TextStyle(fontSize: 15, color: Colors.grey));
+            return Text(_russianFormattedNumber, style: TextStyle(fontSize: 15, color: Colors.grey));
           },
         ),
         SizedBox(height: height / 40),

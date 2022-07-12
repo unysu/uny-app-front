@@ -35,7 +35,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
 
   PageController? _pageController;
 
-  List<String>? _videoUrls = [];
+  final List<String>? _videoUrls = [];
 
   AnimationController? controller;
   AnimationController? emojisAnimationController;
@@ -148,7 +148,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                         fillColor: Colors.white.withOpacity(0.3),
                         prefixIcon: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                          children: const [
                             Icon(CupertinoIcons.slider_horizontal_3,
                                 color: Colors.white),
                             SizedBox(width: 10),
@@ -235,7 +235,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                   ),
                 ],
               ),
-              body: Container(
+              body: SizedBox(
                 height: height,
                 child: GestureDetector(
                   child: getMatches(),
@@ -352,7 +352,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                     child: child,
                                   );
                                 },
-                                child: Container(
+                                child: SizedBox(
                                   height: height,
                                   child: Stack(
                                     clipBehavior: Clip.antiAlias,
@@ -553,7 +553,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                   clipBehavior: Clip.antiAlias,
                                   children: [
                                     ClipOval(
-                                      child: Container(
+                                      child: SizedBox(
                                         height: 60,
                                         width: 60,
                                         child: _usersWithVideo![index].media!.mainPhotosList != null ? CachedNetworkImage(
@@ -585,7 +585,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                       top: 5,
                                       left: 5,
                                       child: ClipOval(
-                                        child: Container(
+                                        child: SizedBox(
                                           height: 50,
                                           width: 50,
                                           child: SimpleCircularProgressBar(
@@ -595,7 +595,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                             backStrokeWidth: 8,
                                             progressStrokeWidth: 8,
                                             startAngle: 187,
-                                            progressColors: [
+                                            progressColors: const [
                                               Colors.red,
                                               Colors.yellowAccent,
                                               Colors.green
@@ -616,7 +616,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                             progressStrokeWidth: 8,
                                             startAngle: 187,
                                             mergeMode: true,
-                                            progressColors: [
+                                            progressColors: const [
                                               Colors.red,
                                               Colors.yellowAccent,
                                               Colors.green
@@ -723,7 +723,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                               padding: EdgeInsets.symmetric(horizontal: 10),
                                               physics: BouncingScrollPhysics(),
                                               isScrollable: true,
-                                              tabs: [
+                                              tabs: const [
                                                 Tab(text: 'Обычные'),
                                                 Tab(text: 'Необычные'),
                                                 Tab(text: 'Редкие'),
@@ -767,7 +767,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                                   color: Color.fromRGBO(145, 10, 251, 5),
                                                   child: Row(
                                                     mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
+                                                    children: const [
                                                       SizedBox(width: 5),
                                                       Text('Отправить', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
                                                     ],
@@ -790,7 +790,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                               decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
-                                      colors: [
+                                      colors: const [
                                         Color.fromRGBO(255, 0, 92, 10),
                                         Color.fromRGBO(255, 172, 47, 10),
                                       ]
@@ -913,7 +913,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                           Text(_usersWithVideo![index].firstName + ' ' + _usersWithVideo![index].lastName + ' ' + _usersWithVideo![index].age.toString(),
                               style: TextStyle(fontSize: 24, color: Colors.white)),
                           SizedBox(height: 10),
-                          Container(
+                          SizedBox(
                             height: 100,
                             width: width,
                             child: MasonryGridView.count(
@@ -1127,7 +1127,7 @@ class _VideoSearchPageState extends State<VideoSearchPage> with TickerProviderSt
                                       gradient: LinearGradient(
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
-                                          colors: [
+                                          colors: const [
                                             Color.fromRGBO(255, 83, 155, 5),
                                             Color.fromRGBO(237, 48, 48, 5)
                                           ]
@@ -1418,7 +1418,7 @@ class VideoPlayerWidget extends StatefulWidget {
   _VideoPlayerState createState() => _VideoPlayerState();
 
 
-  VideoPlayerWidget({Key? key, this.url}) : super(key: key);
+  const VideoPlayerWidget({Key? key, this.url}) : super(key: key);
 }
 
 
@@ -1500,7 +1500,7 @@ class _VideoPlayerState extends State<VideoPlayerWidget>{
                   if(!_showIcon){
                     controller.play();
                   }
-                };
+                }
                 return Center(
                     child: Stack(
                       children: [

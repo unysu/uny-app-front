@@ -4,7 +4,7 @@ class DatabaseObject {
 
   static InterestsDatabase? _db;
 
-  static void set setDb(InterestsDatabase db){
+  static set setDb(InterestsDatabase db){
     _db = db;
   }
 

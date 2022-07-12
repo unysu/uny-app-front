@@ -75,6 +75,7 @@ dependencies:
   firebase_core: ^1.19.1
   firebase_messaging: ^11.4.4
   flutter_staggered_grid_view: ^0.6.1
+  awesome_notifications: ^0.0.6+10
 
 
 dev_dependencies:
@@ -86,12 +87,6 @@ dev_dependencies:
 
   flutter_test:
     sdk: flutter
-
-
-flutter_icons:
-  image_path: "assets/app_icon.svg"
-  android: true
-  ios: true
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

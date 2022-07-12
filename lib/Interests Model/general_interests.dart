@@ -10,7 +10,7 @@ class GeneralInterests{
     }
   }
 
-  List<String> _generalInterests = [
+  final List<String> _generalInterests = [
     'ЗОЖ🥦',
     'Тусовки 🍾',
     'Чтение📚',

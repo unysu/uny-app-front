@@ -188,7 +188,7 @@ class _VideoPageState extends State<VideoPage>{
                 TextSpan(
                     text: 'Вы уверены, что хотите удалить видео? ',
                     style: TextStyle(color: Colors.black, fontSize: 15),
-                    children: [
+                    children: const [
                       TextSpan(
                         text: '   Это действие невозможно отменить.',
                         style: TextStyle(color: Colors.red, fontSize: 15),
@@ -239,7 +239,7 @@ class _VideoPageState extends State<VideoPage>{
                 TextSpan(
                     text: 'Вы уверены, что хотите удалить видео? ',
                     style: TextStyle(color: Colors.black, fontSize: 15),
-                    children: [
+                    children: const [
                       TextSpan(
                         text: 'Это действие невозможно отменить.',
                         style: TextStyle(color: Colors.red, fontSize: 15),

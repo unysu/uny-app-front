@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Authorization%20Pages/authorization_info_page.dart';
-import 'package:uny_app/Token%20Data/token_data.dart';
 
 class GenderPage extends StatefulWidget{
   @override
@@ -68,7 +67,7 @@ class _GenderPageState extends State<GenderPage>{
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
+              colors: const [
                 Color.fromRGBO(165, 21, 215, 5),
                 Color.fromRGBO(38, 78, 215, 5)
               ]
@@ -96,7 +95,7 @@ class _GenderPageState extends State<GenderPage>{
                 ),
               )
           ),
-          Container(
+          SizedBox(
               height: 500,
               child: LayoutBuilder(
                 builder: (context, constraint){

@@ -52,7 +52,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   DateTime _date = DateTime.now();
 
-  bool _containsSymbolsNameField = false;
+  final bool _containsSymbolsNameField = false;
 
   bool _showZodiacSign = true;
   bool _iAmNotWorking = true;
@@ -90,8 +90,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     _genderString = _userData!.gender;
 
-    _companyNameTextController!.value = _companyNameTextController!.value.copyWith(text: _userData!.jobCompany != null ? _userData!.jobCompany : '');
-    _positionTextController!.value = _positionTextController!.value.copyWith(text: _userData!.job != null ? _userData!.job : '');
+    _companyNameTextController!.value = _companyNameTextController!.value.copyWith(text: _userData!.jobCompany ?? '');
+    _positionTextController!.value = _positionTextController!.value.copyWith(text: _userData!.job ?? '');
 
     _iAmNotWorking = _positionTextController!.value.text == '';
 
@@ -139,7 +139,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                  child: _showLoading
                      ? Padding(
                    padding: EdgeInsets.only(right: 10),
-                   child: Container(
+                   child: SizedBox(
                      height: 25,
                      width: 25,
                      child: CircularProgressIndicator(
@@ -649,7 +649,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ],
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       height: 200,
                       width: 500,
                       child: CupertinoDatePicker(
@@ -707,7 +707,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextSpan(
                     text: 'Вы уверены, что хотите удалить аккаунт Uny? ',
                     style: TextStyle(color: Colors.black, fontSize: 15),
-                    children: [
+                    children: const [
                       TextSpan(
                           text: 'Это действие невозможно отменить.',
                           style: TextStyle(color: Colors.red, fontSize: 15)
@@ -720,7 +720,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               actions: [
                 CupertinoActionSheetAction(
                   onPressed: () async {
-                    String? tokenValue = await TokenData.getUserToken();
+                    String? tokenValue = TokenData.getUserToken();
 
                     String token = 'Bearer ' + tokenValue;
 
@@ -754,7 +754,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextSpan(
                     text: 'Вы уверены, что хотите удалить аккаунт Uny? ',
                     style: TextStyle(color: Colors.black, fontSize: 15),
-                    children: [
+                    children: const [
                       TextSpan(
                           text: 'Это действие невозможно отменить.',
                           style: TextStyle(color: Colors.red, fontSize: 15),
@@ -767,7 +767,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               actions: [
                 TextButton(
                   onPressed: () async {
-                    String? tokenValue = await TokenData.getUserToken();
+                    String? tokenValue = TokenData.getUserToken();
 
                     String token = 'Bearer ' + tokenValue;
                     Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount(token);
@@ -826,7 +826,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ?  Text("Фамилия не может содержать цифры и символы", style: TextStyle(color: Colors.white))
           : index == 2
           ? Text("Поля не должны быть пустыми", style: TextStyle(color: Colors.white)) : Container(),
-          Container(
+          SizedBox(
             height: 20,
             width: 20,
             child: Center(child: SvgPicture.asset(_warningIconAsset)),
@@ -853,7 +853,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text("Возраст должен быть от 18 до 100", style: TextStyle(color: Colors.white)),
-          Container(
+          SizedBox(
             height: 20,
             width: 20,
             child: Center(child: SvgPicture.asset(_warningIconAsset)),

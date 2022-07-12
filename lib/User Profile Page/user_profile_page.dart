@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
+import 'package:crypto/crypto.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,8 +22,10 @@ import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Chats%20Page/chat_page_visibility.dart';
 import 'package:uny_app/Chats%20Page/messages_page.dart';
 import 'package:uny_app/Constants/constants.dart';
+import 'package:uny_app/Data%20Models/Chats%20Data%20Model/all_chats_model.dart';
 import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_model.dart';
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/User%20Data%20Model/all_user_data_model.dart';
@@ -76,6 +81,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
   List<MediaModel>? _videos;
   List<InterestsDataModel>? _interests;
 
+  List<Chats>? _chatsList;
+
   UserDataModel? _user;
 
   PageController? _pageController;
@@ -94,7 +101,6 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   void initState() {
-
     token = 'Bearer ' + TokenData.getUserToken();
 
     _allUserDataModelFuture = UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
@@ -106,6 +112,52 @@ class _UserProfilePageState extends State<UserProfilePage>{
       initialPage: _bottomNavBarIndex
     );
 
+    FirebaseMessaging.onMessage.listen((message) {
+      if(message.data['chatId'].toString() != ChatPageVisibility.openedChatId){
+        if(message.notification!.title.toString() != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName.toString()){
+          AwesomeNotifications().isNotificationAllowed().then((isAllowed){
+            if(!isAllowed){
+              AwesomeNotifications().requestPermissionToSendNotifications();
+            }else{
+              AwesomeNotifications().createNotification(
+                  content: NotificationContent(
+                    id: 2,
+                    displayOnBackground: true,
+                    displayOnForeground: true,
+                    channelKey: 'high_importance_channel',
+                    notificationLayout: NotificationLayout.Messaging,
+                    title: '${message.notification!.title}',
+                    body: '${message.notification!.body}',
+                  )
+              );
+            }
+          });
+        }
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+
+      var data = {
+        'limit' : 100
+      };
+
+      _allUserDataModelFuture!.whenComplete(() async {
+        await UnyAPI.create(Constants.ALL_MESSAGES_MODEL_CONVERTER).getAllChats(token, data).then((response){
+          _chatsList = response.body!.chats;
+          for(var chats in _chatsList!){
+            if(!(chats.participants!.where((element) => element.id.toString() != _user!.id.toString()).toList()[0].mute)){
+              var bytes = utf8.encode(chats.chatRoomId.toString());
+              FirebaseMessaging.instance.subscribeToTopic(sha256.convert(bytes).toString());
+            }else{
+              var bytes = utf8.encode(chats.chatRoomId.toString());
+              FirebaseMessaging.instance.unsubscribeFromTopic(sha256.convert(bytes).toString());
+            }
+          }
+        });
+      });
+
+    });
 
     super.initState();
   }
@@ -113,12 +165,13 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   void dispose() {
-    super.dispose();
 
     bioTextFocusNode!.dispose();
     bioTextController!.dispose();
 
     _pageController!.dispose();
+
+    super.dispose();
   }
 
 
@@ -165,7 +218,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                  SettingsPage(),
                ],
              ),
-             bottomNavigationBar: Container(
+             bottomNavigationBar: SizedBox(
                height: height / 10,
                  child: BottomNavigationBar(
                  type: BottomNavigationBarType.fixed,
@@ -286,7 +339,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomRight,
-                                colors: [
+                                colors: const [
                                   Color.fromRGBO(145, 10, 251, 5),
                                   Color.fromRGBO(29, 105, 218, 5)
                                 ]
@@ -305,9 +358,13 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        Container(
+                                        SizedBox(
                                           width: 150,
-                                          child: Text('${viewModel.userDataModel!.firstName} ${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 2)
+                                          child: Text('${viewModel.userDataModel!.firstName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1)
+                                        ),
+                                        SizedBox(
+                                          width: 150,
+                                          child: Text('${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
                                         ),
                                         Flexible(
                                           child: Column(
@@ -328,7 +385,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               ),
                               Center(
                                 widthFactor: 0.2,
-                                child: Container(
+                                child: SizedBox(
                                     height: 100,
                                     width: 100,
                                     child: Consumer<UserDataProvider>(
@@ -392,7 +449,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                           children: [
                                             Text(viewModel.userDataModel!.location, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                                             SizedBox(width: 5),
-                                            Container(
+                                            SizedBox(
                                               height: 20,
                                               width: 20,
                                               child: ClipOval(
@@ -531,7 +588,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
           StatefulBuilder(
             builder: (context, setState){
               _bioState = setState;
-              return Container(
+              return SizedBox(
                 height: 70,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -693,7 +750,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               color: Colors.grey.withOpacity(0.3),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                children: const [
                                   Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
                                   SizedBox(height: 3),
                                   Text('Загрузить видео',
@@ -784,7 +841,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                 color: Colors.grey.withOpacity(0.3),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
+                                  children: const [
                                     Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
                                     SizedBox(height: 3),
                                     Text('Загрузить фото',
@@ -931,7 +988,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     children: [
                       Container(),
                       Text(
-                        'Осталось ${_symbolsLeft} символов',
+                        'Осталось $_symbolsLeft символов',
                         style: TextStyle(color: Colors.grey, fontSize: 15),
                       )
                     ],
@@ -954,7 +1011,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               onTap: () {
                                 Navigator.pop(context);
                               },
-                              child: Container(
+                              child: SizedBox(
                                 height: height * 0.10,
                                 child: Center(
                                     child: Text('Отмена',
@@ -997,11 +1054,11 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                     });
                                   });
                                 },
-                                child: Container(
+                                child: SizedBox(
                                   height: height * 0.10,
                                   child: Center(
                                       child: _showEditBioLoading
-                                          ? Container(
+                                          ? SizedBox(
                                         height: 30,
                                         width: 30,
                                         child: CircularProgressIndicator(
@@ -1048,7 +1105,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
               _videos = _allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
 
               Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(_videos);
-            };
+            }
           }
 
           _interests = _allUserDataModel!.interests;
@@ -1120,7 +1177,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
   void showBottomSheet() async {
     try{
       List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(onlyAll: true, type: RequestType.image);
-      List<AssetEntity> media = await albums[0].getAssetListPaged(page: 0, size: 60);
+      List<AssetEntity> media = await albums[0].getAssetListPaged(page: 0, size: 10000);
 
       if(UniversalPlatform.isIOS){
         showCupertinoModalPopup(

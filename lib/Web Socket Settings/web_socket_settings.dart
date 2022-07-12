@@ -38,8 +38,8 @@ class SocketSettings{
     _channel!.sink.add(jsonEncode(data));
   }
 
-  void sendMessage(String participantId, Message msg){
-    var bytes = utf8.encode(participantId);
+  void sendMessage(String chatRoomId, Message msg){
+    var bytes = utf8.encode(chatRoomId);
     String idHash = sha256.convert(bytes).toString();
 
     var data = {
@@ -50,8 +50,8 @@ class SocketSettings{
     _channel!.sink.add(jsonEncode(data));
   }
 
-  void editMessage(String participantId, Message msg){
-    var bytes = utf8.encode(participantId);
+  void editMessage(String chatRoomId, Message msg){
+    var bytes = utf8.encode(chatRoomId);
     String idHash = sha256.convert(bytes).toString();
 
     var data = {
@@ -62,8 +62,8 @@ class SocketSettings{
     _channel!.sink.add(jsonEncode(data));
   }
 
-  void removeMessageForEveryone(String participantId, String id){
-    var bytes = utf8.encode(participantId);
+  void removeMessageForEveryone(String chatRoomId, String id){
+    var bytes = utf8.encode(chatRoomId);
     String idHash = sha256.convert(bytes).toString();
 
     var data = {
@@ -74,8 +74,8 @@ class SocketSettings{
     _channel!.sink.add(jsonEncode(data));
   }
 
-  void clearChat(String participantId, bool isChatCleared){
-    var bytes = utf8.encode(participantId);
+  void clearChat(String chatRoomId, bool isChatCleared){
+    var bytes = utf8.encode(chatRoomId);
     String idHash = sha256.convert(bytes).toString();
 
     var data = {

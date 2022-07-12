@@ -30,10 +30,10 @@ class PhotoSearchDataModel{
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    if (this.matches != null) {
-      data['matches'] = this.matches!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    if (matches != null) {
+      data['matches'] = matches!.map((v) => v.toJson()).toList();
     }
     return data;
   }

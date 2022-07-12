@@ -1,14 +1,10 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:chopper/chopper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
-import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
@@ -91,7 +87,7 @@ class _PrivacySettingsState extends State<PrivacySettingsPage>{
               actions: [
                 _showLoading ? Padding(
                   padding: EdgeInsets.symmetric(vertical: 18, horizontal: 10),
-                  child: Container(
+                  child: SizedBox(
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
@@ -106,7 +102,7 @@ class _PrivacySettingsState extends State<PrivacySettingsPage>{
                       _showLoading = true;
                     });
 
-                    var data;
+                    late Map<String, String?> data;
 
                     if(_toAllUsers){
                       data = {

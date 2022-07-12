@@ -1,5 +1,4 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -166,7 +165,7 @@ class _SupportPageState extends State<SupportPage>{
                   child: Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: const [
                           Icon(Icons.attach_file, color: Color.fromRGBO(145, 10, 251, 5)),
                           SizedBox(width: 5),
                           Text('Прикрепить файл', style: TextStyle(fontSize: 17))
@@ -201,7 +200,7 @@ class _SupportPageState extends State<SupportPage>{
                 Text.rich(
                   TextSpan(
                     text: 'Нажимая "Отправить", вы подтверждаете согласие с ',
-                    children: [
+                    children: const [
                       TextSpan(
                           text: 'условиями использования UnyApp',
                           style: TextStyle(color: Colors.blue)

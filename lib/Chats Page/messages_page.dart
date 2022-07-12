@@ -1,12 +1,9 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:shimmer/shimmer.dart';
@@ -18,7 +15,6 @@ import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
-import 'package:uny_app/Web%20Socket%20Settings/web_socket_settings.dart';
 
 import '../Data Models/Chats Data Model/all_chats_model.dart';
 
@@ -37,6 +33,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
   late double height;
   late double width;
 
+  late String userId;
+
   bool _isSearching = false;
 
   StateSetter? _recentMessagesState;
@@ -47,6 +45,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
 
   List<Chats>? _chatsList;
   List<Chats>? _chatsFilteredList;
+
+  List<Participants>? participants = [];
 
 
   @override
@@ -61,6 +61,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
     };
 
     _allChatsFuture = UnyAPI.create(Constants.ALL_MESSAGES_MODEL_CONVERTER).getAllChats(token, data);
+
+    userId = Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id.toString();
 
     super.initState();
   }
@@ -108,7 +110,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                   fillColor: Colors.grey.withOpacity(0.1),
                   prefixIcon: _isSearching != true ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: const [
                       Icon(CupertinoIcons.search, color: Colors.grey),
                       Text('Поиск сообщений',
                           style: TextStyle(
@@ -137,7 +139,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
 
                   _recentMessagesState!((){});
 
-                  if (value.length == 0) {
+                  if (value.isEmpty) {
                     setState(() {
                       _isSearching = false;
                     });
@@ -184,7 +186,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                           gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
+                              colors: const [
                                 Color.fromRGBO(255, 83, 155, 5),
                                 Color.fromRGBO(237, 48, 48, 5)
                               ]
@@ -197,7 +199,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
             )
           ],
         ),
-        Container(
+        SizedBox(
           height: height / 1.22,
           child: TabBarView(
             controller: _tabController,
@@ -221,6 +223,10 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                       _chatsList = snapshot.data!.body!.chats!.reversed.toList();
                       _chatsFilteredList = _chatsList;
 
+                      for(var chat in _chatsFilteredList!){
+                        participants!.addAll(chat.participants!.where((participant) => participant.id.toString() != userId.toString()));
+                      }
+
                       return recentMessages();
                     }else{
                       return Center(
@@ -230,13 +236,6 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                     }
                   },
                 )
-
-                /* Consumer<ChatsDataProvider>(
-                  builder: (context, viewModel, child){
-                    _chatsList = viewModel.allRoomsList;
-                    return recentMessages();
-                  },
-                ) */
               ),
               Container(
                 child: messageRequests(),
@@ -266,8 +265,8 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
           itemBuilder: (context, index){
 
             if(_chatsFilteredList![index].messages!.isNotEmpty){
-              Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(_chatsFilteredList![index].chatRoomId, _chatsFilteredList![index].messages!.last.text);
-              Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(_chatsFilteredList![index].chatRoomId, _chatsFilteredList![index].messages!.last.createdAt);
+              Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(_chatsFilteredList![index].chatRoomId, _chatsFilteredList![index].messages!.first.text);
+              Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(_chatsFilteredList![index].chatRoomId, _chatsFilteredList![index].messages!.first.createdAt);
             }
 
             return Consumer<ChatsDataProvider>(
@@ -379,10 +378,10 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                     onTap: (){
                       Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => UserChatPage(chat: _chatsFilteredList![index]))
+                          MaterialPageRoute(builder: (context) => UserChatPage(chat: _chatsFilteredList![index], participant: participants![index]))
                       );
                     },
-                    child: Container(
+                    child: SizedBox(
                       height: 90,
                       width: width,
                       child: Stack(
@@ -397,11 +396,11 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                       children: [
                                         Positioned(
                                             left: 3.9,
-                                            child: Container(
+                                            child: SizedBox(
                                               width: 52,
                                               height: 52,
-                                              child: _chatsFilteredList![index].participants![1].media!.mainPhoto != null ? CachedNetworkImage(
-                                                imageUrl: _chatsFilteredList![index].participants![1].media!.mainPhoto!.url,
+                                              child: participants![index].media!.mainPhoto != null ? CachedNetworkImage(
+                                                imageUrl: participants![index].media!.mainPhoto!.url,
                                                 imageBuilder: (context, imageProvider) => Container(
                                                   width: 52,
                                                   height: 52,
@@ -436,21 +435,21 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                                 decoration: BoxDecoration(
                                                   shape: BoxShape.circle
                                                 ),
-                                              ),
+                                              )
                                             )
                                         ),
                                         Positioned(
-                                          child: Container(
+                                          child: SizedBox(
                                             height: 60,
                                             width: 60,
                                             child: SimpleCircularProgressBar(
-                                              valueNotifier: ValueNotifier(double.parse(_chatsFilteredList![index].participants![1].matchPercent.toString())),
+                                              valueNotifier: ValueNotifier(double.parse(participants![index].matchPercent.toString())),
                                               backColor: Colors.grey[300]!,
                                               animationDuration: 0,
                                               backStrokeWidth: 5,
                                               progressStrokeWidth: 5,
                                               startAngle: 187,
-                                              progressColors: [
+                                              progressColors: const [
                                                 Colors.deepOrange,
                                                 Colors.yellowAccent,
                                                 Colors.green
@@ -468,13 +467,13 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                               padding: EdgeInsets.symmetric(horizontal: 3),
                                               child: Center(
                                                 widthFactor: 1,
-                                                child: Text('${_chatsFilteredList![index].participants![1].matchPercent.toString()} %', style: TextStyle(
+                                                child: Text('${participants![index].matchPercent.toString()} %', style: TextStyle(
                                                     color: Colors.white)),
                                               ),
                                               decoration: BoxDecoration(
-                                                color: _chatsFilteredList![index].participants![1].matchPercent < 49 ? Colors.red
-                                                    : (_chatsFilteredList![index].participants![1].matchPercent > 49 && _chatsFilteredList![index].participants![1].matchPercent < 65)
-                                                    ? Colors.orange : (_chatsFilteredList![index].participants![1].matchPercent > 65) ? Colors.green : null,
+                                                color: participants![index].matchPercent < 49 ? Colors.red
+                                                    : (participants![index].matchPercent > 49 && participants![index].matchPercent < 65)
+                                                    ? Colors.orange : (participants![index].matchPercent > 65) ? Colors.green : null,
                                                 borderRadius: BorderRadius.all(Radius.circular(20)),
                                               ),
                                             ),
@@ -492,16 +491,16 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Container(
+                                        SizedBox(
                                           width: width / 2,
-                                          child: Text(_chatsFilteredList![index].participants![1].firstName, style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          child: Text(participants![index].firstName, style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
                                         ),
                                         SizedBox(height: 5),
                                         Padding(
                                             padding: EdgeInsets.only(left: 2),
-                                            child: Container(
+                                            child: SizedBox(
                                               width: width / 2,
-                                              child: Text(lastMessage != null ? lastMessage : ' ', style: TextStyle(fontSize: 16, color: Colors.grey), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                              child: Text(lastMessage ?? ' ', style: TextStyle(fontSize: 16, color: Colors.grey), maxLines: 2, overflow: TextOverflow.ellipsis),
                                             )
                                         )
                                       ],
@@ -561,7 +560,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => UserChatPage(chat: null)
+                          builder: (context) => UserChatPage(chat: null, participant: null)
                       )
                   );
                 },
@@ -581,7 +580,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
               ),
             ],
           ),
-          child: Container(
+          child: SizedBox(
             height: height / 11,
             width: width,
             child: Stack(
@@ -609,7 +608,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                           ),
                         ),
                         Positioned(
-                          child: Container(
+                          child: SizedBox(
                             height: 60,
                             width: 60,
                             child: SimpleCircularProgressBar(
@@ -620,7 +619,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                               backStrokeWidth: 5,
                               progressStrokeWidth: 5,
                               startAngle: 210,
-                              progressColors: [
+                              progressColors: const [
                                 Colors.deepOrange,
                                 Colors.yellowAccent,
                                 Colors.green
@@ -664,7 +663,7 @@ class _ChatsPageState extends State<ChatsPage> with SingleTickerProviderStateMix
                 Positioned(
                     top: height / 26,
                     left: width / 5.5,
-                    child: Container(
+                    child: SizedBox(
                       width: width / 2,
                       child: Text(
                         'Проспорила вчера в карты и сделала огромную татуху с 🍆 ...',

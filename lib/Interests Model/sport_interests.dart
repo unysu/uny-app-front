@@ -10,7 +10,7 @@ class SportInterests{
     }
   }
 
-  List<String> _sportInterests = [
+  final List<String> _sportInterests = [
     'Игровые',
     'Циклические',
     'Сложнокоординационные',

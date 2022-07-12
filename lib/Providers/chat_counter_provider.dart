@@ -11,7 +11,7 @@ class ChatCounterProvider extends ChangeNotifier{
 
 
   void setCheckBoxList(List<bool>? selectedMessagesList){
-    this._selectedMessagesList = selectedMessagesList;
+    _selectedMessagesList = selectedMessagesList;
 
     notifyListeners();
   }

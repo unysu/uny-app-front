@@ -37,6 +37,7 @@ class _OtherUsersVideoPlayerState extends State<OtherUsersVideoPlayer>{
     super.initState();
   }
 
+  @override
   void dispose(){
     _videoPlayerController.dispose();
     super.dispose();

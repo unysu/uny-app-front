@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 class SlidingAppBar extends StatelessWidget implements PreferredSizeWidget {
-  SlidingAppBar({
+  const SlidingAppBar({
     required this.child,
     required this.controller,
     required this.visible,

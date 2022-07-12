@@ -3,7 +3,6 @@ import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Authorization%20Pages/phone_nmb_confirm_page.dart';
@@ -96,7 +95,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
+              colors: const [
                 Color.fromRGBO(165, 21, 215, 5),
                 Color.fromRGBO(38, 78, 215, 5)
               ]
@@ -150,7 +149,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                                 value: _phoneNumberCodeString,
                                 icon: Icon(Icons.keyboard_arrow_down_sharp, color: Colors.grey),
                                 underline: Container(),
-                                items: [
+                                items: const [
                                   DropdownMenuItem(
                                     value: '+7',
                                     child: Text('+7', style: TextStyle(fontSize: 17, color: Colors.black)),
@@ -178,7 +177,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                               errorStyle: TextStyle(color: Colors.red, fontSize: 15),
                               prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                               suffixIcon: focusNode!.hasFocus ? SizedBox(
-                                  child:Container(
+                                  child:SizedBox(
                                     height: 40,
                                     width: 40,
                                     child: IconButton(
@@ -275,7 +274,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
                           child: Center(
                               child: !showLoading
                                     ? Text('Готово', style: TextStyle(color: validate == true || isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))
-                                    : Container(
+                                    : SizedBox(
                                        height: 30,
                                        width: 30,
                                        child: CircularProgressIndicator(
@@ -297,7 +296,7 @@ class _AuthorizationPageState extends State<AuthorizationPage>{
               TextSpan(
                   text: 'Нажимая "Готово", вы подтверждаете ',
                   style: TextStyle(color: Colors.white),
-                  children: [
+                  children: const [
                     TextSpan(
                         text: 'согласие с условиями использования UnyApp ',
                         style: TextStyle(color: Colors.lightBlue)

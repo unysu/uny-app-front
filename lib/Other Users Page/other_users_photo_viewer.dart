@@ -1,12 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/App%20Bar%20/sliding_app_bar.dart';
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
-import 'package:uny_app/Other%20Users%20Page/other_users_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
 class OtherUsersPhotoViewer extends StatefulWidget{
@@ -24,7 +22,7 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
 
   FToast? _fToast;
 
-  bool _showLoading = false;
+  final bool _showLoading = false;
 
   late String token;
 
@@ -189,7 +187,7 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
                     padding: EdgeInsets.only(top: 40),
                     child: Column(
                       children: [
-                        Text('${_currentPic} из ${photos!.length}', style: TextStyle(fontSize: 17, color: Colors.white)),
+                        Text('$_currentPic из ${photos!.length}', style: TextStyle(fontSize: 17, color: Colors.white)),
                         SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

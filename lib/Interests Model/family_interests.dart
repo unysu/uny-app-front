@@ -1,5 +1,4 @@
 
-import 'package:floor/floor.dart';
 
 class FamilyInterests {
 
@@ -13,7 +12,7 @@ class FamilyInterests {
     }
   }
 
-  List<String> _familyInterests = [
+  final List<String> _familyInterests = [
     'Ориентация♂️♀️',
     'Отношения 💘',
     '18 +',

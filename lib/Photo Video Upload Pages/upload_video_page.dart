@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:chopper/chopper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +28,7 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
   late double height;
   late double width;
 
-  ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker = ImagePicker();
   XFile? _video;
   Uint8List? _videoImageBytes;
 
@@ -280,13 +279,13 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                   );
                 }
               },
-              child: Container(
+              child: SizedBox(
                 height: height / 15,
                 child: Center(
                     child: !_showLoading
                         ? Text('Далее', style: TextStyle(
                         color: Colors.white.withOpacity(0.9), fontSize: 17))
-                        : Container(
+                        : SizedBox(
                       height: 30,
                       width: 30,
                       child: CircularProgressIndicator(

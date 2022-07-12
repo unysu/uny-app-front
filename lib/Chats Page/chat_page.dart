@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chopper/chopper.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:focused_menu/focused_menu.dart';
@@ -18,11 +19,13 @@ import 'package:shimmer/shimmer.dart';
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Chats%20Page/chat_page_visibility.dart';
 import 'package:uny_app/Chats%20Page/chat_photo_page.dart';
 import 'package:uny_app/Chats%20Page/chat_video_player.dart';
 import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Chats%20Data%20Model/all_chats_model.dart';
 import 'package:uny_app/Data%20Models/Chats%20Data%20Model/room_messages_model.dart';
+import 'package:uny_app/FCM%20Controller/notification_manager.dart';
 import 'package:uny_app/Providers/chat_counter_provider.dart';
 import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
@@ -33,8 +36,9 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 class UserChatPage extends StatefulWidget{
 
   Chats? chat;
+  Participants? participant;
 
-  UserChatPage({required this.chat});
+  UserChatPage({required this.chat, required this.participant});
 
   @override
   _UserChatPageState createState() => _UserChatPageState();
@@ -55,6 +59,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
   late List<AssetEntity> media;
   late List<Uint8List> mediaBytesList;
 
+  late NotificationManager notificationManager;
 
   var formatter = DateFormat('yyyy-MM-dd');
 
@@ -64,10 +69,6 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
   FocusNode? _messageTextFocusNode;
 
   ScrollController? _controller;
-  ScrollController? _imagesGridViewScrollController;
-
-  int mediaPage = 0;
-  int currentMediaLength = 30;
 
   int? _currentlyEditingMessageIndex;
   int? _currentlyReplyingMessageIndex;
@@ -98,6 +99,8 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
   String? _mediaType;
   String? _selectedVideoDuration;
 
+  Participants? participant;
+
   @override
   void initState() {
 
@@ -106,15 +109,17 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     token = 'Bearer ' + TokenData.getUserToken();
 
     chat = widget.chat!;
+    participant = widget.participant;
 
     socket = SocketSettings.init();
-    socket.joinRoom(chat.participants![1].toString());
+    socket.joinRoom(chat.chatRoomId.toString());
 
     _controller = ScrollController();
     
     _textMessageFieldController = TextEditingController();
     _messageTextFocusNode = FocusNode();
 
+    notificationManager = NotificationManager.init();
 
     if(chat.messages!.isNotEmpty){
       _chatMessagesFuture = UnyAPI.create(Constants.ROOM_MESSAGES_CONVERTER).getRoomMessages(
@@ -141,29 +146,27 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
 
         Message message = Message.fromJson(jsonDecode(data['msg']));
 
-        if(!(_messagesFilteredList.contains(message))){
-          _messagesFilteredList.add(message);
-        }
+        _messagesFilteredList.insert(0, message);
 
-        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.last.text);
-        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.last.createdAt);
+        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.first.text);
+        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.first.createdAt);
 
-        setState((){});
+        chatListState!((){});
       }else if(utf8.decode(event).contains('edited_message')){
         Map<String, dynamic> data = jsonDecode(utf8.decode(event));
 
-        Message message = Message.fromJson(jsonDecode(data['msg']));
+        Message message = Message.fromJson(jsonDecode(data['edited_message']));
 
-       int index = _messagesFilteredList.indexWhere((element) => element.messageId == message.messageId);
+        int index = _messagesFilteredList.indexWhere((element) => element.messageId == message.messageId);
 
         _messagesFilteredList[index] = message;
 
-       if(_messagesFilteredList.last == _messagesFilteredList[index]){
-         Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.last.text);
-         Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.last.createdAt);
-       }
+        if(_messagesFilteredList.first == _messagesFilteredList[index]){
+          Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.first.text);
+          Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.first.createdAt);
+        }
 
-       setState((){});
+        setState((){});
 
       }else if(utf8.decode(event).contains('deleted_message_id')){
         Map<String, dynamic> data = jsonDecode(utf8.decode(event));
@@ -173,8 +176,8 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
         _messagesFilteredList.removeWhere((element) => element.messageId.toString() == id.toString());
 
         if(_messagesFilteredList.isNotEmpty){
-          Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.last.text);
-          Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.last.createdAt);
+          Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.first.text);
+          Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.first.createdAt);
         }
 
         setState((){});
@@ -187,6 +190,9 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
       }
     });
 
+    var bytes = utf8.encode(chat.chatRoomId.toString());
+    ChatPageVisibility.openedChatId = sha256.convert(bytes).toString();
+
     super.initState();
   }
 
@@ -197,12 +203,14 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     _messageTextFocusNode!.dispose();
     _textMessageFieldController!.dispose();
 
+    ChatPageVisibility.openedChatId = '';
+
     super.dispose();
   }
 
   _fetchAlbums() async {
     albums = await PhotoManager.getAssetPathList(onlyAll: true);
-    media = await albums[0].getAssetListPaged(page: mediaPage, size: currentMediaLength);
+    media = await albums[0].getAssetListPaged(page: 0, size: 10000);
   }
 
   @override
@@ -234,7 +242,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                             builder: (context) {
                               return CupertinoActionSheet(
                                 title: Column(
-                                  children: [
+                                  children: const [
                                     Text('Вы уверены, что хотите очистить историю?', style: TextStyle(color: Colors.black, fontSize: 12)),
                                     Text('Сообщения в этом чате также удалятся у собеседника', style: TextStyle(color: Colors.black, fontSize: 12)),
                                     Text('Это действие невозможно отменить', style: TextStyle(color: Colors.red))
@@ -259,7 +267,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                             builder: (context){
                               return AlertDialog(
                                 title: Column(
-                                  children: [
+                                  children: const [
                                     Text('Вы уверены, что хотите очистить историю?', style: TextStyle(color: Colors.black, fontSize: 12), textAlign: TextAlign.center),
                                     Text('Сообщения в этом чате также удалятся у собеседника', style: TextStyle(color: Colors.black, fontSize: 12), textAlign: TextAlign.center),
                                     Text('Это действие невозможно отменить', style: TextStyle(color: Colors.red, fontSize: 12))
@@ -296,7 +304,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                     },
                   ) : _showSearch ? StatefulBuilder(
                     builder: (context, searchBarState){
-                      return Container(
+                      return SizedBox(
                         height: 50,
                         width: width,
                         child: TextFormField(
@@ -310,7 +318,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                             fillColor: Colors.grey.withOpacity(0.1),
                             prefixIcon: _isSearching != true ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                              children: const [
                                 Icon(CupertinoIcons.search, color: Colors.grey),
                                 Text('Поиск сообщений',
                                     style: TextStyle(
@@ -335,7 +343,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                             _messagesFilteredList = _messagesList.where((element) => element.text.toString().toLowerCase().contains(value.toString().toLowerCase())).toList();
                             chatListState!((){});
 
-                            if (value.length == 0) {
+                            if (value.isEmpty) {
                               searchBarState(() {
                                 _isSearching = false;
                               });
@@ -359,11 +367,11 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                       children: [
                         Stack(
                           children: [
-                            Container(
+                            SizedBox(
                               height: 60,
                               width: 60,
-                              child: chat.participants![1].media!.mainPhoto != null ? CachedNetworkImage(
-                                imageUrl: chat.participants![1].media!.mainPhoto!.url,
+                              child: participant!.media!.mainPhoto != null ? CachedNetworkImage(
+                                imageUrl: participant!.media!.mainPhoto!.url,
                                 imageBuilder: (context, imageProvider) => Container(
                                   height: 60,
                                   width: 60,
@@ -401,38 +409,41 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                               ),
                             ),
                             Positioned(
-                              top: 2.5,
-                              left: 2.7,
-                              child: Container(
-                                height: 55,
-                                width: 55,
-                                child: SimpleCircularProgressBar(
-                                  valueNotifier: ValueNotifier(double.parse(chat.participants![1].matchPercent.toString())),
-                                  backColor: Colors.grey[300]!,
-                                  animationDuration: 0,
-                                  mergeMode: true,
-                                  backStrokeWidth: 5,
-                                  progressStrokeWidth: 5,
-                                  startAngle: 210,
-                                  progressColors: [
-                                    Colors.deepOrange,
-                                    Colors.yellowAccent,
-                                    Colors.green
-                                  ],
+                              child: ClipOval(
+                                child: SizedBox(
+                                  height: 60,
+                                  width: 60,
+                                  child: SimpleCircularProgressBar(
+                                    valueNotifier: ValueNotifier(double.parse(participant!.matchPercent.toString())),
+                                    backColor: Colors.grey[300]!,
+                                    animationDuration: 0,
+                                    mergeMode: true,
+                                    backStrokeWidth: 9,
+                                    progressStrokeWidth: 9,
+                                    startAngle: 210,
+                                    progressColors: const [
+                                      Colors.deepOrange,
+                                      Colors.yellowAccent,
+                                      Colors.green
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              )
                             ),
                             Positioned(
                               bottom: 0,
-                              left: 10,
+                              left: 5,
+                              right: 3,
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                child: Text('${chat.participants![1].matchPercent.toString()} %', style: TextStyle(
-                                    color: Colors.white, fontSize: 11)),
+                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                child: Center(
+                                    child: Text('${participant!.matchPercent.toString()} %', style: TextStyle(
+                                        color: Colors.white, fontSize: 11)),
+                                ),
                                 decoration: BoxDecoration(
-                                  color: chat.participants![1].matchPercent < 49 ? Colors.red
-                                      : (chat.participants![1].matchPercent > 49 && chat.participants![1].matchPercent < 65)
-                                      ? Colors.orange : (chat.participants![1].matchPercent > 65) ? Colors.green : null,
+                                  color: participant!.matchPercent < 49 ? Colors.red
+                                      : (participant!.matchPercent > 49 && participant!.matchPercent < 65)
+                                      ? Colors.orange : (participant!.matchPercent > 65) ? Colors.green : null,
                                   borderRadius: BorderRadius.all(Radius.circular(20)),
                                 ),
                               ),
@@ -444,7 +455,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${chat.participants![1].firstName}',
+                              '${participant!.firstName}',
                               style: TextStyle(fontSize: 17, color: Colors.black), maxLines: 1, overflow: TextOverflow.ellipsis,
                             ),
                             Text(
@@ -489,7 +500,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                                         Navigator.pop(context);
                                       },
                                       child: Row(
-                                        children: [
+                                        children: const [
                                           Icon(CupertinoIcons.search, color: Colors.blue),
                                           SizedBox(width: 10),
                                           Text('Поиск сообщений', style: TextStyle(color: Colors.blue)),
@@ -500,7 +511,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                                   CupertinoActionSheetAction(
                                       onPressed: () => Navigator.pop(context),
                                       child: Row(
-                                        children: [
+                                        children: const [
                                           Icon(CupertinoIcons.volume_off, color: Colors.blue),
                                           SizedBox(width: 10),
                                           Text('Отключить уведомления', style: TextStyle(color: Colors.blue)),
@@ -511,7 +522,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                                   CupertinoActionSheetAction(
                                       onPressed: () => Navigator.pop(context),
                                       child: Row(
-                                        children: [
+                                        children: const [
                                           Icon(CupertinoIcons.photo_on_rectangle, color: Colors.blue),
                                           SizedBox(width: 10),
                                           Text('Показать вложения', style: TextStyle(color: Colors.blue)),
@@ -522,7 +533,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                                   CupertinoActionSheetAction(
                                       onPressed: () => Navigator.pop(context),
                                       child: Row(
-                                        children: [
+                                        children: const [
                                           Icon(CupertinoIcons.trash, color: Colors.red),
                                           SizedBox(width: 10),
                                           Text('Очистить историю', style: TextStyle(color: Colors.red)),
@@ -586,35 +597,43 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                     )
                   ],
                 ),
-                body: Stack(
-                  children: [
-                    GestureDetector(
-                        onTap: (){
-                          FocusManager.instance.primaryFocus!.unfocus();
-                        },
-                        child: getMessages()
-                    ),
-                    StatefulBuilder(
-                      builder: (context, setState){
-                        loadingBarState = setState;
-                        return _showLoading ? Center(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                              height: 80,
-                              width: 80,
-                              color: Colors.black.withOpacity(0.7),
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                body: Container(
+                  child: Stack(
+                    children: [
+                      GestureDetector(
+                          onTap: (){
+                            FocusManager.instance.primaryFocus!.unfocus();
+                          },
+                          child: getMessages()
+                      ),
+                      StatefulBuilder(
+                        builder: (context, setState){
+                          loadingBarState = setState;
+                          return _showLoading ? Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                                height: 80,
+                                width: 80,
+                                color: Colors.black.withOpacity(0.7),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                        ) : Container();
-                      },
-                    )
-                  ],
+                          ) : Container();
+                        },
+                      )
+                    ],
+                  ),
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage('assets/chats_background_image.png'),
+                          fit: BoxFit.cover
+                      )
+                  ),
                 )
             ),
             maxWidth: 800,
@@ -645,7 +664,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
         }
 
         if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
-          _messagesList = snapshot.data!.body!.messages!;
+          _messagesList = snapshot.data!.body!.messages!.reversed.toList();
           _messagesFilteredList = _messagesList;
           
           _checkedMessages = List.generate(_messagesFilteredList.length, (index) => false);
@@ -664,471 +683,304 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     return StatefulBuilder(
       builder: (context, listState){
         chatListState = listState;
-        return Stack(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                      image: DecorationImage(
-                          image: AssetImage('assets/chats_background_image.png'),
-                          fit: BoxFit.cover
-                      )
-                  ),
-                ),
-              ],
-            ),
-            _messagesFilteredList.isNotEmpty ? Container(
-              margin: EdgeInsets.only(bottom: height * 0.1),
-              child: ListView.builder(
-                controller: _controller,
-                itemCount: _messagesFilteredList.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index){
-                  Message chatMessage = _messagesFilteredList[index];
-                  return Container(
-                    padding: EdgeInsets.only(left: 16, top: 5),
-                    child: Align(
-                        alignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? Alignment.bottomRight : Alignment.bottomLeft,
-                        child: Padding(
-                          padding: EdgeInsets.only(right: 20),
-                          child: FocusedMenuHolder(
-                              onPressed: (){},
-                              openWithTap: false,
-                              menuWidth: width / 2,
-                              menuOffset: 10,
-                              animateMenuItems: true,
-                              duration: Duration(milliseconds: 150),
-                              menuBoxDecoration: BoxDecoration(
-                                  color: Colors.grey,
-                                  borderRadius: BorderRadius.circular(20)
-                              ),
-                              menuItems: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? [
-                                FocusedMenuItem(
-                                    title: Text('Изменить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-                                    trailingIcon: Icon(Icons.edit, color: Colors.grey),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: () async {
-                                      _currentlyEditingMessageIndex = index;
-                                      _textMessageFieldController!.value = _textMessageFieldController!.value.copyWith(text: _messagesList[_currentlyEditingMessageIndex!].text);
+        return _messagesFilteredList.isNotEmpty ? SizedBox(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      reverse: true,
+                      controller: _controller,
+                      itemCount: _messagesFilteredList.length,
+                      itemBuilder: (context, index){
+                        Message chatMessage = _messagesFilteredList[index];
+                        return Container(
+                          padding: EdgeInsets.only(left: 16, top: 5),
+                          child: Align(
+                              alignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? Alignment.bottomRight : Alignment.bottomLeft,
+                              child: Padding(
+                                padding: EdgeInsets.only(right: 20),
+                                child: FocusedMenuHolder(
+                                    onPressed: (){},
+                                    openWithTap: false,
+                                    menuWidth: width / 2,
+                                    menuOffset: 10,
+                                    animateMenuItems: true,
+                                    duration: Duration(milliseconds: 150),
+                                    menuBoxDecoration: BoxDecoration(
+                                        color: Colors.grey,
+                                        borderRadius: BorderRadius.circular(20)
+                                    ),
+                                    menuItems: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? [
+                                      FocusedMenuItem(
+                                          title: Text('Изменить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                                          trailingIcon: Icon(Icons.edit, color: Colors.grey),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: () async {
+                                            _currentlyEditingMessageIndex = index;
+                                            _textMessageFieldController!.value = _textMessageFieldController!.value.copyWith(text: _messagesList[_currentlyEditingMessageIndex!].text);
 
-                                      setState((){
-                                        _isTyping = false;
-                                        _isEditing = true;
-                                      });
-                                      _messageTextFocusNode!.requestFocus();
-                                    }
-                                ),
-                                FocusedMenuItem(
-                                    title: Text('Ответить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-                                    trailingIcon: Icon(CupertinoIcons.reply_all, color: Colors.grey),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: (){
-                                      _currentlyReplyingMessageIndex = index;
-                                      setState((){
-                                        _isReplying = true;
-                                      });
-                                    }
-                                ),
-                                FocusedMenuItem(
-                                    title: Text('Удалить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.red)),
-                                    trailingIcon: Icon(Icons.delete_outline, color: Colors.red),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: (){
-                                      if(UniversalPlatform.isIOS){
-                                        showCupertinoModalPopup(
-                                            context: context,
-                                            builder: (context) {
-                                              return CupertinoActionSheet(
-                                                actions: [
-                                                  CupertinoActionSheetAction(
-                                                    child: Text(
-                                                        'Удалить у меня и у ${chat.participants![1].firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
-                                                    onPressed: () async {
-                                                      deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![1].id, chatMessage.messageId);
-                                                    },
-                                                  ),
-                                                  CupertinoActionSheetAction(
-                                                    child: Text(
-                                                        'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
-                                                    onPressed: () async {
-                                                      deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
-                                                    },
-                                                  )
-                                                ],
-                                                cancelButton: CupertinoActionSheetAction(
-                                                  onPressed: () => Navigator.pop(context),
-                                                  child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
-                                                ),
-                                              );
-                                            }
-                                        );
-                                      }else if(UniversalPlatform.isAndroid){
-                                        showDialog(
-                                            context: context,
-                                            builder: (context){
-                                              return AlertDialog(
-                                                title: Text(
-                                                  'Вы уверены, что хотите выйти?',
-                                                  maxLines: 2,
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: (){
-                                                      deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
-                                                    },
-                                                    child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: (){
-                                                      deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![1].id, chatMessage.messageId);
-                                                    },
-                                                    child: Text('Удалить у меня и у ${chat.participants![1].firstName}', style: TextStyle(color: Colors.lightBlue)),
-                                                  ),
-                                                ],
-                                              );
-                                            }
-                                        );
-                                      }
-                                    }
-                                ),
-                                FocusedMenuItem(
-                                    title: Text('Выбрать', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-                                    trailingIcon: Icon(Icons.check_circle_outline, color: Colors.grey),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: (){
-                                      setState((){
-                                        _isSelecting = true;
-                                      });
-                                    }
-                                ),
-                              ] : [
-                                FocusedMenuItem(
-                                    title: Text('Ответить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-                                    trailingIcon: Icon(CupertinoIcons.reply_all, color: Colors.grey),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: () async {
-                                      _currentlyReplyingMessageIndex = index;
-                                      setState((){
-                                        _isReplying = true;
-                                      });
-                                    }
-                                ),
-                                FocusedMenuItem(
-                                    title: Text('Пожаловаться', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-                                    trailingIcon: Icon(Icons.report_gmailerrorred, color: Colors.grey),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: () => null
-                                ),
-                                FocusedMenuItem(
-                                    title: Text('Удалить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.red)),
-                                    trailingIcon: Icon(Icons.delete_outline, color: Colors.red),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: (){
-                                      if(UniversalPlatform.isIOS){
-                                        showCupertinoModalPopup(
-                                            context: context,
-                                            builder: (context) {
-                                              return CupertinoActionSheet(
-                                                actions: [
-                                                  CupertinoActionSheetAction(
-                                                    child: Text(
-                                                        'Удалить у меня и у ${chat.participants![1].firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
-                                                    onPressed: () async {
-                                                      deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![1].id, chatMessage.messageId);
-                                                    },
-                                                  ),
-                                                  CupertinoActionSheetAction(
-                                                    child: Text(
-                                                        'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
-                                                    onPressed: () async {
-                                                      deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
-                                                    },
-                                                  )
-                                                ],
-                                                cancelButton: CupertinoActionSheetAction(
-                                                  onPressed: () => Navigator.pop(context),
-                                                  child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
-                                                ),
-                                              );
-                                            }
-                                        );
-                                      }else if(UniversalPlatform.isAndroid){
-                                        showDialog(
-                                            context: context,
-                                            builder: (context){
-                                              return AlertDialog(
-                                                title: Text(
-                                                  'Вы уверены, что хотите выйти?',
-                                                  maxLines: 2,
-                                                  style: TextStyle(fontSize: 13),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: (){
-                                                      deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
-                                                    },
-                                                    child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: (){
-                                                      deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![1].id, chatMessage.messageId);
-                                                    },
-                                                    child: Text('Удалить у меня и у ${chat.participants![1].firstName}', style: TextStyle(color: Colors.lightBlue)),
-                                                  ),
-                                                ],
-                                              );
-                                            }
-                                        );
-                                      }
-                                    }
-                                ),
-                                FocusedMenuItem(
-                                    title: Text('Выбрать', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-                                    trailingIcon: Icon(Icons.check_circle_outline, color: Colors.grey),
-                                    backgroundColor: Color.fromRGBO(218, 218, 218, 10),
-                                    onPressed: (){
-                                      setState((){
-                                        _isSelecting = true;
-                                      });
-                                    }
-                                ),
-                              ],
-                              child: chatMessage.media == null && chatMessage.text == null ? Container() : chatMessage.media != null && chatMessage.text == null
-                                  ? Consumer<ChatCounterProvider>(
-                                builder: (context, viewModel, child){
-                                  return Row(
-                                    mainAxisSize: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId && _isSelecting ? MainAxisSize.max : MainAxisSize.min,
-                                    mainAxisAlignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-                                    children: [
-                                      _isSelecting ? Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          value: viewModel.getMessageIndexValue(index),
-                                          onChanged: (value){
-                                            viewModel.changeSelectedMessageValue(index, value!);
-
-                                            if(viewModel.getMessageIndexValue(index)){
-                                              Provider.of<ChatCounterProvider>(context, listen: false).addCount();
-                                            }else{
-                                              Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
-                                            }
-
-                                          },
-                                          shape: CircleBorder(),
-                                          checkColor: Colors.white,
-                                          side: BorderSide(
-                                            color: Colors.grey,
-                                          ),
-                                          splashRadius: UniversalPlatform.isIOS ? 2 : null,
-                                          activeColor: Color.fromRGBO(145, 10, 251, 5),
-                                        ),
-                                      ) : Container(),
-                                      Stack(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: _isSelecting ? (){
-                                              if(viewModel.getMessageIndexValue(index)){
-                                                viewModel.changeSelectedMessageValue(index, false);
-                                                Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
-                                              }else{
-                                                viewModel.changeSelectedMessageValue(index, true);
-                                                Provider.of<ChatCounterProvider>(context, listen: false).addCount();
-                                              }
-                                            } : chatMessage.media != null ? chatMessage.media[0]['type'].toString().startsWith('video') ? (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ChatVideoPlayer(url: chatMessage.media[0]['media']))
-                                              );
-                                            } : (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ChatPhotoPage(photoUrl: chatMessage.media[0]['media']))
-                                              );
-                                            } : null,
-                                            child: Container(
-                                              padding: chatMessage.media == null && chatMessage.text != null
-                                                  ? EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10)
-                                                  : chatMessage.media != null && chatMessage.text == null
-                                                  ? EdgeInsets.all(5)
-                                                  : chatMessage.media != null && chatMessage.text != null
-                                                  ? EdgeInsets.only(top: 10) : null,
-                                              child: Stack(
-                                                children: [
-                                                  Container(
-                                                    height: 200,
-                                                    width: 200,
-                                                    child: Hero(
-                                                      tag: chatMessage.media[0]['media'].toString(),
-                                                      child: CachedNetworkImage(
-                                                        imageUrl: chatMessage.media[0]['type'].toString().startsWith('video') ? chatMessage.media[0]['thumbnail'] : chatMessage.media[0]['media'],
-                                                        imageBuilder: (context, imageProvider){
-                                                          return Container(
-                                                            height: 100,
-                                                            width: 100,
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.all(Radius.circular(20)),
-                                                              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                                            ),
-                                                          );
-                                                        },
-                                                        placeholder: (context, url) => Shimmer.fromColors(
-                                                          baseColor: Colors.grey[300]!,
-                                                          highlightColor: Colors.white,
-                                                          child: Container(
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.all(Radius.circular(20)),
-                                                              color: Colors.grey,
-                                                            ),
-                                                          ),
+                                            setState((){
+                                              _isTyping = false;
+                                              _isEditing = true;
+                                            });
+                                            _messageTextFocusNode!.requestFocus();
+                                          }
+                                      ),
+                                      FocusedMenuItem(
+                                          title: Text('Ответить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                                          trailingIcon: Icon(CupertinoIcons.reply_all, color: Colors.grey),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: (){
+                                            _currentlyReplyingMessageIndex = index;
+                                            setState((){
+                                              _isReplying = true;
+                                            });
+                                          }
+                                      ),
+                                      FocusedMenuItem(
+                                          title: Text('Удалить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.red)),
+                                          trailingIcon: Icon(Icons.delete_outline, color: Colors.red),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: (){
+                                            if(UniversalPlatform.isIOS){
+                                              showCupertinoModalPopup(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return CupertinoActionSheet(
+                                                      actions: [
+                                                        CupertinoActionSheetAction(
+                                                          child: Text(
+                                                              'Удалить у меня и у ${participant!.firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+                                                            deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, chatMessage.messageId);
+                                                          },
                                                         ),
+                                                        CupertinoActionSheetAction(
+                                                          child: Text(
+                                                              'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+                                                            deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
+                                                          },
+                                                        )
+                                                      ],
+                                                      cancelButton: CupertinoActionSheetAction(
+                                                        onPressed: () => Navigator.pop(context),
+                                                        child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
                                                       ),
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    top: 80,
-                                                    left: 80,
-                                                    child: chatMessage.media[0]['type'].toString().startsWith('video') ? Container(
-                                                      height: 50,
-                                                      width: 50,
-                                                      child: Center(
-                                                        child: Icon(CupertinoIcons.play_arrow_solid, color: Colors.black),
+                                                    );
+                                                  }
+                                              );
+                                            }else if(UniversalPlatform.isAndroid){
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context){
+                                                    return AlertDialog(
+                                                      title: Text(
+                                                        'Вы уверены, что хотите выйти?',
+                                                        maxLines: 2,
+                                                        textAlign: TextAlign.center,
                                                       ),
-                                                      decoration: BoxDecoration(
-                                                          shape: BoxShape.circle,
-                                                          color: Colors.white
-                                                      ),
-                                                    ) : Container(),
-                                                  )
-                                                ],
-                                              ),
-                                              decoration: chatMessage.userId != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? BoxDecoration(
-                                                  borderRadius: BorderRadius.only(
-                                                      topLeft: Radius.circular(25),
-                                                      topRight: Radius.circular(25),
-                                                      bottomRight: Radius.circular(25),
-                                                      bottomLeft: Radius.circular(0)
-                                                  ),
-                                                  color: Color.fromRGBO(237, 235, 235, 10)
-                                              ) : BoxDecoration(
-                                                  borderRadius: BorderRadius.only(
-                                                      topLeft: Radius.circular(25),
-                                                      topRight: Radius.circular(25),
-                                                      bottomLeft: Radius.circular(25),
-                                                      bottomRight: Radius.circular(0)
-                                                  ),
-                                                  color: Color.fromRGBO(145, 10, 251, 10)
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 15,
-                                            right: 20,
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(chatMessage.isEdited != null && chatMessage.isEdited ? 'Ред.' : '', style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5))),
-                                                SizedBox(width: 5),
-                                                Text(DateTime.parse(chatMessage.createdAt).toLocal().hour.toString().padLeft(2, '0') + ':' + DateTime.parse(chatMessage.createdAt).toLocal().minute.toString().padLeft(2, '0'),
-                                                  style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.5)),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      )
-                                    ],
-                                  );
-                                },
-                              ) : chatMessage.media != null && chatMessage.text != null ? Consumer<ChatCounterProvider>(
-                                builder: (context, viewModel, child){
-                                  return Row(
-                                    mainAxisSize: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId && _isSelecting ? MainAxisSize.max : MainAxisSize.min,
-                                    mainAxisAlignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-                                    children: [
-                                      _isSelecting ? Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          value: viewModel.getMessageIndexValue(index),
-                                          onChanged: (value){
-                                            viewModel.changeSelectedMessageValue(index, value!);
-
-                                            if(viewModel.getMessageIndexValue(index)){
-                                              Provider.of<ChatCounterProvider>(context, listen: false).addCount();
-                                            }else{
-                                              Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: (){
+                                                            deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
+                                                          },
+                                                          child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: (){
+                                                            deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, chatMessage.messageId);
+                                                          },
+                                                          child: Text('Удалить у меня и у ${participant!.firstName}', style: TextStyle(color: Colors.lightBlue)),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }
+                                              );
                                             }
+                                          }
+                                      ),
+                                      FocusedMenuItem(
+                                          title: Text('Выбрать', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                                          trailingIcon: Icon(Icons.check_circle_outline, color: Colors.grey),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: (){
+                                            setState((){
+                                              _isSelecting = true;
+                                            });
+                                          }
+                                      ),
+                                    ] : [
+                                      FocusedMenuItem(
+                                          title: Text('Ответить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                                          trailingIcon: Icon(CupertinoIcons.reply_all, color: Colors.grey),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: () async {
+                                            _currentlyReplyingMessageIndex = index;
+                                            setState((){
+                                              _isReplying = true;
+                                            });
+                                          }
+                                      ),
+                                      FocusedMenuItem(
+                                          title: Text('Пожаловаться', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                                          trailingIcon: Icon(Icons.report_gmailerrorred, color: Colors.grey),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: () => null
+                                      ),
+                                      FocusedMenuItem(
+                                          title: Text('Удалить', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.red)),
+                                          trailingIcon: Icon(Icons.delete_outline, color: Colors.red),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: (){
+                                            if(UniversalPlatform.isIOS){
+                                              showCupertinoModalPopup(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return CupertinoActionSheet(
+                                                      actions: [
+                                                        CupertinoActionSheetAction(
+                                                          child: Text(
+                                                              'Удалить у меня и у ${participant!.firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+                                                            deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, chatMessage.messageId);
+                                                          },
+                                                        ),
+                                                        CupertinoActionSheetAction(
+                                                          child: Text(
+                                                              'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+                                                            deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
+                                                          },
+                                                        )
+                                                      ],
+                                                      cancelButton: CupertinoActionSheetAction(
+                                                        onPressed: () => Navigator.pop(context),
+                                                        child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
+                                                      ),
+                                                    );
+                                                  }
+                                              );
+                                            }else if(UniversalPlatform.isAndroid){
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context){
+                                                    return AlertDialog(
+                                                      title: Text(
+                                                        'Вы уверены, что хотите выйти?',
+                                                        maxLines: 2,
+                                                        style: TextStyle(fontSize: 13),
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: (){
+                                                            deleteMessage('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, chatMessage.messageId);
+                                                          },
+                                                          child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: (){
+                                                            deleteMessage('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, chatMessage.messageId);
+                                                          },
+                                                          child: Text('Удалить у меня и у ${participant!.firstName}', style: TextStyle(color: Colors.lightBlue)),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }
+                                              );
+                                            }
+                                          }
+                                      ),
+                                      FocusedMenuItem(
+                                          title: Text('Выбрать', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                                          trailingIcon: Icon(Icons.check_circle_outline, color: Colors.grey),
+                                          backgroundColor: Color.fromRGBO(218, 218, 218, 10),
+                                          onPressed: (){
+                                            setState((){
+                                              _isSelecting = true;
+                                            });
+                                          }
+                                      ),
+                                    ],
+                                    child: chatMessage.media == null && chatMessage.text == null ? Container() : chatMessage.media != null && chatMessage.text == null
+                                        ? Consumer<ChatCounterProvider>(
+                                      builder: (context, viewModel, child){
+                                        return Row(
+                                          mainAxisSize: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId && _isSelecting ? MainAxisSize.max : MainAxisSize.min,
+                                          mainAxisAlignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+                                          children: [
+                                            _isSelecting ? Transform.scale(
+                                              scale: 1.2,
+                                              child: Checkbox(
+                                                value: viewModel.getMessageIndexValue(index),
+                                                onChanged: (value){
+                                                  viewModel.changeSelectedMessageValue(index, value!);
 
-                                          },
-                                          shape: CircleBorder(),
-                                          checkColor: Colors.white,
-                                          side: BorderSide(
-                                            color: Colors.grey,
-                                          ),
-                                          splashRadius: UniversalPlatform.isIOS ? 2 : null,
-                                          activeColor: Color.fromRGBO(145, 10, 251, 5),
-                                        ),
-                                      ) : Container(),
-                                      Stack(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: _isSelecting ? (){
-                                              if(viewModel.getMessageIndexValue(index)){
-                                                viewModel.changeSelectedMessageValue(index, false);
-                                                Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
-                                              }else{
-                                                viewModel.changeSelectedMessageValue(index, true);
-                                                Provider.of<ChatCounterProvider>(context, listen: false).addCount();
-                                              }
-                                            } : chatMessage.media != null ? chatMessage.media[0]['type'].toString().startsWith('video') ? (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ChatVideoPlayer(url: chatMessage.media[0]['media']))
-                                              );
-                                            } : (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ChatPhotoPage(photoUrl: chatMessage.media[0]['media']))
-                                              );
-                                            } : null,
-                                            child: Container(
-                                              padding: chatMessage.media == null && chatMessage.text != null
-                                                  ? EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10)
-                                                  : chatMessage.media != null && chatMessage.text == null
-                                                  ? EdgeInsets.all(0)
-                                                  : chatMessage.media != null && chatMessage.text != null
-                                                  ? EdgeInsets.all(5) : null,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Container(
-                                                    padding: EdgeInsets.only(left: 10),
-                                                    width: 200,
-                                                    child: Text(chatMessage.text, style: TextStyle(
-                                                      color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white : Colors.black,
-                                                      fontSize: 16,
-                                                    ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 5),
-                                                  Stack(
-                                                    children: [
-                                                      Container(
+                                                  if(viewModel.getMessageIndexValue(index)){
+                                                    Provider.of<ChatCounterProvider>(context, listen: false).addCount();
+                                                  }else{
+                                                    Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                  }
+
+                                                },
+                                                shape: CircleBorder(),
+                                                checkColor: Colors.white,
+                                                side: BorderSide(
+                                                  color: Colors.grey,
+                                                ),
+                                                splashRadius: UniversalPlatform.isIOS ? 2 : null,
+                                                activeColor: Color.fromRGBO(145, 10, 251, 5),
+                                              ),
+                                            ) : Container(),
+                                            Stack(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: _isSelecting ? (){
+                                                    if(viewModel.getMessageIndexValue(index)){
+                                                      viewModel.changeSelectedMessageValue(index, false);
+                                                      Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                    }else{
+                                                      viewModel.changeSelectedMessageValue(index, true);
+                                                      Provider.of<ChatCounterProvider>(context, listen: false).addCount();
+                                                    }
+                                                  } : chatMessage.media != null ? chatMessage.media[0]['type'].toString().startsWith('video') ? (){
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(builder: (context) => ChatVideoPlayer(url: chatMessage.media[0]['media']))
+                                                    );
+                                                  } : (){
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(builder: (context) => ChatPhotoPage(photoUrl: chatMessage.media[0]['media']))
+                                                    );
+                                                  } : null,
+                                                  child: Container(
+                                                    padding: chatMessage.media == null && chatMessage.text != null
+                                                        ? EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10)
+                                                        : chatMessage.media != null && chatMessage.text == null
+                                                        ? EdgeInsets.all(5)
+                                                        : chatMessage.media != null && chatMessage.text != null
+                                                        ? EdgeInsets.only(top: 10) : null,
+                                                    child: Stack(
+                                                      children: [
+                                                        SizedBox(
                                                           height: 200,
                                                           width: 200,
                                                           child: Hero(
-                                                            tag: chatMessage.media[0]['media'],
+                                                            tag: chatMessage.media[0]['media'].toString(),
                                                             child: CachedNetworkImage(
                                                               imageUrl: chatMessage.media[0]['type'].toString().startsWith('video') ? chatMessage.media[0]['thumbnail'] : chatMessage.media[0]['media'],
-                                                              imageBuilder: (context, imageProvider) => Container(
-                                                                width: 100,
-                                                                height: 100,
-                                                                decoration: BoxDecoration(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                                                                  image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                                                ),
-                                                              ),
+                                                              imageBuilder: (context, imageProvider){
+                                                                return Container(
+                                                                  height: 100,
+                                                                  width: 100,
+                                                                  decoration: BoxDecoration(
+                                                                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                                    image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                                                  ),
+                                                                );
+                                                              },
                                                               placeholder: (context, url) => Shimmer.fromColors(
                                                                 baseColor: Colors.grey[300]!,
                                                                 highlightColor: Colors.white,
@@ -1140,689 +992,1313 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                                                                 ),
                                                               ),
                                                             ),
-                                                          )
-                                                      ),
-                                                      Positioned(
-                                                        top: 80,
-                                                        left: 80,
-                                                        child: chatMessage.media[0]['type'].toString().startsWith('video') ? Container(
-                                                          height: 50,
-                                                          width: 50,
-                                                          child: Center(
-                                                            child: Icon(CupertinoIcons.play_arrow_solid, color: Colors.black),
-                                                          ),
-                                                          decoration: BoxDecoration(
-                                                              shape: BoxShape.circle,
-                                                              color: Colors.white
-                                                          ),
-                                                        ) : Container(),
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                              decoration: chatMessage.userId != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? BoxDecoration(
-                                                  borderRadius: BorderRadius.only(
-                                                      topLeft: Radius.circular(25),
-                                                      topRight: Radius.circular(25),
-                                                      bottomRight: Radius.circular(25),
-                                                      bottomLeft: Radius.circular(0)
-                                                  ),
-                                                  color: Color.fromRGBO(237, 235, 235, 10)
-                                              ) : BoxDecoration(
-                                                  borderRadius: BorderRadius.only(
-                                                      topLeft: Radius.circular(25),
-                                                      topRight: Radius.circular(25),
-                                                      bottomLeft: Radius.circular(25),
-                                                      bottomRight: Radius.circular(0)
-                                                  ),
-                                                  color: Color.fromRGBO(145, 10, 251, 10)
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 15,
-                                            right: 20,
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(chatMessage.isEdited != null && chatMessage.isEdited ? 'Ред.' : '', style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5))),
-                                                SizedBox(width: 5),
-                                                Text(DateTime.parse(chatMessage.createdAt).toLocal().hour.toString().padLeft(2, '0') + ':' + DateTime.parse(chatMessage.createdAt).toLocal().minute.toString().padLeft(2, '0'),
-                                                  style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.5)),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      )
-                                    ],
-                                  );
-                                },
-                              ) : Consumer<ChatCounterProvider>(
-                                builder: (context, viewModel, child){
-                                  return Row(
-                                    mainAxisSize: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId && _isSelecting ? MainAxisSize.max : MainAxisSize.min,
-                                    mainAxisAlignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-                                    children: [
-                                      _isSelecting ? Transform.scale(
-                                        scale: 1.2,
-                                        child: Checkbox(
-                                          value: viewModel.getMessageIndexValue(index),
-                                          onChanged: (value){
-                                            viewModel.changeSelectedMessageValue(index, value!);
-
-                                            if(viewModel.getMessageIndexValue(index)){
-                                              Provider.of<ChatCounterProvider>(context, listen: false).addCount();
-                                            }else{
-                                              Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
-                                            }
-
-                                          },
-                                          shape: CircleBorder(),
-                                          checkColor: Colors.white,
-                                          side: BorderSide(
-                                            color: Colors.grey,
-                                          ),
-                                          splashRadius: UniversalPlatform.isIOS ? 2 : null,
-                                          activeColor: Color.fromRGBO(145, 10, 251, 5),
-                                        ),
-                                      ) : Container(),
-                                      GestureDetector(
-                                        onTap: _isSelecting ? (){
-                                          if(viewModel.getMessageIndexValue(index)){
-                                            viewModel.changeSelectedMessageValue(index, false);
-                                            Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
-                                          }else{
-                                            viewModel.changeSelectedMessageValue(index, true);
-                                            Provider.of<ChatCounterProvider>(context, listen: false).addCount();
-                                          }
-                                        } : chatMessage.media != null ? chatMessage.media[0]['type'].toString().startsWith('video') ? (){
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(builder: (context) => ChatVideoPlayer(url: chatMessage.media[0]['media']))
-                                          );
-                                        } : (){
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(builder: (context) => ChatPhotoPage(photoUrl: chatMessage.media[0]['media']))
-                                          );
-                                        } : null,
-                                        child: Container(
-                                          padding: chatMessage.media == null && chatMessage.text != null
-                                              ? EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10)
-                                              : chatMessage.media != null && chatMessage.text == null
-                                              ? EdgeInsets.all(0)
-                                              : chatMessage.media != null && chatMessage.text != null
-                                              ? EdgeInsets.only(top: 15) : null,
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              _messagesFilteredList[index].replyTo != null ? Container(
-                                                  height: 40,
-                                                  width: 150,
-                                                  child: Row(
-                                                    children: [
-                                                      VerticalDivider(
-                                                        color: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].userId ? Colors.white : Colors.black,
-                                                        thickness: 2,
-                                                      ),
-                                                      _messagesFilteredList[index].replyTo['media'] != null ?
-                                                      Container(
-                                                        height: 40,
-                                                        width: 40,
-                                                        child: CachedNetworkImage(
-                                                          imageUrl: _messagesFilteredList[index].replyTo['media'][0]['type'].toString().startsWith('video')
-                                                              ? _messagesFilteredList[index].replyTo['media'][0]['thumbnail']
-                                                              : _messagesFilteredList[index].replyTo['media'][0]['media'],
-                                                          imageBuilder: (context, imageProvider) => Container(
-                                                            height: 40,
-                                                            width: 40,
-                                                            decoration: BoxDecoration(
-                                                                image: DecorationImage(
-                                                                    image: imageProvider
-                                                                )
-                                                            ),
                                                           ),
                                                         ),
-                                                      ) : Container(),
-                                                      SizedBox(width: 5),
-                                                      Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(
-                                                            Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].replyTo['user_id']
-                                                                ? '${Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName}' : '${chat.participants![1].firstName}',
-                                                            style: TextStyle(color: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].userId ? Colors.white : Colors.black, fontSize: 17, fontWeight: FontWeight.w600),
-                                                          ),
-                                                          Container(
-                                                            width: 80,
-                                                            child: Text(
-                                                              _messagesFilteredList[index].replyTo['text'],
-                                                              style: TextStyle(
-                                                                  fontSize: 14,
-                                                                  color: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].userId ? Colors.white : Colors.black,
-                                                                  overflow: TextOverflow.ellipsis),
+                                                        Positioned(
+                                                          top: 80,
+                                                          left: 80,
+                                                          child: chatMessage.media[0]['type'].toString().startsWith('video') ? Container(
+                                                            height: 50,
+                                                            width: 50,
+                                                            child: Center(
+                                                              child: Icon(CupertinoIcons.play_arrow_solid, color: Colors.black),
                                                             ),
+                                                            decoration: BoxDecoration(
+                                                                shape: BoxShape.circle,
+                                                                color: Colors.white
+                                                            ),
+                                                          ) : Container(),
+                                                        )
+                                                      ],
+                                                    ),
+                                                    decoration: chatMessage.userId != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? BoxDecoration(
+                                                        borderRadius: BorderRadius.only(
+                                                            topLeft: Radius.circular(25),
+                                                            topRight: Radius.circular(25),
+                                                            bottomRight: Radius.circular(25),
+                                                            bottomLeft: Radius.circular(0)
+                                                        ),
+                                                        color: Color.fromRGBO(237, 235, 235, 10)
+                                                    ) : BoxDecoration(
+                                                        borderRadius: BorderRadius.only(
+                                                            topLeft: Radius.circular(25),
+                                                            topRight: Radius.circular(25),
+                                                            bottomLeft: Radius.circular(25),
+                                                            bottomRight: Radius.circular(0)
+                                                        ),
+                                                        color: Color.fromRGBO(145, 10, 251, 10)
+                                                    ),
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  bottom: 15,
+                                                  right: 20,
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(chatMessage.isEdited != null && chatMessage.isEdited ? 'Ред.' : '', style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5))),
+                                                      SizedBox(width: 5),
+                                                      Text(DateTime.parse(chatMessage.createdAt).toLocal().hour.toString().padLeft(2, '0') + ':' + DateTime.parse(chatMessage.createdAt).toLocal().minute.toString().padLeft(2, '0'),
+                                                        style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.5)),
+                                                      )
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    ) : chatMessage.media != null && chatMessage.text != null ? Consumer<ChatCounterProvider>(
+                                      builder: (context, viewModel, child){
+                                        return Row(
+                                          mainAxisSize: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId && _isSelecting ? MainAxisSize.max : MainAxisSize.min,
+                                          mainAxisAlignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+                                          children: [
+                                            _isSelecting ? Transform.scale(
+                                              scale: 1.2,
+                                              child: Checkbox(
+                                                value: viewModel.getMessageIndexValue(index),
+                                                onChanged: (value){
+                                                  viewModel.changeSelectedMessageValue(index, value!);
+
+                                                  if(viewModel.getMessageIndexValue(index)){
+                                                    Provider.of<ChatCounterProvider>(context, listen: false).addCount();
+                                                  }else{
+                                                    Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                  }
+
+                                                },
+                                                shape: CircleBorder(),
+                                                checkColor: Colors.white,
+                                                side: BorderSide(
+                                                  color: Colors.grey,
+                                                ),
+                                                splashRadius: UniversalPlatform.isIOS ? 2 : null,
+                                                activeColor: Color.fromRGBO(145, 10, 251, 5),
+                                              ),
+                                            ) : Container(),
+                                            Stack(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: _isSelecting ? (){
+                                                    if(viewModel.getMessageIndexValue(index)){
+                                                      viewModel.changeSelectedMessageValue(index, false);
+                                                      Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                    }else{
+                                                      viewModel.changeSelectedMessageValue(index, true);
+                                                      Provider.of<ChatCounterProvider>(context, listen: false).addCount();
+                                                    }
+                                                  } : chatMessage.media != null ? chatMessage.media[0]['type'].toString().startsWith('video') ? (){
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(builder: (context) => ChatVideoPlayer(url: chatMessage.media[0]['media']))
+                                                    );
+                                                  } : (){
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(builder: (context) => ChatPhotoPage(photoUrl: chatMessage.media[0]['media']))
+                                                    );
+                                                  } : null,
+                                                  child: Container(
+                                                    padding: chatMessage.media == null && chatMessage.text != null
+                                                        ? EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10)
+                                                        : chatMessage.media != null && chatMessage.text == null
+                                                        ? EdgeInsets.all(0)
+                                                        : chatMessage.media != null && chatMessage.text != null
+                                                        ? EdgeInsets.all(5) : null,
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Container(
+                                                          padding: EdgeInsets.only(left: 10),
+                                                          width: 200,
+                                                          child: Text(chatMessage.text, style: TextStyle(
+                                                            color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white : Colors.black,
+                                                            fontSize: 16,
                                                           ),
-                                                        ],
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 5),
+                                                        Stack(
+                                                          children: [
+                                                            SizedBox(
+                                                                height: 200,
+                                                                width: 200,
+                                                                child: Hero(
+                                                                  tag: chatMessage.media[0]['media'],
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl: chatMessage.media[0]['type'].toString().startsWith('video') ? chatMessage.media[0]['thumbnail'] : chatMessage.media[0]['media'],
+                                                                    imageBuilder: (context, imageProvider) => Container(
+                                                                      width: 100,
+                                                                      height: 100,
+                                                                      decoration: BoxDecoration(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                                        image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                                                      ),
+                                                                    ),
+                                                                    placeholder: (context, url) => Shimmer.fromColors(
+                                                                      baseColor: Colors.grey[300]!,
+                                                                      highlightColor: Colors.white,
+                                                                      child: Container(
+                                                                        decoration: BoxDecoration(
+                                                                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                                          color: Colors.grey,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                            ),
+                                                            Positioned(
+                                                              top: 80,
+                                                              left: 80,
+                                                              child: chatMessage.media[0]['type'].toString().startsWith('video') ? Container(
+                                                                height: 50,
+                                                                width: 50,
+                                                                child: Center(
+                                                                  child: Icon(CupertinoIcons.play_arrow_solid, color: Colors.black),
+                                                                ),
+                                                                decoration: BoxDecoration(
+                                                                    shape: BoxShape.circle,
+                                                                    color: Colors.white
+                                                                ),
+                                                              ) : Container(),
+                                                            )
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                    decoration: chatMessage.userId != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? BoxDecoration(
+                                                        borderRadius: BorderRadius.only(
+                                                            topLeft: Radius.circular(25),
+                                                            topRight: Radius.circular(25),
+                                                            bottomRight: Radius.circular(25),
+                                                            bottomLeft: Radius.circular(0)
+                                                        ),
+                                                        color: Color.fromRGBO(237, 235, 235, 10)
+                                                    ) : BoxDecoration(
+                                                        borderRadius: BorderRadius.only(
+                                                            topLeft: Radius.circular(25),
+                                                            topRight: Radius.circular(25),
+                                                            bottomLeft: Radius.circular(25),
+                                                            bottomRight: Radius.circular(0)
+                                                        ),
+                                                        color: Color.fromRGBO(145, 10, 251, 10)
+                                                    ),
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  bottom: 15,
+                                                  right: 20,
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(chatMessage.isEdited != null && chatMessage.isEdited ? 'Ред.' : '', style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5))),
+                                                      SizedBox(width: 5),
+                                                      Text(DateTime.parse(chatMessage.createdAt).toLocal().hour.toString().padLeft(2, '0') + ':' + DateTime.parse(chatMessage.createdAt).toLocal().minute.toString().padLeft(2, '0'),
+                                                        style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.5)),
+                                                      )
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    ) : Consumer<ChatCounterProvider>(
+                                      builder: (context, viewModel, child){
+                                        return Row(
+                                          mainAxisSize: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId && _isSelecting ? MainAxisSize.max : MainAxisSize.min,
+                                          mainAxisAlignment: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == chatMessage.userId ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+                                          children: [
+                                            _isSelecting ? Transform.scale(
+                                              scale: 1.2,
+                                              child: Checkbox(
+                                                value: viewModel.getMessageIndexValue(index),
+                                                onChanged: (value){
+                                                  viewModel.changeSelectedMessageValue(index, value!);
+
+                                                  if(viewModel.getMessageIndexValue(index)){
+                                                    Provider.of<ChatCounterProvider>(context, listen: false).addCount();
+                                                  }else{
+                                                    Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                  }
+
+                                                },
+                                                shape: CircleBorder(),
+                                                checkColor: Colors.white,
+                                                side: BorderSide(
+                                                  color: Colors.grey,
+                                                ),
+                                                splashRadius: UniversalPlatform.isIOS ? 2 : null,
+                                                activeColor: Color.fromRGBO(145, 10, 251, 5),
+                                              ),
+                                            ) : Container(),
+                                            GestureDetector(
+                                              onTap: _isSelecting ? (){
+                                                if(viewModel.getMessageIndexValue(index)){
+                                                  viewModel.changeSelectedMessageValue(index, false);
+                                                  Provider.of<ChatCounterProvider>(context, listen: false).decrementCount();
+                                                }else{
+                                                  viewModel.changeSelectedMessageValue(index, true);
+                                                  Provider.of<ChatCounterProvider>(context, listen: false).addCount();
+                                                }
+                                              } : chatMessage.media != null ? chatMessage.media[0]['type'].toString().startsWith('video') ? (){
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => ChatVideoPlayer(url: chatMessage.media[0]['media']))
+                                                );
+                                              } : (){
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => ChatPhotoPage(photoUrl: chatMessage.media[0]['media']))
+                                                );
+                                              } : null,
+                                              child: Container(
+                                                padding: chatMessage.media == null && chatMessage.text != null
+                                                    ? EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10)
+                                                    : chatMessage.media != null && chatMessage.text == null
+                                                    ? EdgeInsets.all(0)
+                                                    : chatMessage.media != null && chatMessage.text != null
+                                                    ? EdgeInsets.only(top: 15) : null,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    _messagesFilteredList[index].replyTo != null ? SizedBox(
+                                                        height: 40,
+                                                        width: 150,
+                                                        child: Row(
+                                                          children: [
+                                                            VerticalDivider(
+                                                              color: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].userId ? Colors.white : Colors.black,
+                                                              thickness: 2,
+                                                            ),
+                                                            _messagesFilteredList[index].replyTo['media'] != null ?
+                                                            SizedBox(
+                                                              height: 40,
+                                                              width: 40,
+                                                              child: CachedNetworkImage(
+                                                                imageUrl: _messagesFilteredList[index].replyTo['media'][0]['type'].toString().startsWith('video')
+                                                                    ? _messagesFilteredList[index].replyTo['media'][0]['thumbnail']
+                                                                    : _messagesFilteredList[index].replyTo['media'][0]['media'],
+                                                                imageBuilder: (context, imageProvider) => Container(
+                                                                  height: 40,
+                                                                  width: 40,
+                                                                  decoration: BoxDecoration(
+                                                                      image: DecorationImage(
+                                                                          image: imageProvider
+                                                                      )
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ) : Container(),
+                                                            SizedBox(width: 5),
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].replyTo['user_id']
+                                                                      ? '${Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName}' : '${participant!.firstName}',
+                                                                  style: TextStyle(color: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].userId ? Colors.white : Colors.black, fontSize: 17, fontWeight: FontWeight.w600),
+                                                                ),
+                                                                SizedBox(
+                                                                  width: 80,
+                                                                  child: Text(
+                                                                    _messagesFilteredList[index].replyTo['text'],
+                                                                    style: TextStyle(
+                                                                        fontSize: 14,
+                                                                        color: Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[index].userId ? Colors.white : Colors.black,
+                                                                        overflow: TextOverflow.ellipsis),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            )
+                                                          ],
+                                                        )
+                                                    ) : Container(),
+                                                    SizedBox(height: 5),
+                                                    Wrap(
+                                                      alignment: WrapAlignment.center,
+                                                      crossAxisAlignment: WrapCrossAlignment.end,
+                                                      spacing: 3,
+                                                      children: [
+                                                        Container(
+                                                          padding: EdgeInsets.only(left:5, bottom: 5),
+                                                          width: chatMessage.text.toString().length > 70 ? width * 0.8 : null,
+                                                          child: Text(chatMessage.text, style: TextStyle(
+                                                            color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white : Colors.black,
+                                                            fontSize: 16,
+                                                          ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 5),
+                                                        Text(chatMessage.isEdited != null && chatMessage.isEdited ? 'Ред.' : '', style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5))),
+                                                        SizedBox(width: 5),
+                                                        Text(DateTime.parse(chatMessage.createdAt).toLocal().hour.toString().padLeft(2, '0') + ':' + DateTime.parse(chatMessage.createdAt).toLocal().minute.toString().padLeft(2, '0'),
+                                                          style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5), fontSize: 12),
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                                decoration: chatMessage.userId != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? BoxDecoration(
+                                                    borderRadius: BorderRadius.only(
+                                                        topLeft: Radius.circular(25),
+                                                        topRight: Radius.circular(25),
+                                                        bottomRight: Radius.circular(25),
+                                                        bottomLeft: Radius.circular(0)
+                                                    ),
+                                                    color: Color.fromRGBO(237, 235, 235, 10)
+                                                ) : BoxDecoration(
+                                                    borderRadius: BorderRadius.only(
+                                                        topLeft: Radius.circular(25),
+                                                        topRight: Radius.circular(25),
+                                                        bottomLeft: Radius.circular(25),
+                                                        bottomRight: Radius.circular(0)
+                                                    ),
+                                                    color: Color.fromRGBO(145, 10, 251, 10)
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    )
+                                ),
+                              )
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Align(
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        height: 90,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            AnimatedContainer(
+                              duration: Duration(milliseconds: 100),
+                              child: _isEditing ? Container(
+                                  height: height / 18,
+                                  padding: EdgeInsets.only(left: width / 8, right: width / 25),
+                                  color: Colors.white,
+                                  child: SizedBox(
+                                    width: width,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Icon(Icons.edit, color: Color.fromRGBO(145, 10, 251, 10)),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(vertical: 10),
+                                          child: VerticalDivider(
+                                            color: Colors.black,
+                                            thickness: 1,
+                                          ),
+                                        ),
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Редактирование', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
+                                            Text('${_messagesFilteredList[_currentlyEditingMessageIndex!].text ?? ''}'),
+                                          ],
+                                        ),
+                                        SizedBox(width: width / 2.5),
+                                        IconButton(
+                                          icon: Icon(CupertinoIcons.clear_circled, color: Color.fromRGBO(145, 10, 251, 10)),
+                                          onPressed: (){
+                                            setState((){
+                                              _isEditing = false;
+                                              _textMessageFieldController!.clear();
+
+                                              FocusManager.instance.primaryFocus!.unfocus();
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                              ) : _isReplying ? Container(
+                                  height: height / 13,
+                                  padding: EdgeInsets.only(left: 5, right: 5),
+                                  color: Colors.white,
+                                  child: Container(
+                                    margin: EdgeInsets.only(top: 5),
+                                    padding: EdgeInsets.only(left: 10),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.symmetric(vertical: 10),
+                                          child: VerticalDivider(
+                                            color: Colors.black,
+                                            thickness: 1,
+                                          ),
+                                        ),
+                                        _messagesFilteredList[_currentlyReplyingMessageIndex!].media != null ? SizedBox(
+                                            height: 50,
+                                            width: 50,
+                                            child: CachedNetworkImage(
+                                              imageUrl: _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['type'].toString().startsWith('video')
+                                                  ? _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['thumbnail']
+                                                  : _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['media'],
+                                            )
+                                        ) : Container(),
+                                        SizedBox(width: 5),
+                                        Container(
+                                          width: _messagesFilteredList[_currentlyReplyingMessageIndex!].media != null ? width / 1.4 : width / 1.2,
+                                          padding: EdgeInsets.only(top: 5),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                  width: width,
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                          Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[_currentlyReplyingMessageIndex!].userId ?
+                                                          'Ответить ${Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName}' : 'Ответить ${participant!.firstName}',
+                                                          style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
+                                                      SizedBox(width: 5),
+                                                      Icon(CupertinoIcons.reply_all, color: Color.fromRGBO(145, 10, 251, 10), size: 18)
+                                                    ],
+                                                  )
+                                              ),
+                                              Container(
+                                                  child: Row(
+                                                    children: [
+                                                      SizedBox(
+                                                        width: width / 2,
+                                                        child: Text('${_messagesFilteredList[_currentlyReplyingMessageIndex!].text ?? ''}', overflow: TextOverflow.ellipsis, maxLines: 2),
                                                       )
                                                     ],
                                                   )
-                                              ) : Container(),
-                                              SizedBox(height: 5),
-                                              Wrap(
-                                                alignment: WrapAlignment.center,
-                                                crossAxisAlignment: WrapCrossAlignment.end,
-                                                spacing: 3,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          child: IconButton(
+                                            icon: Icon(CupertinoIcons.clear_circled, color: Color.fromRGBO(145, 10, 251, 10)),
+                                            onPressed: (){
+                                              setState((){
+                                                _currentlyReplyingMessageIndex = null;
+                                                _isReplying = false;
+                                                _textMessageFieldController!.clear();
+
+                                                FocusManager.instance.primaryFocus!.unfocus();
+                                              });
+                                            },
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        borderRadius: BorderRadius.all(Radius.circular(10))
+                                    ),
+                                  )
+                              ) : _isSendingMedia ? Container(
+                                  height: height / 5,
+                                  padding: EdgeInsets.only(left: 5, right: 5),
+                                  color: Colors.white,
+                                  child: Center(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          StatefulBuilder(
+                                            builder: (context, setState){
+                                              mediaLoadingBarState = setState;
+                                              return Stack(
                                                 children: [
                                                   Container(
-                                                    padding: EdgeInsets.only(left:5, bottom: 5),
-                                                    width: chatMessage.text.toString().length > 70 ? width * 0.8 : null,
-                                                    child: Text(chatMessage.text, style: TextStyle(
-                                                      color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white : Colors.black,
-                                                      fontSize: 16,
-                                                    ),
+                                                    height: 150,
+                                                    width: 150,
+                                                    decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                        image: DecorationImage(
+                                                            image: MemoryImage(_mediaBytes!),
+                                                            fit: BoxFit.cover
+                                                        )
                                                     ),
                                                   ),
+                                                  Positioned(
+                                                    bottom: 10,
+                                                    left: 10,
+                                                    child: _mediaType == 'video'
+                                                        ? Row(
+                                                      children: [
+                                                        Icon(CupertinoIcons.play_arrow_solid, color: Colors.white),
+                                                        SizedBox(width: 50),
+                                                        Text(_selectedVideoDuration!.split('.')[0], style: TextStyle(color: Colors.white))
+                                                      ],
+                                                    ) : Container(),
+                                                  ),
+                                                  Positioned(
+                                                    top: 55 ,
+                                                    left: 55,
+                                                    child: _showMediaLoading ? CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2,
+                                                    ) : Container(),
+                                                  )
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                          SizedBox(width: 10),
+                                          IconButton(
+                                            icon: Icon(CupertinoIcons.clear_circled, size: 30, color: Color.fromRGBO(145, 10, 251, 10)),
+                                            onPressed: (){
+                                              setState((){
+                                                _isSendingMedia = false;
+                                                _isTyping = false;
+
+                                                _mediaFile = null;
+                                                _mediaBytes = null;
+                                              });
+                                            },
+                                          )
+                                        ],
+                                      )
+                                  )
+                              ) : Container(),
+                            ),
+                            AnimatedContainer(
+                              padding: !_isSelecting ? null : EdgeInsets.only(left: 10, right: 10, bottom: 20),
+                              duration: Duration(milliseconds: 100),
+                              height: height / 11,
+                              color: Colors.white,
+                              child: !_isSelecting ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 6),
+                                    child: IconButton(
+                                      onPressed: () async {
+                                        if(UniversalPlatform.isIOS){
+                                          showCupertinoModalBottomSheet(
+                                              context: context,
+                                              duration: Duration(milliseconds: 250),
+                                              topRadius: Radius.circular(25),
+                                              builder: (context) {
+                                                return DraggableScrollableSheet(
+                                                  initialChildSize: 0.5,
+                                                  maxChildSize: 1,
+                                                  minChildSize: 0.3,
+                                                  expand: false,
+                                                  builder: (context, scrollController) {
+                                                    return media.isNotEmpty ? showPhotoVideoBottomSheet(scrollController, media) : Center(
+                                                      child: Text('У вас нет фото или видео'),
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        }else if(UniversalPlatform.isAndroid){
+                                          showCupertinoModalBottomSheet(
+                                              context: context,
+                                              duration: Duration(milliseconds: 250),
+                                              topRadius: Radius.circular(25),
+                                              builder: (context) {
+                                                return DraggableScrollableSheet(
+                                                  initialChildSize: 0.5,
+                                                  maxChildSize: 1,
+                                                  minChildSize: 0.3,
+                                                  expand: false,
+                                                  builder: (context, scrollController) {
+                                                    return media.isNotEmpty ? showPhotoVideoBottomSheet(scrollController, media) : Center(
+                                                      child: Text('У вас нет фото или видео'),
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        }
+                                      },
+                                      icon: Icon(Icons.attach_file, color: Colors.grey),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 10),
+                                    child: SizedBox(
+                                      height: 45,
+                                      width: 390,
+                                      child: TextFormField(
+                                        controller: _textMessageFieldController,
+                                        focusNode: _messageTextFocusNode,
+                                        cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                                        textAlign: TextAlign.left,
+                                        textCapitalization: TextCapitalization.sentences,
+                                        textInputAction: TextInputAction.send,
+                                        style: TextStyle(fontSize: 19),
+                                        decoration: InputDecoration(
+                                          contentPadding: EdgeInsets.only(left: 10, bottom: height / 50),
+                                          filled: true,
+                                          hintText: 'Сообщение',
+                                          fillColor: Colors.grey.withOpacity(0.1),
+                                          suffixIcon: StatefulBuilder(
+                                            builder: (context, setState){
+                                              iconState = setState;
+                                              return IconButton(
+                                                  onPressed: _isTyping ? () => sendMessage(): _isEditing ? () => editMessage() : null,
+                                                  splashRadius: 10,
+                                                  icon: AnimatedContainer(
+                                                    height: 30,
+                                                    width: 30,
+                                                    duration: Duration(milliseconds: 300),
+                                                    curve: Curves.easeInOutBack,
+                                                    child: _isTyping? Center(
+                                                      child: Icon(Icons.arrow_upward, color: Colors.white),
+                                                    ) : _isEditing ? Center(
+                                                      child: Icon(Icons.check_circle, color: Color.fromRGBO(145, 10, 251, 10), size: 30),
+                                                    ) : Container(),
+                                                    decoration: _isTyping ? BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: Color.fromRGBO(145, 10, 251, 10)
+                                                    ) : null,
+                                                  )
+                                              );
+                                            },
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.all(Radius.circular(30)),
+                                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                                        ),
+
+                                        onChanged: (value) {
+                                          if(!_isEditing){
+                                            if(value == ''){
+                                              iconState!((){
+                                                _isTyping = false;
+                                              });
+                                            }else{
+                                              iconState!((){
+                                                _isTyping = true;
+                                              });
+                                            }
+                                          }
+                                        },
+
+
+                                        onFieldSubmitted: (value) async {
+                                          if(value != ''){
+                                            if(_isTyping){
+                                              sendMessage();
+                                            }else{
+                                              editMessage();
+                                            }
+                                          }else{
+                                            setState((){
+                                              _isTyping = false;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ) : Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Consumer<ChatCounterProvider>(
+                                    builder: (context, viewModel, child){
+                                      return IconButton(
+                                          icon: Icon(CupertinoIcons.trash, color: viewModel.chatCount == 0 ? Colors.grey : Color.fromRGBO(145, 10, 251, 10), size: 25),
+                                          splashRadius: 1,
+                                          onPressed: viewModel.chatCount == 0 ? null : (){
+                                            if(UniversalPlatform.isIOS){
+                                              showCupertinoModalPopup(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return CupertinoActionSheet(
+                                                      actions: [
+                                                        CupertinoActionSheetAction(
+                                                          child: Text(
+                                                              'Удалить у меня и у ${participant!.firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+
+                                                            List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                            List<int> _messageIds = [];
+
+                                                            for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                              if(_selectedMessagesList[i] == true){
+                                                                _messageIds.add(_messagesFilteredList[i].messageId);
+                                                              }
+                                                            }
+
+                                                            deleteMultipleMessages('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, _messageIds);
+                                                          },
+                                                        ),
+                                                        CupertinoActionSheetAction(
+                                                          child: Text(
+                                                              'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+                                                            List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                            List<int> _messageIds = [];
+
+                                                            for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                              if(_selectedMessagesList[i] == true){
+                                                                _messageIds.add(_messagesFilteredList[i].messageId);
+                                                              }
+                                                            }
+
+                                                            deleteMultipleMessages('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, _messageIds);
+                                                          },
+                                                        )
+                                                      ],
+                                                      cancelButton: CupertinoActionSheetAction(
+                                                        onPressed: () => Navigator.pop(context),
+                                                        child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
+                                                      ),
+                                                    );
+                                                  }
+                                              );
+                                            }else if(UniversalPlatform.isAndroid){
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context){
+                                                    return AlertDialog(
+                                                      title: Text(
+                                                        'Вы уверены, что хотите удалить сообщение?',
+                                                        maxLines: 2,
+                                                        style: TextStyle(fontSize: 13),
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                            List<int> _messageIds = [];
+
+                                                            for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                              if(_selectedMessagesList[i] == true){
+                                                                _messageIds.add(_messagesFilteredList[i].messageId);
+                                                              }
+                                                            }
+
+                                                            deleteMultipleMessages('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, _messageIds);
+                                                          },
+                                                          child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () async {
+
+                                                            List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                            List<int> _messageIds = [];
+
+                                                            for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                              if(_selectedMessagesList[i] == true){
+                                                                _messageIds.add(_messagesFilteredList[i].messageId);
+                                                              }
+                                                            }
+
+                                                            deleteMultipleMessages('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, _messageIds);
+                                                          },
+                                                          child: Text('Удалить у меня и у ${participant!.firstName}', style: TextStyle(color: Colors.red)),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }
+                                              );
+                                            }
+                                          }
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(CupertinoIcons.share, color: Color.fromRGBO(145, 10, 251, 10), size: 25),
+                                    splashRadius: 1,
+                                    onPressed: () => null,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(CupertinoIcons.arrowshape_turn_up_right, color: Color.fromRGBO(145, 10, 251, 10), size: 25),
+                                    splashRadius: 1,
+                                    onPressed: () => null,
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                  )
+                ],
+              )
+            ) : Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(),
+              Align(
+                alignment: Alignment.center,
+                child: Text('У вас пока нет сообщений', style: TextStyle(fontSize: 18)),
+              ),
+              Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        AnimatedContainer(
+                          duration: Duration(milliseconds: 100),
+                          child: _isEditing ? Container(
+                              height: height / 18,
+                              padding: EdgeInsets.only(left: width / 8, right: width / 25),
+                              color: Colors.white,
+                              child: SizedBox(
+                                width: width,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Icon(Icons.edit, color: Color.fromRGBO(145, 10, 251, 10)),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(vertical: 10),
+                                      child: VerticalDivider(
+                                        color: Colors.black,
+                                        thickness: 1,
+                                      ),
+                                    ),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Редактирование', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
+                                        Text('${_messagesFilteredList[_currentlyEditingMessageIndex!].text ?? ''}'),
+                                      ],
+                                    ),
+                                    SizedBox(width: width / 2.5),
+                                    IconButton(
+                                      icon: Icon(CupertinoIcons.clear_circled, color: Color.fromRGBO(145, 10, 251, 10)),
+                                      onPressed: (){
+                                        setState((){
+                                          _isEditing = false;
+                                          _textMessageFieldController!.clear();
+
+                                          FocusManager.instance.primaryFocus!.unfocus();
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              )
+                          ) : _isReplying ? Container(
+                              height: height / 13,
+                              padding: EdgeInsets.only(left: 5, right: 5),
+                              color: Colors.white,
+                              child: Container(
+                                margin: EdgeInsets.only(top: 5),
+                                padding: EdgeInsets.only(left: 10),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.symmetric(vertical: 10),
+                                      child: VerticalDivider(
+                                        color: Colors.black,
+                                        thickness: 1,
+                                      ),
+                                    ),
+                                    _messagesFilteredList[_currentlyReplyingMessageIndex!].media != null ? SizedBox(
+                                        height: 50,
+                                        width: 50,
+                                        child: CachedNetworkImage(
+                                          imageUrl: _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['type'].toString().startsWith('video')
+                                              ? _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['thumbnail']
+                                              : _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['media'],
+                                        )
+                                    ) : Container(),
+                                    SizedBox(width: 5),
+                                    Container(
+                                      width: _messagesFilteredList[_currentlyReplyingMessageIndex!].media != null ? width / 1.4 : width / 1.2,
+                                      padding: EdgeInsets.only(top: 5),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                              width: width,
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                      Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[_currentlyReplyingMessageIndex!].userId ?
+                                                      'Ответить ${Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName}' : 'Ответить ${participant!.firstName}',
+                                                      style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
                                                   SizedBox(width: 5),
-                                                  Text(chatMessage.isEdited != null && chatMessage.isEdited ? 'Ред.' : '', style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5))),
-                                                  SizedBox(width: 5),
-                                                  Text(DateTime.parse(chatMessage.createdAt).toLocal().hour.toString().padLeft(2, '0') + ':' + DateTime.parse(chatMessage.createdAt).toLocal().minute.toString().padLeft(2, '0'),
-                                                    style: TextStyle(color: chatMessage.userId == Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5), fontSize: 12),
+                                                  Icon(CupertinoIcons.reply_all, color: Color.fromRGBO(145, 10, 251, 10), size: 18)
+                                                ],
+                                              )
+                                          ),
+                                          Container(
+                                              child: Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: width / 2,
+                                                    child: Text('${_messagesFilteredList[_currentlyReplyingMessageIndex!].text ?? ''}', overflow: TextOverflow.ellipsis, maxLines: 2),
                                                   )
                                                 ],
                                               )
-                                            ],
                                           ),
-                                          decoration: chatMessage.userId != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id ? BoxDecoration(
-                                              borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(25),
-                                                  topRight: Radius.circular(25),
-                                                  bottomRight: Radius.circular(25),
-                                                  bottomLeft: Radius.circular(0)
-                                              ),
-                                              color: Color.fromRGBO(237, 235, 235, 10)
-                                          ) : BoxDecoration(
-                                              borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(25),
-                                                  topRight: Radius.circular(25),
-                                                  bottomLeft: Radius.circular(25),
-                                                  bottomRight: Radius.circular(0)
-                                              ),
-                                              color: Color.fromRGBO(145, 10, 251, 10)
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                },
-                              )
-                          ),
-                        )
-                    ),
-                  );
-                },
-              ),
-            ): Center(
-              child: Text('У вас пока нет сообщений', style: TextStyle(fontSize: 18)),
-            ),
-            Align(
-                alignment: Alignment.bottomCenter,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 100),
-                      child: _isEditing ? Container(
-                          height: height / 18,
-                          padding: EdgeInsets.only(left: width / 8, right: width / 25),
-                          color: Colors.white,
-                          child: Container(
-                            width: width,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(Icons.edit, color: Color.fromRGBO(145, 10, 251, 10)),
-                                Container(
-                                  padding: EdgeInsets.symmetric(vertical: 10),
-                                  child: VerticalDivider(
-                                    color: Colors.black,
-                                    thickness: 1,
-                                  ),
-                                ),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Редактирование', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
-                                    Text('${_messagesFilteredList[_currentlyEditingMessageIndex!].text == null ? '' : _messagesFilteredList[_currentlyEditingMessageIndex!].text}'),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      child: IconButton(
+                                        icon: Icon(CupertinoIcons.clear_circled, color: Color.fromRGBO(145, 10, 251, 10)),
+                                        onPressed: (){
+                                          setState((){
+                                            _currentlyReplyingMessageIndex = null;
+                                            _isReplying = false;
+                                            _textMessageFieldController!.clear();
+
+                                            FocusManager.instance.primaryFocus!.unfocus();
+                                          });
+                                        },
+                                      ),
+                                    )
                                   ],
                                 ),
-                                SizedBox(width: width / 2.5),
-                                IconButton(
-                                  icon: Icon(CupertinoIcons.clear_circled, color: Color.fromRGBO(145, 10, 251, 10)),
-                                  onPressed: (){
-                                    setState((){
-                                      _isEditing = false;
-                                      _textMessageFieldController!.clear();
-
-                                      FocusManager.instance.primaryFocus!.unfocus();
-                                    });
-                                  },
+                                decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    borderRadius: BorderRadius.all(Radius.circular(10))
                                 ),
-                              ],
-                            ),
-                          )
-                      ) : _isReplying ? Container(
-                          height: height / 13,
-                          padding: EdgeInsets.only(left: 5, right: 5),
-                          color: Colors.white,
-                          child: Container(
-                            margin: EdgeInsets.only(top: 5),
-                            padding: EdgeInsets.only(left: 10),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(vertical: 10),
-                                  child: VerticalDivider(
-                                    color: Colors.black,
-                                    thickness: 1,
-                                  ),
-                                ),
-                                _messagesFilteredList[_currentlyReplyingMessageIndex!].media != null ? Container(
-                                    height: 50,
-                                    width: 50,
-                                    child: CachedNetworkImage(
-                                      imageUrl: _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['type'].toString().startsWith('video')
-                                          ? _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['thumbnail']
-                                          : _messagesFilteredList[_currentlyReplyingMessageIndex!].media[0]['media'],
-                                    )
-                                ) : Container(),
-                                SizedBox(width: 5),
-                                Container(
-                                  width: _messagesFilteredList[_currentlyReplyingMessageIndex!].media != null ? width / 1.4 : width / 1.2,
-                                  padding: EdgeInsets.only(top: 5),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                              )
+                          ) : _isSendingMedia ? Container(
+                              height: height / 5,
+                              padding: EdgeInsets.only(left: 5, right: 5),
+                              color: Colors.white,
+                              child: Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Container(
-                                          width: width,
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                  Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id == _messagesFilteredList[_currentlyReplyingMessageIndex!].userId ?
-                                                  'Ответить ${Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName}' : 'Ответить ${chat.participants![1].firstName}',
-                                                  style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
-                                              SizedBox(width: 5),
-                                              Icon(CupertinoIcons.reply_all, color: Color.fromRGBO(145, 10, 251, 10), size: 18)
-                                            ],
-                                          )
-                                      ),
-                                      Container(
-                                          child: Row(
+                                      StatefulBuilder(
+                                        builder: (context, setState){
+                                          mediaLoadingBarState = setState;
+                                          return Stack(
                                             children: [
                                               Container(
-                                                width: width / 2,
-                                                child: Text('${_messagesFilteredList[_currentlyReplyingMessageIndex!].text == null ? '' : _messagesFilteredList[_currentlyReplyingMessageIndex!].text}', overflow: TextOverflow.ellipsis, maxLines: 2),
+                                                height: 150,
+                                                width: 150,
+                                                decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                    image: DecorationImage(
+                                                        image: MemoryImage(_mediaBytes!),
+                                                        fit: BoxFit.cover
+                                                    )
+                                                ),
+                                              ),
+                                              Positioned(
+                                                bottom: 10,
+                                                left: 10,
+                                                child: _mediaType == 'video'
+                                                    ? Row(
+                                                  children: [
+                                                    Icon(CupertinoIcons.play_arrow_solid, color: Colors.white),
+                                                    SizedBox(width: 50),
+                                                    Text(_selectedVideoDuration!.split('.')[0], style: TextStyle(color: Colors.white))
+                                                  ],
+                                                ) : Container(),
+                                              ),
+                                              Positioned(
+                                                top: 55 ,
+                                                left: 55,
+                                                child: _showMediaLoading ? CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
+                                                ) : Container(),
                                               )
                                             ],
-                                          )
+                                          );
+                                        },
                                       ),
+                                      SizedBox(width: 10),
+                                      IconButton(
+                                        icon: Icon(CupertinoIcons.clear_circled, size: 30, color: Color.fromRGBO(145, 10, 251, 10)),
+                                        onPressed: (){
+                                          setState((){
+                                            _isSendingMedia = false;
+                                            _isTyping = false;
+
+                                            _mediaFile = null;
+                                            _mediaBytes = null;
+                                          });
+                                        },
+                                      )
                                     ],
-                                  ),
-                                ),
-                                Container(
-                                  child: IconButton(
-                                    icon: Icon(CupertinoIcons.clear_circled, color: Color.fromRGBO(145, 10, 251, 10)),
-                                    onPressed: (){
-                                      setState((){
-                                        _currentlyReplyingMessageIndex = null;
-                                        _isReplying = false;
-                                        _textMessageFieldController!.clear();
-
-                                        FocusManager.instance.primaryFocus!.unfocus();
-                                      });
-                                    },
-                                  ),
-                                )
-                              ],
-                            ),
-                            decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.2),
-                                borderRadius: BorderRadius.all(Radius.circular(10))
-                            ),
-                          )
-                      ) : _isSendingMedia ? Container(
-                          height: height / 5,
-                          padding: EdgeInsets.only(left: 5, right: 5),
-                          color: Colors.white,
-                          child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  StatefulBuilder(
-                                    builder: (context, setState){
-                                      mediaLoadingBarState = setState;
-                                      return Stack(
-                                        children: [
-                                          Container(
-                                            height: 150,
-                                            width: 150,
-                                            decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.all(Radius.circular(20)),
-                                                image: DecorationImage(
-                                                    image: MemoryImage(_mediaBytes!),
-                                                    fit: BoxFit.cover
-                                                )
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 10,
-                                            left: 10,
-                                            child: _mediaType == 'video'
-                                                ? Row(
-                                              children: [
-                                                Icon(CupertinoIcons.play_arrow_solid, color: Colors.white),
-                                                SizedBox(width: 50),
-                                                Text(_selectedVideoDuration!.split('.')[0], style: TextStyle(color: Colors.white))
-                                              ],
-                                            ) : Container(),
-                                          ),
-                                          Positioned(
-                                            top: 55 ,
-                                            left: 55,
-                                            child: _showMediaLoading ? CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2,
-                                            ) : Container(),
-                                          )
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(width: 10),
-                                  IconButton(
-                                    icon: Icon(CupertinoIcons.clear_circled, size: 30, color: Color.fromRGBO(145, 10, 251, 10)),
-                                    onPressed: (){
-                                      setState((){
-                                        _isSendingMedia = false;
-                                        _isTyping = false;
-
-                                        _mediaFile = null;
-                                        _mediaBytes = null;
-                                      });
-                                    },
                                   )
-                                ],
                               )
-                          )
-                      ) : Container(),
-                    ),
-                    AnimatedContainer(
-                      padding: !_isSelecting ? null : EdgeInsets.only(left: 10, right: 10, bottom: 20),
-                      duration: Duration(milliseconds: 100),
-                      height: height / 11,
-                      color: Colors.white,
-                      child: !_isSelecting ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 6),
-                            child: IconButton(
-                              onPressed: () async {
-
-                                if(UniversalPlatform.isIOS){
-                                  showCupertinoModalBottomSheet(
-                                      context: context,
-                                      duration: Duration(milliseconds: 250),
-                                      topRadius: Radius.circular(25),
-                                      builder: (context) {
-                                        return DraggableScrollableSheet(
-                                          initialChildSize: 0.5,
-                                          maxChildSize: 1,
-                                          minChildSize: 0.3,
-                                          expand: false,
-                                          builder: (context, scrollController) {
-                                            return media.isNotEmpty ? showPhotoVideoBottomSheet(scrollController, media) : Center(
-                                              child: Text('У вас нет фото или видео'),
-                                            );
-                                          },
-                                        );
-                                      }
-                                  );
-                                }else if(UniversalPlatform.isAndroid){
-                                  showCupertinoModalBottomSheet(
-                                      context: context,
-                                      duration: Duration(milliseconds: 250),
-                                      topRadius: Radius.circular(25),
-                                      builder: (context) {
-                                        return DraggableScrollableSheet(
-                                          initialChildSize: 0.5,
-                                          maxChildSize: 1,
-                                          minChildSize: 0.3,
-                                          expand: false,
-                                          builder: (context, scrollController) {
-                                            return media.isNotEmpty ? showPhotoVideoBottomSheet(scrollController, media) : Center(
-                                              child: Text('У вас нет фото или видео'),
-                                            );
-                                          },
-                                        );
-                                      }
-                                  );
-                                }
-                              },
-                              icon: Icon(Icons.attach_file, color: Colors.grey),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: Container(
-                              height: 45,
-                              width: 390,
-                              child: TextFormField(
-                                controller: _textMessageFieldController,
-                                focusNode: _messageTextFocusNode,
-                                cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                                textAlign: TextAlign.left,
-                                textCapitalization: TextCapitalization.sentences,
-                                textInputAction: TextInputAction.send,
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.only(left: 10, bottom: height / 50),
-                                  filled: true,
-                                  hintText: 'Сообщение',
-                                  fillColor: Colors.grey.withOpacity(0.1),
-                                  suffixIcon: StatefulBuilder(
-                                    builder: (context, setState){
-                                      iconState = setState;
-                                      return IconButton(
-                                          onPressed: _isTyping ? () => sendMessage(): _isEditing ? () => editMessage() : null,
-                                          splashRadius: 10,
-                                          icon: AnimatedContainer(
-                                            height: 30,
-                                            width: 30,
-                                            duration: Duration(milliseconds: 300),
-                                            curve: Curves.easeInOutBack,
-                                            child: _isTyping? Center(
-                                              child: Icon(Icons.arrow_upward, color: Colors.white),
-                                            ) : _isEditing ? Center(
-                                              child: Icon(Icons.check_circle, color: Color.fromRGBO(145, 10, 251, 10), size: 30),
-                                            ) : Container(),
-                                            decoration: _isTyping ? BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Color.fromRGBO(145, 10, 251, 10)
-                                            ) : null,
-                                          )
-                                      );
-                                    },
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(30)),
-                                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(30)),
-                                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
-                                ),
-
-                                onChanged: (value) {
-                                  if(!_isEditing){
-                                    if(value == ''){
-                                      iconState!((){
-                                        _isTyping = false;
-                                      });
-                                    }else{
-                                      iconState!((){
-                                        _isTyping = true;
-                                      });
-                                    }
-                                  }
-                                },
-
-
-                                onFieldSubmitted: (value) async {
-                                  if(value != ''){
-                                    if(_isTyping){
-                                      sendMessage();
-                                    }else{
-                                      editMessage();
-                                    }
-                                  }else{
-                                    setState((){
-                                      _isTyping = false;
-                                    });
-                                  }
-                                },
-                              ),
-                            ),
-                          )
-                        ],
-                      ) : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Consumer<ChatCounterProvider>(
-                            builder: (context, viewModel, child){
-                              return IconButton(
-                                  icon: Icon(CupertinoIcons.trash, color: viewModel.chatCount == 0 ? Colors.grey : Color.fromRGBO(145, 10, 251, 10), size: 25),
-                                  splashRadius: 1,
-                                  onPressed: viewModel.chatCount == 0 ? null : (){
+                          ) : Container(),
+                        ),
+                        AnimatedContainer(
+                          padding: !_isSelecting ? null : EdgeInsets.only(left: 10, right: 10, bottom: 20),
+                          duration: Duration(milliseconds: 100),
+                          height: height / 11,
+                          color: Colors.white,
+                          child: !_isSelecting ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(top: 6),
+                                child: IconButton(
+                                  onPressed: () async {
                                     if(UniversalPlatform.isIOS){
-                                      showCupertinoModalPopup(
+                                      showCupertinoModalBottomSheet(
                                           context: context,
+                                          duration: Duration(milliseconds: 250),
+                                          topRadius: Radius.circular(25),
                                           builder: (context) {
-                                            return CupertinoActionSheet(
-                                              actions: [
-                                                CupertinoActionSheetAction(
-                                                  child: Text(
-                                                      'Удалить у меня и у ${chat.participants![1].firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
-                                                  onPressed: () async {
-
-                                                    List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
-                                                    List<int> _messageIds = [];
-
-                                                    for(int i = 0; i < _selectedMessagesList.length; i++){
-                                                      if(_selectedMessagesList[i] == true){
-                                                        _messageIds.add(_messagesFilteredList[i].messageId);
-                                                      }
-                                                    }
-
-                                                    deleteMultipleMessages('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![1].id, _messageIds);
-                                                  },
-                                                ),
-                                                CupertinoActionSheetAction(
-                                                  child: Text(
-                                                      'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
-                                                  onPressed: () async {
-                                                    List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
-                                                    List<int> _messageIds = [];
-
-                                                    for(int i = 0; i < _selectedMessagesList.length; i++){
-                                                      if(_selectedMessagesList[i] == true){
-                                                        _messageIds.add(_messagesFilteredList[i].messageId);
-                                                      }
-                                                    }
-
-                                                    deleteMultipleMessages('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, _messageIds);
-                                                  },
-                                                )
-                                              ],
-                                              cancelButton: CupertinoActionSheetAction(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
-                                              ),
+                                            return DraggableScrollableSheet(
+                                              initialChildSize: 0.5,
+                                              maxChildSize: 1,
+                                              minChildSize: 0.3,
+                                              expand: false,
+                                              builder: (context, scrollController) {
+                                                return media.isNotEmpty ? showPhotoVideoBottomSheet(scrollController, media) : Center(
+                                                  child: Text('У вас нет фото или видео'),
+                                                );
+                                              },
                                             );
                                           }
                                       );
                                     }else if(UniversalPlatform.isAndroid){
-                                      showDialog(
+                                      showCupertinoModalBottomSheet(
                                           context: context,
-                                          builder: (context){
-                                            return AlertDialog(
-                                              title: Text(
-                                                'Вы уверены, что хотите удалить сообщение?',
-                                                maxLines: 2,
-                                                style: TextStyle(fontSize: 13),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () async {
-                                                    List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
-                                                    List<int> _messageIds = [];
-
-                                                    for(int i = 0; i < _selectedMessagesList.length; i++){
-                                                      if(_selectedMessagesList[i] == true){
-                                                        _messageIds.add(_messagesFilteredList[i].messageId);
-                                                      }
-                                                    }
-
-                                                    deleteMultipleMessages('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, _messageIds);
-                                                  },
-                                                  child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () async {
-
-                                                    List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
-                                                    List<int> _messageIds = [];
-
-                                                    for(int i = 0; i < _selectedMessagesList.length; i++){
-                                                      if(_selectedMessagesList[i] == true){
-                                                        _messageIds.add(_messagesFilteredList[i].messageId);
-                                                      }
-                                                    }
-
-                                                    deleteMultipleMessages('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, chat.participants![1].id, _messageIds);
-                                                  },
-                                                  child: Text('Удалить у меня и у ${chat.participants![1].firstName}', style: TextStyle(color: Colors.red)),
-                                                ),
-                                              ],
+                                          duration: Duration(milliseconds: 250),
+                                          topRadius: Radius.circular(25),
+                                          builder: (context) {
+                                            return DraggableScrollableSheet(
+                                              initialChildSize: 0.5,
+                                              maxChildSize: 1,
+                                              minChildSize: 0.3,
+                                              expand: false,
+                                              builder: (context, scrollController) {
+                                                return media.isNotEmpty ? showPhotoVideoBottomSheet(scrollController, media) : Center(
+                                                  child: Text('У вас нет фото или видео'),
+                                                );
+                                              },
                                             );
                                           }
                                       );
                                     }
-                                  }
-                              );
-                            },
+                                  },
+                                  icon: Icon(Icons.attach_file, color: Colors.grey),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(top: 10),
+                                child: SizedBox(
+                                  height: 45,
+                                  width: 390,
+                                  child: TextFormField(
+                                    controller: _textMessageFieldController,
+                                    focusNode: _messageTextFocusNode,
+                                    cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                                    textAlign: TextAlign.left,
+                                    textCapitalization: TextCapitalization.sentences,
+                                    textInputAction: TextInputAction.send,
+                                    style: TextStyle(fontSize: 19),
+                                    decoration: InputDecoration(
+                                      contentPadding: EdgeInsets.only(left: 10, bottom: height / 50),
+                                      filled: true,
+                                      hintText: 'Сообщение',
+                                      fillColor: Colors.grey.withOpacity(0.1),
+                                      suffixIcon: StatefulBuilder(
+                                        builder: (context, setState){
+                                          iconState = setState;
+                                          return IconButton(
+                                              onPressed: _isTyping ? () => sendMessage(): _isEditing ? () => editMessage() : null,
+                                              splashRadius: 10,
+                                              icon: AnimatedContainer(
+                                                height: 30,
+                                                width: 30,
+                                                duration: Duration(milliseconds: 300),
+                                                curve: Curves.easeInOutBack,
+                                                child: _isTyping? Center(
+                                                  child: Icon(Icons.arrow_upward, color: Colors.white),
+                                                ) : _isEditing ? Center(
+                                                  child: Icon(Icons.check_circle, color: Color.fromRGBO(145, 10, 251, 10), size: 30),
+                                                ) : Container(),
+                                                decoration: _isTyping ? BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Color.fromRGBO(145, 10, 251, 10)
+                                                ) : null,
+                                              )
+                                          );
+                                        },
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                                      focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                                    ),
+
+                                    onChanged: (value) {
+                                      if(!_isEditing){
+                                        if(value == ''){
+                                          iconState!((){
+                                            _isTyping = false;
+                                          });
+                                        }else{
+                                          iconState!((){
+                                            _isTyping = true;
+                                          });
+                                        }
+                                      }
+                                    },
+
+
+                                    onFieldSubmitted: (value) async {
+                                      if(value != ''){
+                                        if(_isTyping){
+                                          sendMessage();
+                                        }else{
+                                          editMessage();
+                                        }
+                                      }else{
+                                        setState((){
+                                          _isTyping = false;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              )
+                            ],
+                          ) : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Consumer<ChatCounterProvider>(
+                                builder: (context, viewModel, child){
+                                  return IconButton(
+                                      icon: Icon(CupertinoIcons.trash, color: viewModel.chatCount == 0 ? Colors.grey : Color.fromRGBO(145, 10, 251, 10), size: 25),
+                                      splashRadius: 1,
+                                      onPressed: viewModel.chatCount == 0 ? null : (){
+                                        if(UniversalPlatform.isIOS){
+                                          showCupertinoModalPopup(
+                                              context: context,
+                                              builder: (context) {
+                                                return CupertinoActionSheet(
+                                                  actions: [
+                                                    CupertinoActionSheetAction(
+                                                      child: Text(
+                                                          'Удалить у меня и у ${participant!.firstName}', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                      onPressed: () async {
+
+                                                        List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                        List<int> _messageIds = [];
+
+                                                        for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                          if(_selectedMessagesList[i] == true){
+                                                            _messageIds.add(_messagesFilteredList[i].messageId);
+                                                          }
+                                                        }
+
+                                                        deleteMultipleMessages('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, _messageIds);
+                                                      },
+                                                    ),
+                                                    CupertinoActionSheetAction(
+                                                      child: Text(
+                                                          'Удалить у меня', textAlign: TextAlign.center, style: TextStyle(color: Colors.red)),
+                                                      onPressed: () async {
+                                                        List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                        List<int> _messageIds = [];
+
+                                                        for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                          if(_selectedMessagesList[i] == true){
+                                                            _messageIds.add(_messagesFilteredList[i].messageId);
+                                                          }
+                                                        }
+
+                                                        deleteMultipleMessages('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, _messageIds);
+                                                      },
+                                                    )
+                                                  ],
+                                                  cancelButton: CupertinoActionSheetAction(
+                                                    onPressed: () => Navigator.pop(context),
+                                                    child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 10))),
+                                                  ),
+                                                );
+                                              }
+                                          );
+                                        }else if(UniversalPlatform.isAndroid){
+                                          showDialog(
+                                              context: context,
+                                              builder: (context){
+                                                return AlertDialog(
+                                                  title: Text(
+                                                    'Вы уверены, что хотите удалить сообщение?',
+                                                    maxLines: 2,
+                                                    style: TextStyle(fontSize: 13),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                        List<int> _messageIds = [];
+
+                                                        for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                          if(_selectedMessagesList[i] == true){
+                                                            _messageIds.add(_messagesFilteredList[i].messageId);
+                                                          }
+                                                        }
+
+                                                        deleteMultipleMessages('for_me', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, null, _messageIds);
+                                                      },
+                                                      child: Text('Удалить у меня', style: TextStyle(color: Colors.red)),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () async {
+
+                                                        List<bool> _selectedMessagesList = Provider.of<ChatCounterProvider>(context, listen: false).selectedMessagesList;
+                                                        List<int> _messageIds = [];
+
+                                                        for(int i = 0; i < _selectedMessagesList.length; i++){
+                                                          if(_selectedMessagesList[i] == true){
+                                                            _messageIds.add(_messagesFilteredList[i].messageId);
+                                                          }
+                                                        }
+
+                                                        deleteMultipleMessages('', Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id, participant!.id, _messageIds);
+                                                      },
+                                                      child: Text('Удалить у меня и у ${participant!.firstName}', style: TextStyle(color: Colors.red)),
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+                                          );
+                                        }
+                                      }
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(CupertinoIcons.share, color: Color.fromRGBO(145, 10, 251, 10), size: 25),
+                                splashRadius: 1,
+                                onPressed: () => null,
+                              ),
+                              IconButton(
+                                icon: Icon(CupertinoIcons.arrowshape_turn_up_right, color: Color.fromRGBO(145, 10, 251, 10), size: 25),
+                                splashRadius: 1,
+                                onPressed: () => null,
+                              )
+                            ],
                           ),
-                          IconButton(
-                            icon: Icon(CupertinoIcons.share, color: Color.fromRGBO(145, 10, 251, 10), size: 25),
-                            splashRadius: 1,
-                            onPressed: () => null,
-                          ),
-                          IconButton(
-                            icon: Icon(CupertinoIcons.arrowshape_turn_up_right, color: Color.fromRGBO(145, 10, 251, 10), size: 25),
-                            splashRadius: 1,
-                            onPressed: () => null,
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                )
-            )
-          ],
+                        )
+                      ],
+                    ),
+                  )
+              )
+            ],
         );
       },
     );
@@ -1830,8 +2306,8 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
 
   Widget showPhotoVideoBottomSheet(ScrollController scrollController, List<AssetEntity> media) {
     return StatefulBuilder(
-      builder: (context, setState){
-        mediaState = setState;
+      builder: (context, medState){
+        mediaState = medState;
         return Material(
           child: ListView(
             controller: scrollController,
@@ -1861,18 +2337,14 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                   ],
                 ),
               ),
-              GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 1,
-                    mainAxisSpacing: 5,
-                    crossAxisSpacing: 5
-                ),
+              GridView.count(
                 physics: NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.only(left: 10, right: 10),
                 shrinkWrap: true,
-                itemCount: media.length,
-                itemBuilder: (context, index){
+                crossAxisCount: 4,
+                mainAxisSpacing: 2,
+                crossAxisSpacing: 2,
+                children: List.generate(media.length, (index){
                   return InkWell(
                     borderRadius: BorderRadius.all(Radius.circular(20)),
                     onTap: () async {
@@ -1916,14 +2388,13 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          child: Container(
-                            child: AssetEntityImage(
-                              media[index],
-                              thumbnailFormat: ThumbnailFormat.png,
-                              fit: BoxFit.cover,
-                            ),
+                        Container(
+                          child: AssetEntityImage(
+                            media[index],
+                            width: 5,
+                            height: 5,
+                            fit: BoxFit.cover,
+                            isOriginal: false,
                           ),
                         ),
                         Positioned(
@@ -1939,7 +2410,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
                       ],
                     ),
                   );
-                },
+                })
               ),
               SizedBox(height: 20),
               Padding(
@@ -1970,7 +2441,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
 
   void sendMessage() async {
 
-    var mediaJsonData;
+    Map<String, String?> mediaJsonData;
     List mediaArray = [];
 
     if(_mediaBytes != null){
@@ -1992,11 +2463,14 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     };
 
     await UnyAPI.create(Constants.SIMPLE_MESSAGE_CONVERTER).sendMessage(token, data).then((value){
+
+      notificationManager.notify(Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName, _textMessageFieldController!.text, chat.chatRoomId.toString());
+
       if(_mediaBytes != null){
         mediaLoadingBarState!(() => _showMediaLoading = true);
       }
 
-      socket.sendMessage(chat.participants![1].toString(), value.body!);
+      socket.sendMessage(chat.chatRoomId.toString(), value.body!);
 
       Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _textMessageFieldController!.text);
       Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, value.body!.createdAt);
@@ -2014,7 +2488,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     _checkedMessages.add(false);
     Provider.of<ChatCounterProvider>(context, listen: false).setCheckBoxList(_checkedMessages);
 
-    _controller!.animateTo(_controller!.position.maxScrollExtent, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
+    _controller!.animateTo(_controller!.position.maxScrollExtent, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
   }
 
   void editMessage() async {
@@ -2027,7 +2501,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     await UnyAPI.create(Constants.SIMPLE_MESSAGE_CONVERTER).editMessage(token, data).then((value){
       _messagesFilteredList[_currentlyEditingMessageIndex!] = value.body!;
 
-      socket.editMessage(chat.participants![1].id, value.body!);
+      socket.editMessage(chat.chatRoomId.toString(), value.body!);
     });
 
     _textMessageFieldController!.clear();
@@ -2043,7 +2517,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     List<int> idList = [];
     List<int> messageIds = [];
     
-    var data;
+    Map<String, String> data;
     if(forWho == 'for_me'){
       
       idList.add(myId);
@@ -2067,7 +2541,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     await UnyAPI.create(Constants.SIMPLE_MESSAGE_CONVERTER).deleteMessage(token, data).then((value){
 
       if(idList.length == 2){
-        socket.removeMessageForEveryone(chat.participants![1].toString(), messageId.toString());
+        socket.removeMessageForEveryone(chat.chatRoomId.toString(), messageId.toString());
       }else{
         setState((){});
       }
@@ -2078,8 +2552,8 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
     });
 
     if(_messagesFilteredList.isNotEmpty){
-      Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.last.text);
-      Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.last.createdAt);
+      Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.first.text);
+      Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.first.createdAt);
     }else{
       Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, null);
       Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, null);
@@ -2095,7 +2569,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
 
     List<int> ids = [];
 
-    var data;
+    Map<String, String> data;
     if(forWho == 'for_me'){
       ids.add(myId);
 
@@ -2133,8 +2607,8 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
       Provider.of<ChatCounterProvider>(context, listen: false).resetCount();
 
       if(_messagesFilteredList.isNotEmpty){
-        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.last.text);
-        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.last.createdAt);
+        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, _messagesFilteredList.first.text);
+        Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, _messagesFilteredList.first.createdAt);
       }else{
         Provider.of<ChatsDataProvider>(context, listen: false).setLastMessage(chat.chatRoomId, null);
         Provider.of<ChatsDataProvider>(context, listen: false).setLastMessageTime(chat.chatRoomId, null);
@@ -2160,7 +2634,7 @@ class _UserChatPageState extends State<UserChatPage> with SingleTickerProviderSt
 
       _messagesFilteredList.clear();
 
-      socket.clearChat(chat.participants![1].toString(), true);
+      socket.clearChat(chat.chatRoomId.toString(), true);
 
       Provider.of<ChatsDataProvider>(context, listen: false).clearChatData(chat.chatRoomId);
 

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 class ChatsDataProvider extends ChangeNotifier{
 
-  Map<int, String?> _lastMessagesMap = {};
-  Map<int, String?> _lastMessageTimeMap = {};
+  final Map<int, String?> _lastMessagesMap = {};
+  final Map<int, String?> _lastMessageTimeMap = {};
 
   Map<int, String?> get lastMessagesMap => _lastMessagesMap;
   Map<int, String?> get lastMessageTimeMap => _lastMessageTimeMap;

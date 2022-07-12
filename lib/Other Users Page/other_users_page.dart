@@ -136,11 +136,11 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                             Row(
                                               children: [
                                                 Text(
-                                                '${user!.firstName} ' + '${user!.lastName[0]}' + ' ' + '${user!.age}',
+                                                '${user!.firstName} ' '${user!.lastName[0]}' ' ' '${user!.age}',
                                                 style: TextStyle(fontSize: 24, color: Colors.white),
                                               ),
                                                 SizedBox(width: 10),
-                                                Container(
+                                                SizedBox(
                                                     height: 20,
                                                     width: 20,
                                                     child: ClipOval(
@@ -182,7 +182,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                             showActionsSheet();
                                           },
                                         ),
-                                        Container(
+                                        SizedBox(
                                           height: 30,
                                           width: 30,
                                           child: SvgPicture.asset('assets/mail_icon.svg'),
@@ -253,7 +253,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                         top: height * 0.07,
                                         left: 10,
                                         right: 10,
-                                        child: Container(
+                                        child: SizedBox(
                                           height: 8,
                                           width: width,
                                           child: Row(
@@ -340,7 +340,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                 gradient: LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.topRight,
-                                    colors: [
+                                    colors: const [
                                       Color.fromRGBO(145, 10, 251, 10),
                                       Color.fromRGBO(217, 10, 251, 10)
                                     ]
@@ -392,7 +392,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                             child: Center(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                children: const [
                                   Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
                                   SizedBox(width: 5),
                                   Text('Отправить подарок', style: TextStyle(
@@ -403,7 +403,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15),
                                 gradient: LinearGradient(
-                                    colors: [
+                                    colors: const [
                                       Color.fromRGBO(255, 0, 92, 10),
                                       Color.fromRGBO(255, 172, 47, 10),
                                     ]
@@ -416,7 +416,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 ),
               ),
               SizedBox(height: height / 40),
-              Container(
+              SizedBox(
                   height: 100,
                   child: MasonryGridView.count(
                       padding: EdgeInsets.only(left: 10, bottom: 10),
@@ -483,7 +483,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 padding: EdgeInsets.only(top: 10, left: 20, right: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: const [
                     Text('Актуальные видео', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -535,12 +535,12 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 padding: EdgeInsets.only(top: 20, left: 20, right: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: const [
                     Text('Фото', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              photos != null ? Container(
+              photos != null ? SizedBox(
                   height: 250,
                   width: width,
                   child: GridView.count(
@@ -589,7 +589,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                       );
                     }),
                   )
-              ) : Container(
+              ) : SizedBox(
                 height: 200,
                 child: Center(
                   child: Text('Нет фото'),
@@ -612,7 +612,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 CupertinoActionSheetAction(
                   onPressed: () => Navigator.pop(context),
                   child: Row(
-                    children: [
+                    children: const [
                       Icon(CupertinoIcons.arrowshape_turn_up_right, color: Colors.blue),
                       SizedBox(width: 10),
                       Text('Поделиться', style: TextStyle(color: Colors.blue)),
@@ -622,7 +622,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 CupertinoActionSheetAction(
                   onPressed: () => Navigator.pop(context),
                   child: Row(
-                    children: [
+                    children: const [
                       Icon(CupertinoIcons.doc_on_doc, color: Colors.blue),
                       SizedBox(width: 10),
                       Text('Скопировать ссылку', style: TextStyle(color: Colors.blue)),
@@ -632,7 +632,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 CupertinoActionSheetAction(
                   onPressed: () => _showReportOptions(),
                   child: Row(
-                    children: [
+                    children: const [
                       Icon(Icons.error_outline, color: Colors.blue),
                       SizedBox(width: 10),
                       Text('Пожаловаться', style: TextStyle(color: Colors.blue)),
@@ -641,7 +641,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 ),
                 CupertinoActionSheetAction(
                   child: Row(
-                    children: [
+                    children: const [
                       Icon(Icons.block_flipped, color: Colors.red),
                       SizedBox(width: 10),
                       Text('Заблокировать', style: TextStyle(color: Colors.red)),
@@ -713,7 +713,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: const [
           Text("Пользователь заблокирован", style: TextStyle(color: Colors.white)),
           Icon(Icons.block_flipped, color: Colors.red),
         ],
@@ -740,7 +740,7 @@ class _OtherUsersPage extends State<OtherUsersPage>{
           return Material(
             child: StatefulBuilder(
               builder: (context, setState){
-                return Container(
+                return SizedBox(
                     height: height,
                     child: Column(
                       children: [

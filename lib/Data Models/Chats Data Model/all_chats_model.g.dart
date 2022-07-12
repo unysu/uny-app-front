@@ -46,7 +46,7 @@ Participants _$ParticipantsFromJson(Map<String, dynamic> json) => Participants(
       media: json['media'] == null
           ? null
           : MediaDataModel.fromJson(json['media'] as Map<String, dynamic>),
-    );
+    )..mute = json['mute'];
 
 Map<String, dynamic> _$ParticipantsToJson(Participants instance) =>
     <String, dynamic>{
@@ -54,6 +54,7 @@ Map<String, dynamic> _$ParticipantsToJson(Participants instance) =>
       'first_name': instance.firstName,
       'last_name': instance.lastName,
       'match_percent': instance.matchPercent,
+      'mute': instance.mute,
       'media': instance.media,
     };
 

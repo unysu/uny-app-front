@@ -5,7 +5,6 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -238,7 +237,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
 
                     String base64Img = base64Encode(imageBytes);
 
-                    var data;
+                    Map<String, String?> data;
 
                     if(image == imagesList[0]){
                       data = {
@@ -274,7 +273,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                           ? Text('Далее', style: TextStyle(
                           color: imagesList.asMap().isEmpty ? Colors.white : Colors
                               .white.withOpacity(0.9), fontSize: 17))
-                          : Container(
+                          : SizedBox(
                               height: 30,
                               width: 30,
                               child: CircularProgressIndicator(

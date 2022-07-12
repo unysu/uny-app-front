@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1025587976060",
+    "project_id": "uny-app-312bf",
+    "storage_bucket": "uny-app-312bf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1025587976060:android:30faf850212588354f36f9",
+        "android_client_info": {
+          "package_name": "com.estimators.unyapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1025587976060-civdiv09e0e3jfgr6ck1a3t55kuj3pkh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6GlcntPdrM3jVhfEZLDkGHq7aO3PfHmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1025587976060-civdiv09e0e3jfgr6ck1a3t55kuj3pkh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1025587976060-t6ntcqgql4oqs2doi3tsar3llf0v5j7c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.estimators.unyapp.unyApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

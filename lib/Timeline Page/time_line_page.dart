@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
@@ -163,7 +162,7 @@ class _TimeLinePageState extends State<TimeLinePage>{
           child: Text('Лента', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         ),
         SizedBox(height: 15),
-        Container(
+        SizedBox(
           width: width,
           height: 200,
           child: Column(
@@ -200,7 +199,7 @@ class _TimeLinePageState extends State<TimeLinePage>{
                         Container(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                            children: const [
                               Text(
                                 'Кристина Зеленская',
                                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
@@ -278,7 +277,7 @@ class _TimeLinePageState extends State<TimeLinePage>{
                     SizedBox(width: 15),
                     Container(
                       child: Row(
-                        children: [
+                        children: const [
                           Icon(Icons.add_circle_outline),
                           SizedBox(width: 2),
                           Text('12', style: TextStyle(color: Colors.black))
@@ -288,7 +287,7 @@ class _TimeLinePageState extends State<TimeLinePage>{
                     SizedBox(width: 15),
                     Container(
                       child: Row(
-                        children: [
+                        children: const [
                           Icon(CupertinoIcons.arrowshape_turn_up_right),
                           SizedBox(width: 2),
                           Text('2.6K', style: TextStyle(color: Colors.black))
@@ -300,7 +299,7 @@ class _TimeLinePageState extends State<TimeLinePage>{
               ),
               Container(
                 child: Row(
-                  children: [
+                  children: const [
                     Icon(Icons.add, color: Colors.black),
                     SizedBox(width: 5),
                     Text('🤑 😂 😍', style: TextStyle(fontSize: 24))

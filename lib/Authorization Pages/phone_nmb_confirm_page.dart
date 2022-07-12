@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:chopper/chopper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -91,7 +90,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
+              colors: const [
                 Color.fromRGBO(165, 21, 215, 5),
                 Color.fromRGBO(38, 78, 215, 5)
               ]
@@ -240,7 +239,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                     child: Center(
                         child: !showLoading!
                         ? Text('Далее', style: TextStyle(color: isDisabled == true ? Colors.white.withOpacity(0.5) : Colors.black, fontSize: 17))
-                        : Container(
+                        : SizedBox(
                           height: 30,
                           width: 30,
                           child: CircularProgressIndicator(
@@ -267,7 +266,7 @@ class _PhoneNumberConfirmationPageState extends State<PhoneNumberConfirmationPag
                   TextSpan(
                       text: 'Не приходит код? ',
                       style: TextStyle(color: Colors.white, fontSize: 17),
-                      children: [
+                      children: const [
                         TextSpan(
                           text: 'Мы поможем!',
                           style: TextStyle(color: Colors.white, fontSize: 17, decoration: TextDecoration.underline),

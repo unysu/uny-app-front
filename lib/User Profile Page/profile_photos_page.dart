@@ -32,16 +32,16 @@ class _ProfilePhotosPageState extends State<ProfilePhotosPage> {
   
   late String token;
 
-  ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker = ImagePicker();
 
   File? image;
 
-  List<String>? _imagesList = [];
+  final List<String>? _imagesList = [];
   List<MediaModel>? _profilePhotos;
 
   StateSetter? photosState;
 
-  bool _showApplyLoading = false;
+  final bool _showApplyLoading = false;
   bool _showLoading = false;
   
   
@@ -108,7 +108,7 @@ class _ProfilePhotosPageState extends State<ProfilePhotosPage> {
               ),
             ),
             SizedBox(height: 30),
-            Container(
+            SizedBox(
               height: height / 1.25,
               child: Stack(
                 children: [
@@ -236,7 +236,7 @@ class _ProfilePhotosPageState extends State<ProfilePhotosPage> {
                 ],
               )
             ),
-            Container(
+            SizedBox(
                 width: 400,
                 height: 48,
                 child: Material(

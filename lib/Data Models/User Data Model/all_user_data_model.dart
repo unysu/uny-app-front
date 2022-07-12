@@ -24,27 +24,27 @@ class AllUserDataModel{
 
   AllUserDataModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    user = json['user'] != null ? new UserDataModel.fromJson(json['user']) : null;
-    media = json['media'] != null ? new MediaDataModel.fromJson(json['media']) : null;
+    user = json['user'] != null ? UserDataModel.fromJson(json['user']) : null;
+    media = json['media'] != null ? MediaDataModel.fromJson(json['media']) : null;
     if (json['interests'] != null) {
       interests = <InterestsDataModel>[];
       json['interests'].forEach((v) {
-        interests!.add(new InterestsDataModel.fromJson(v));
+        interests!.add(InterestsDataModel.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    if (this.user != null) {
-      data['user'] = this.user!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    if (user != null) {
+      data['user'] = user!.toJson();
     }
-    if (this.media != null) {
-      data['media'] = this.media!.toJson();
+    if (media != null) {
+      data['media'] = media!.toJson();
     }
-    if (this.interests != null) {
-      data['interests'] = this.interests!.map((v) => v.toJson()).toList();
+    if (interests != null) {
+      data['interests'] = interests!.map((v) => v.toJson()).toList();
     }
     return data;
   }

@@ -17,10 +17,11 @@ class _$FCMClient extends FCMClient {
   final definitionType = FCMClient;
 
   @override
-  Future<Response<dynamic>> notify(String key, dynamic data) {
+  Future<Response<dynamic>> notify(dynamic data) {
     final $url = '/fcm/send';
     final $headers = {
-      'Authorization': key,
+      'Authorization':
+          'key=AAAA7snOl3w:APA91bFkFfPKwfNHGHjWZztNSoJEN9Z21l-YOQzz8YGn9rMImD7ujteGG3XVET38zLH_5CvxUj5AoGRMAipf17TZ6x8aJTJbA_gs3XSybzkwJyrueDFx8kG151I0SLijihDjD_3h9pvq',
       'Content-Type': 'text/plain',
     };
 

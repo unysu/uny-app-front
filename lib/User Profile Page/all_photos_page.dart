@@ -227,7 +227,7 @@ class _AllPhotosPageState extends State<AllPhotosPage> with SingleTickerProvider
                       padding: EdgeInsets.only(top: 40),
                       child: Column(
                         children: [
-                          Text('${_currentPic} из ${photos!.length}', style: TextStyle(fontSize: 17, color: Colors.white)),
+                          Text('$_currentPic из ${photos!.length}', style: TextStyle(fontSize: 17, color: Colors.white)),
                           SizedBox(height: 10),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,

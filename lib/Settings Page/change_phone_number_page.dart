@@ -1,7 +1,6 @@
 import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:uny_app/Settings%20Page/confirm_new_phone_number_page.dart';
 
@@ -89,7 +88,7 @@ class _ChangePhoneNumberPageState extends State<ChangePhoneNumberPage>{
             padding: EdgeInsets.only(top: height / 20, left: width / 15, right: width / 15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: const [
                 Text('У вас новый номер?', style: TextStyle(fontSize: 24, color: Colors.black, fontWeight: FontWeight.bold)),
                 SizedBox(height: 6),
                 SizedBox(
@@ -128,7 +127,7 @@ class _ChangePhoneNumberPageState extends State<ChangePhoneNumberPage>{
                               errorStyle: TextStyle(color: Colors.red, fontSize: 15),
                               prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                               suffixIcon: focusNode!.hasFocus ? SizedBox(
-                                  child:Container(
+                                  child:SizedBox(
                                     height: 40,
                                     width: 40,
                                     child: IconButton(
