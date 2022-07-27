@@ -9,9 +9,12 @@ Uny App social media app and NFT platform
 
 ## Getting Started
 
-<img width="325" alt="Screen Shot 2022-07-27 at 09 40 38" src="https://user-images.githubusercontent.com/28893063/181170141-6350f7b0-d31d-4e69-a3aa-074047ed6150.png">
+<p float="left">
+  <img width="325" alt="Screen Shot 2022-07-27 at 09 40 38" src="https://user-images.githubusercontent.com/28893063/181170141-6350f7b0-d31d-4e69-a3aa-074047ed6150.png">
 <img width="327" alt="Screen Shot 2022-07-27 at 09 40 44" src="https://user-images.githubusercontent.com/28893063/181170157-320ea7ab-c6bb-4473-8636-b3506b1bf2bf.png">
 <img width="326" alt="Screen Shot 2022-07-27 at 09 40 52" src="https://user-images.githubusercontent.com/28893063/181170160-2ca5cc78-0e5e-4c49-afee-5b95b15de339.png">
+</p>
+
 <img width="327" alt="Screen Shot 2022-07-27 at 09 41 03" src="https://user-images.githubusercontent.com/28893063/181170163-d6ab11a2-9e6e-4a9e-bb93-7d8417cae55f.png">
 <img width="327" alt="Screen Shot 2022-07-27 at 09 41 12" src="https://user-images.githubusercontent.com/28893063/181170169-0e581333-4cb7-4bd4-9d4e-9cd20dec2350.png">
 <img width="325" alt="Screen Shot 2022-07-27 at 09 41 19" src="https://user-images.githubusercontent.com/28893063/181170171-bb0d3f69-8f45-4f95-861b-2605e9065a51.png">
