@@ -2,7 +2,9 @@
 
 Uny App social media app and NFT platform
 
-<img width="721" alt="Screen Shot 2022-07-27 at 09 45 00" src="https://user-images.githubusercontent.com/28893063/181170420-ea4f4292-f6e2-4d92-aeeb-a2ee576b0d9a.png">
+<p align="center">
+  <img width="721" alt="Screen Shot 2022-07-27 at 09 45 00" src="https://user-images.githubusercontent.com/28893063/181170420-ea4f4292-f6e2-4d92-aeeb-a2ee576b0d9a.png">
+</p>
 
 
 ## Getting Started
