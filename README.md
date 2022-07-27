@@ -1,4 +1,4 @@
-# uny_app
+# Uny App
 
 Uny App
 
