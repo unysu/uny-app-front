@@ -18,13 +18,6 @@ class AuthorizationPage extends StatefulWidget{
 
 class _AuthorizationPageState extends State<AuthorizationPage>{
 
-  final String _googleImg = 'assets/google_auth.svg';
-  final String _mailruImg = 'assets/mail_auth.svg';
-  final String _yandexImg = 'assets/yandex_auth.svg';
-  final String _vkImg = 'assets/vk_auth.svg';
-  final String _fbImg = 'assets/fb_auth.svg';
-  final String _okImg = 'assets/ok_auth.svg';
-
   String _phoneNumberCodeString = '+7';
 
   FocusNode? focusNode;

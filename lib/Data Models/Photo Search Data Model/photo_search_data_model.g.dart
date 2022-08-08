@@ -22,6 +22,21 @@ Map<String, dynamic> _$PhotoSearchDataModelToJson(
       'matches': instance.matches,
     };
 
+FilterUserDataModel _$FilterUserDataModelFromJson(Map<String, dynamic> json) =>
+    FilterUserDataModel(
+      success: json['success'],
+      users: (json['users'] as List<dynamic>?)
+          ?.map((e) => Matches.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$FilterUserDataModelToJson(
+        FilterUserDataModel instance) =>
+    <String, dynamic>{
+      'success': instance.success,
+      'users': instance.users,
+    };
+
 Matches _$MatchesFromJson(Map<String, dynamic> json) => Matches(
       id: json['id'],
       firstName: json['first_name'],

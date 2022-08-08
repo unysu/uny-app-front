@@ -135,26 +135,29 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
       ),
       child: Column(
         children: [
-          AnimatedPadding(
-            curve: Curves.decelerate,
-              duration: Duration(milliseconds: 300),
-              padding: EdgeInsets.only(top: locationFieldFocusNode!.hasFocus ? mqHeight / 500 : mqHeight / 7, left: mqWidth * 0.1, right: mqWidth * 0.4),
-              child: AnimatedContainer(
-                curve: Curves.easeOutExpo,
-                duration: Duration(milliseconds: 150),
+          Padding(
+              padding: EdgeInsets.only(top: mqHeight / 8, left: mqWidth * 0.1, right: mqWidth * 0.4),
+              child: SizedBox(
                 height: 60,
                 width: 250,
-                child: AnimatedSwitcher(
-                  duration: Duration(milliseconds: 150),
-                  child: animateWidget(),
-                  transitionBuilder: (widget, transition){
-                    return ScaleTransition(scale: transition, child: widget);
-                  },
-                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Как тебя зовут? 😇', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 6),
+                    SizedBox(
+                      child: Text(
+                        'Укажи свои имя, возраст',
+                        maxLines: 3,
+                        style: TextStyle(fontSize: 17, color: Colors.grey),
+                      ),
+                    )
+                  ],
+                )
               )
           ),
           Container(
-            padding: EdgeInsets.only(top: mqHeight / 15, left: mqWidth * 0.1, right: mqWidth * 0.5),
+            padding: EdgeInsets.only(top: mqHeight / 20, left: mqWidth * 0.1, right: mqWidth * 0.5),
             child: Text('Основные данные', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
           ),
           Container(
@@ -166,7 +169,8 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               style: TextStyle(color: Colors.white),
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                FilteringTextInputFormatter.deny(RegExp("/"))
               ],
               maxLength: 40,
               decoration: InputDecoration(
@@ -202,7 +206,8 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               textInputAction: TextInputAction.done,
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                FilteringTextInputFormatter.deny(RegExp("/"))
               ],
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
@@ -283,6 +288,10 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
           Container(
             padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TypeAheadField<String>(
+              direction: AxisDirection.up,
+              suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                borderRadius: BorderRadius.circular(20)
+              ),
               textFieldConfiguration: TextFieldConfiguration(
                 controller: locationTextController,
                 focusNode: locationFieldFocusNode,
@@ -291,7 +300,8 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                 textInputAction: TextInputAction.done,
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                  FilteringTextInputFormatter.deny(RegExp("/"))
                 ],
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -315,9 +325,6 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   setState(() {
                     isLocationFieldEmpty = false;
                   });
-                },
-                onTap: (){
-                  FocusScope.of(context).requestFocus(locationFieldFocusNode);
                 },
               ),
               itemBuilder: (context, city){
@@ -523,24 +530,6 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
             ),
           );
         }
-    );
-  }
-
-  // Animate widget
-  Widget animateWidget(){
-    return locationFieldFocusNode!.hasFocus ? Container() : Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text('Как тебя зовут? 😇', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
-        SizedBox(height: 6),
-        SizedBox(
-          child: Text(
-            'Укажи свои имя, возраст',
-            maxLines: 3,
-            style: TextStyle(fontSize: 17, color: Colors.grey),
-          ),
-        )
-      ],
     );
   }
 

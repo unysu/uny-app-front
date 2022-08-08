@@ -199,33 +199,33 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
     _generalInterests = Provider.of<UserDataProvider>(context, listen: false).interestsDataModel!.where((element) => element.type == 'general').toList();
 
     for(int i = 0; i < _familyInterests!.length; i++){
-      _selectedAllInterests!.add(InterestsModel.ForDB(_familyInterests![i].interest, _familyInterests![i].type, _familyInterests![i].color));
+      _selectedAllInterests!.add(InterestsModel.ForDB(_familyInterests![i].interest, _familyInterests![i].type, _familyInterests![i].startColor, _familyInterests![i].endColor));
 
-      _selectedFamilyInterests!.add(InterestsModel.ForDB(_familyInterests![i].interest, _familyInterests![i].type, _familyInterests![i].color));
+      _selectedFamilyInterests!.add(InterestsModel.ForDB(_familyInterests![i].interest, _familyInterests![i].type, _familyInterests![i].startColor, _familyInterests![i].endColor));
     }
 
     for(int i = 0; i < _careerInterests!.length; i++){
-      _selectedAllInterests!.add(InterestsModel.ForDB(_careerInterests![i].interest, _careerInterests![i].type, _careerInterests![i].color));
+      _selectedAllInterests!.add(InterestsModel.ForDB(_careerInterests![i].interest, _careerInterests![i].type, _careerInterests![i].startColor, _careerInterests![i].endColor));
 
-      _selectedCareerInterests!.add(InterestsModel.ForDB(_careerInterests![i].interest, _careerInterests![i].type, _careerInterests![i].color));
+      _selectedCareerInterests!.add(InterestsModel.ForDB(_careerInterests![i].interest, _careerInterests![i].type, _careerInterests![i].startColor, _careerInterests![i].endColor));
     }
 
     for(int i = 0; i < _sportInterests!.length; i++){
-      _selectedAllInterests!.add(InterestsModel.ForDB(_sportInterests![i].interest, _sportInterests![i].type, _sportInterests![i].color));
+      _selectedAllInterests!.add(InterestsModel.ForDB(_sportInterests![i].interest, _sportInterests![i].type, _sportInterests![i].startColor, _sportInterests![i].endColor));
 
-      _selectedSportInterests!.add(InterestsModel.ForDB(_sportInterests![i].interest, _sportInterests![i].type, _sportInterests![i].color));
+      _selectedSportInterests!.add(InterestsModel.ForDB(_sportInterests![i].interest, _sportInterests![i].type, _sportInterests![i].startColor, _sportInterests![i].endColor));
     }
 
     for(int i = 0; i < _travelingInterests!.length; i++){
-      _selectedAllInterests!.add(InterestsModel.ForDB(_travelingInterests![i].interest, _travelingInterests![i].type, _travelingInterests![i].color));
+      _selectedAllInterests!.add(InterestsModel.ForDB(_travelingInterests![i].interest, _travelingInterests![i].type, _travelingInterests![i].startColor, _travelingInterests![i].endColor));
 
-      _selectedTravelingInterests!.add(InterestsModel.ForDB(_travelingInterests![i].interest, _travelingInterests![i].type, _travelingInterests![i].color));
+      _selectedTravelingInterests!.add(InterestsModel.ForDB(_travelingInterests![i].interest, _travelingInterests![i].type, _travelingInterests![i].startColor, _travelingInterests![i].endColor));
     }
 
     for(int i = 0; i < _generalInterests!.length; i++){
-      _selectedAllInterests!.add(InterestsModel.ForDB(_generalInterests![i].interest, _generalInterests![i].type, _generalInterests![i].color));
+      _selectedAllInterests!.add(InterestsModel.ForDB(_generalInterests![i].interest, _generalInterests![i].type, _generalInterests![i].startColor, _generalInterests![i].endColor));
 
-      _selectedGeneralInterests!.add(InterestsModel.ForDB(_generalInterests![i].interest, _generalInterests![i].type, _generalInterests![i].color));
+      _selectedGeneralInterests!.add(InterestsModel.ForDB(_generalInterests![i].interest, _generalInterests![i].type, _generalInterests![i].startColor, _generalInterests![i].endColor));
     }
 
     super.initState();
@@ -327,13 +327,14 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   indicatorColor: Color.fromRGBO(145, 10, 251, 5),
                   labelColor: Color.fromRGBO(145, 10, 251, 5),
                   unselectedLabelColor: Colors.grey,
-                  padding: EdgeInsets.symmetric(horizontal: width / 7),
+                  labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  padding: EdgeInsets.symmetric(horizontal: width / 20),
                   tabs: const [
                     Tab(
                         text: 'Мои интересы'
                     ),
                     Tab(
-                      text: 'Рекомендуемые',
+                      text: 'Добавить интересы',
                     )
                   ],
                   onTap: (pageIndex){
@@ -842,10 +843,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                       ),
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                          color: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                            colors: [
+                                              Color(int.parse('0x' + _allInterestsFilteredList![index].startColor!)),
+                                              Color(int.parse('0x' + _allInterestsFilteredList![index].endColor!)),
+                                            ]
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                                color: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)).withOpacity(0.7),
+                                                color: Color(int.parse('0x' + _allInterestsFilteredList![index].startColor!)).withOpacity(0.7),
                                                 offset: Offset(3, 3),
                                                 blurRadius: 0,
                                                 spreadRadius: 0
@@ -930,10 +938,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                       ),
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                          color: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                                          gradient: LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [
+                                                Color(int.parse('0x' + _familyFilteredList![index].startColor!)),
+                                                Color(int.parse('0x' + _familyFilteredList![index].endColor!)),
+                                              ]
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                                color: Colors.green[800]!,
+                                                color: Color(int.parse('0x' + _familyFilteredList![index].startColor!)).withOpacity(0.7),
                                                 offset: Offset(3, 3),
                                                 blurRadius: 0,
                                                 spreadRadius: 0
@@ -1020,10 +1035,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _careerFilteredList![index].color!)),
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _careerFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _careerFilteredList![index].endColor!)),
+                                                  ]
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.blue[600]!,
+                                                    color: Color(int.parse('0x' + _careerFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1109,10 +1131,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _sportFilteredList![index].color!)),
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _sportFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _sportFilteredList![index].endColor!)),
+                                                  ]
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.blue[600]!,
+                                                    color: Color(int.parse('0x' + _sportFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1199,10 +1228,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _travelingFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _travelingFilteredList![index].endColor!)),
+                                                  ]
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.orange[800]!,
+                                                    color: Color(int.parse('0x' + _travelingFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1289,10 +1325,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                                              boxShadow: const [
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _generalFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _generalFilteredList![index].endColor!)),
+                                                  ]
+                                              ),
+                                              boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.deepPurple,
+                                                    color: Color(int.parse('0x' + _generalFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1403,10 +1446,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedAllInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedAllInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedAllInterests![index].endColor!)),
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Color(int.parse('0x' + _selectedAllInterests![index].color!)).withOpacity(0.7),
+                            color: Color(int.parse('0x' + _selectedAllInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1469,10 +1519,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedFamilyInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedFamilyInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedFamilyInterests![index].endColor!)),
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.green[800]!,
+                            color: Color(int.parse('0x' + _selectedFamilyInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1534,10 +1591,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedCareerInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedCareerInterests![index].endColor!)),
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.blue[600]!,
+                            color: Color(int.parse('0x' + _selectedCareerInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1599,10 +1663,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedSportInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedSportInterests![index].endColor!)),
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.blue[600]!,
+                            color: Color(int.parse('0x' + _selectedSportInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1664,10 +1735,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedTravelingInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedTravelingInterests![index].endColor!)),
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.orange[800]!,
+                            color: Color(int.parse('0x' + _selectedTravelingInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1729,10 +1807,17 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
-                      boxShadow: const [
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedGeneralInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedGeneralInterests![index].endColor!)),
+                          ]
+                      ),
+                      boxShadow: [
                         BoxShadow(
-                            color: Colors.deepPurple,
+                            color: Color(int.parse('0x' + _selectedGeneralInterests![index].startColor!)).withOpacity(0.7),
                             offset: Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1764,7 +1849,8 @@ class _EditInterestsPage extends State<EditInterestsPage> with SingleTickerProvi
       newInterestsMap.addAll({
         'type' : '${_selectedAllInterests![i].type}',
         'interest' : '${_selectedAllInterests![i].name}',
-        'color' : '${_selectedAllInterests![i].color}'
+        'start_color' : '${_selectedAllInterests![i].startColor}',
+        'end_color' : '${_selectedAllInterests![i].endColor}',
       });
 
       newInterestsList.add(newInterestsMap);

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -19,6 +20,7 @@ import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_model.dart';
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
+import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/Other%20Users%20Page/other_users_page.dart';
@@ -46,6 +48,8 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
   late TextEditingController _endAgeFieldTextController;
 
   StateSetter? _indicatorsState;
+  StateSetter? _usersListState;
+  StateSetter? _secondaryUsersListState;
 
   bool _usersLoaded = false;
   bool _isSearching = false;
@@ -73,7 +77,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
     token = 'Bearer ' + TokenData.getUserToken();
 
     var data = {
-      'only_above_percent' : 10
+      'only_above_percent' : 0
     };
 
     _photoSearchFuture = UnyAPI.create(Constants.PHOTO_SEARCH_MODEL_CONVERTER).getUserPhotoSearch(token, data);
@@ -91,6 +95,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
       });
     });
 
+
     super.initState();
   }
 
@@ -101,6 +106,8 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
 
     _startAgeFieldTextController.dispose();
     _endAgeFieldTextController.dispose();
+
+    ShPreferences.clear();
 
     super.dispose();
   }
@@ -126,12 +133,12 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                       TextFormField(
                         cursorColor: Color.fromRGBO(145, 10, 251, 5),
                         textAlign: TextAlign.center,
+                        textInputAction: TextInputAction.search,
                         decoration: InputDecoration(
                           contentPadding: EdgeInsets.only(bottom: height / 50),
                           filled: true,
                           fillColor: Colors.grey.withOpacity(0.1),
-                          prefixIcon: _isSearching != true
-                              ? Row(
+                          prefixIcon: _isSearching != true ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(CupertinoIcons.search, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
@@ -148,6 +155,24 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                               borderRadius: const BorderRadius.all(Radius.circular(30)),
                               borderSide: BorderSide(color: Colors.grey.withOpacity(0.1))),
                         ),
+
+                        onFieldSubmitted: (value) async {
+                          var data = {
+                            'name' : value
+                          };
+
+                          await UnyAPI.create(Constants.PHOTO_SEARCH_MODEL_CONVERTER).searchUserByName(token, data).then((value){
+                            _matchedUsersList = value.body!.matches;
+
+                            _secondaryUsersList = List.from(_matchedUsersList!.toList());
+
+                            _secondaryUsersList!.sort((a,b) => int.parse(b.matchPercent.toString()).compareTo(int.parse(a.matchPercent.toString())));
+
+
+                            _usersListState!((){});
+                            _secondaryUsersListState!((){});
+                          });
+                        },
                         onChanged: (value){
                           if (value.isEmpty) {
                             setState(() {
@@ -168,125 +193,133 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                 child: Column(
                   children: [
                     Container(
-                      height: _usersLoaded ? 80 : 0,
+                      height: _usersLoaded ? 80 : 20,
+                      width: width,
                       padding: EdgeInsets.only(left: 10, bottom: 10),
-                      child: _usersLoaded ? GridView.count(
-                        crossAxisCount: 1,
-                        mainAxisSpacing: 15,
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
-                        children: List.generate(_secondaryUsersList!.length, (index){
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(builder: (context) => OtherUsersPage(user: _secondaryUsersList![index]))
-                              );
-                            },
-                            child: Stack(
-                              children: [
-                                ClipOval(
-                                  child: Container(
-                                      child: _secondaryUsersList![index].media!.mainPhoto != null ? CachedNetworkImage(
-                                        imageUrl: _secondaryUsersList![index].media!.mainPhoto!.url,
-                                        imageBuilder: (context, imageProvider) => Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.white.withOpacity(0.4),
-                                                spreadRadius: 10,
-                                                blurRadius: 7,
+                      child: _usersLoaded ? StatefulBuilder(
+                        builder: (context, setState){
+                          _secondaryUsersListState = setState;
+                          return GridView.count(
+                            crossAxisCount: 1,
+                            mainAxisSpacing: 15,
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            children: List.generate(_secondaryUsersList!.length, (index){
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(builder: (context) => OtherUsersPage(user: _secondaryUsersList![index]))
+                                  );
+                                },
+                                child: Stack(
+                                  children: [
+                                    ClipOval(
+                                      child: Container(
+                                          child: _secondaryUsersList![index].media!.mainPhoto != null ? CachedNetworkImage(
+                                            imageUrl: _secondaryUsersList![index].media!.mainPhoto!.url,
+                                            imageBuilder: (context, imageProvider) => Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.white.withOpacity(0.4),
+                                                    spreadRadius: 10,
+                                                    blurRadius: 7,
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        placeholder: (context, url) => Shimmer.fromColors(
-                                          baseColor: Colors.grey[300]!,
-                                          highlightColor: Colors.white,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                color: Colors.grey,
-                                                shape: BoxShape.circle
+                                            ),
+                                            placeholder: (context, url) => Shimmer.fromColors(
+                                              baseColor: Colors.grey[300]!,
+                                              highlightColor: Colors.white,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                    color: Colors.grey,
+                                                    shape: BoxShape.circle
+                                                ),
+                                              ),
+                                            ),
+                                          ) : ClipOval(
+                                            child: Container(
+                                              child: Center(
+                                                child: Icon(Icons.account_circle_rounded, size: 75, color: Colors.grey),
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle
+                                              ),
+                                            ),
+                                          )
+                                      ),
+                                    ),
+                                    _secondaryUsersList![index].media!.mainPhoto != null ? Positioned(
+                                        child: ClipOval(
+                                          child: SizedBox(
+                                            height: 70,
+                                            width: 70,
+                                            child: SimpleCircularProgressBar(
+                                              valueNotifier: ValueNotifier(double.parse(_secondaryUsersList![index].matchPercent.toString())),
+                                              backColor: Colors.grey[300]!,
+                                              animationDuration: 0,
+                                              backStrokeWidth: 10,
+                                              progressStrokeWidth: 10,
+                                              startAngle: 187,
+                                              progressColors: const [
+                                                Colors.red,
+                                                Colors.yellowAccent,
+                                                Colors.green
+                                              ],
                                             ),
                                           ),
-                                        ),
-                                      ) : ClipOval(
-                                        child: Container(
-                                          child: Center(
-                                            child: Icon(Icons.account_circle_rounded, size: 75, color: Colors.grey),
+                                        )
+                                    ) : Positioned(
+                                        left: 2,
+                                        top: 2,
+                                        child: ClipOval(
+                                          child: SizedBox(
+                                            height: 70,
+                                            width: 70,
+                                            child: SimpleCircularProgressBar(
+                                              valueNotifier: ValueNotifier(double.parse(_secondaryUsersList![index].matchPercent.toString())),
+                                              backColor: Colors.grey[300]!,
+                                              animationDuration: 0,
+                                              backStrokeWidth: 10,
+                                              progressStrokeWidth: 10,
+                                              startAngle: 187,
+                                              progressColors: const [
+                                                Colors.red,
+                                                Colors.yellowAccent,
+                                                Colors.green
+                                              ],
+                                            ),
                                           ),
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle
-                                          ),
-                                        ),
-                                      )
-                                  ),
-                                ),
-                                _secondaryUsersList![index].media!.mainPhoto != null ? Positioned(
-                                    child: ClipOval(
-                                      child: SizedBox(
-                                        height: 70,
-                                        width: 70,
-                                        child: SimpleCircularProgressBar(
-                                          valueNotifier: ValueNotifier(double.parse(_secondaryUsersList![index].matchPercent.toString())),
-                                          backColor: Colors.grey[300]!,
-                                          animationDuration: 0,
-                                          backStrokeWidth: 10,
-                                          progressStrokeWidth: 10,
-                                          startAngle: 187,
-                                          progressColors: const [
-                                            Colors.red,
-                                            Colors.yellowAccent,
-                                            Colors.green
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                ) : Positioned(
-                                    left: 2,
-                                    top: 2,
-                                    child: ClipOval(
-                                      child: SizedBox(
-                                        height: 70,
-                                        width: 70,
-                                        child: SimpleCircularProgressBar(
-                                          valueNotifier: ValueNotifier(double.parse(_secondaryUsersList![index].matchPercent.toString())),
-                                          backColor: Colors.grey[300]!,
-                                          animationDuration: 0,
-                                          backStrokeWidth: 10,
-                                          progressStrokeWidth: 10,
-                                          startAngle: 187,
-                                          progressColors: const [
-                                            Colors.red,
-                                            Colors.yellowAccent,
-                                            Colors.green
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  left: 12,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 6),
-                                    child: Text('${_secondaryUsersList![index].matchPercent} %', style: TextStyle(
-                                        color: Colors.white)),
-                                    decoration: BoxDecoration(
-                                      color: _secondaryUsersList![index].matchPercent < 49 ? Colors.red
-                                          : (_secondaryUsersList![index].matchPercent > 49 && _secondaryUsersList![index].matchPercent < 65)
-                                          ? Colors.orange : (_secondaryUsersList![index].matchPercent > 65) ? Colors.green : null,
-                                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                                        )
                                     ),
-                                  ),
+                                    Positioned.fill(
+                                        bottom: 0,
+                                        child: Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 6),
+                                            child: Text('${_secondaryUsersList![index].matchPercent} %', style: TextStyle(
+                                                color: Colors.white)),
+                                            decoration: BoxDecoration(
+                                              color: _secondaryUsersList![index].matchPercent < 49 ? Colors.red
+                                                  : (_secondaryUsersList![index].matchPercent > 49 && _secondaryUsersList![index].matchPercent < 65)
+                                                  ? Colors.orange : (_secondaryUsersList![index].matchPercent > 65) ? Colors.green : null,
+                                              borderRadius: BorderRadius.all(Radius.circular(20)),
+                                            ),
+                                          ),
+                                        )
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            }),
                           );
-                        }),
-                      ) : Container(),
+                        },
+                      ): Container(),
                     ),
                     Container(
                       padding: EdgeInsets.only(left: 10, right: 10),
@@ -426,374 +459,386 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
   }
 
   Widget mainBody(){
-    return ListView.separated(
-      separatorBuilder: (context, index) => Divider(
-        color: Colors.grey,
-      ),
-      physics: NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: _matchedUsersList!.length,
-      itemBuilder: (context, index) {
+    return StatefulBuilder(
+      builder: (context, setState){
+        _usersListState = setState;
+        return ListView.separated(
+          separatorBuilder: (context, index) => Divider(
+            color: Colors.grey,
+          ),
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: _matchedUsersList!.length,
+          itemBuilder: (context, index) {
 
-        Matches matchedUser = _matchedUsersList![index];
+            Matches matchedUser = _matchedUsersList![index];
 
-        int year = int.parse(matchedUser.dateOfBirth.toString().split('-')[0]);
-        int month = int.parse(matchedUser.dateOfBirth.toString().split('-')[1]);
-        int day = int.parse(matchedUser.dateOfBirth.toString().split('-')[1]);
+            int year = int.parse(matchedUser.dateOfBirth.toString().split('-')[0]);
+            int month = int.parse(matchedUser.dateOfBirth.toString().split('-')[1]);
+            int day = int.parse(matchedUser.dateOfBirth.toString().split('-')[1]);
 
-        DateTime birthDay = DateTime(year, month, day);
+            DateTime birthDay = DateTime(year, month, day);
 
-        return GestureDetector(
-          onTap: () {
-             Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => OtherUsersPage(user: matchedUser))
-            );
-          },
-          child: Stack(
-            children: [
-              SizedBox(
-                height: 720,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      child: SizedBox(
-                        height: height * 0.5,
-                        child: CarouselSlider(
-                          options: CarouselOptions(
-                              height: height / 1.5,
-                              enlargeCenterPage: true,
-                              scrollPhysics: PageScrollPhysics(),
-                              viewportFraction: 1,
-                              enableInfiniteScroll: false,
-                              disableCenter: true,
-                              pageSnapping: true,
-                              scrollDirection: Axis.horizontal,
-                              onPageChanged: (photoIndex, reason){
-                                _indicatorsState!(() {
-                                  _photosIndexes![index] = photoIndex + 1;
-                                });
-                              }
-                          ),
-                          items: matchedUser.media!.mainPhotosList != null ? List.generate(matchedUser.media!.mainPhotosList!.length, (index) {
-                            MediaModel photo = matchedUser.media!.mainPhotosList![index];
-                            return CachedNetworkImage(
-                              imageUrl: photo.url,
-                              imageBuilder: (context, imageProvider) => Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(0.4),
-                                      spreadRadius: 10,
-                                      blurRadius: 7,
-                                    ),
-                                  ],
-                                ),
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => OtherUsersPage(user: matchedUser))
+                );
+              },
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: 720,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          child: SizedBox(
+                            height: height * 0.5,
+                            child: CarouselSlider(
+                              options: CarouselOptions(
+                                  height: height / 1.5,
+                                  enlargeCenterPage: true,
+                                  scrollPhysics: PageScrollPhysics(),
+                                  viewportFraction: 1,
+                                  enableInfiniteScroll: false,
+                                  disableCenter: true,
+                                  pageSnapping: true,
+                                  scrollDirection: Axis.horizontal,
+                                  onPageChanged: (photoIndex, reason){
+                                    _indicatorsState!(() {
+                                      _photosIndexes![index] = photoIndex + 1;
+                                    });
+                                  }
                               ),
-                              placeholder: (context, url) => Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.white,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }) : [
-                            Container(
-                                child: Center(
-                                  child: Text('Нет фотографий', style: TextStyle(fontSize: 20)),
-                                )
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    matchedUser.media!.mainPhotosList != null ? StatefulBuilder(
-                      builder: (context, setState){
-                        _indicatorsState = setState;
-                        return Positioned(
-                            bottom: 300,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: width / 2),
-                              child: Row(
-                                children: List.generate(matchedUser.media!.mainPhotosList!.length, (index) {
-                                  return Container(
-                                    margin: EdgeInsets.all(3),
-                                    width: 8,
-                                    height: 8,
+                              items: matchedUser.media!.otherPhotosList != null ? List.generate(matchedUser.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('image')).toList().length, (index) {
+                                MediaModel photo = matchedUser.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('image')).toList()[index];
+                                return CachedNetworkImage(
+                                  imageUrl: photo.url,
+                                  imageBuilder: (context, imageProvider) => Container(
                                     decoration: BoxDecoration(
-                                        color: _photosIndexes![index] - 1 == index ? Colors.white : Colors.white38,
-                                        shape: BoxShape.circle),
-                                  );
-                                }),
-                              ),
-                            )
-                        );
-                      },
-                    ) : Container()
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 190,
-                right: 335,
-                child: Stack(
-                  children: [
-                    SizedBox(
-                      height: 110,
-                      width: 110,
-                      child: matchedUser.media!.mainPhoto != null ? CachedNetworkImage(
-                        imageUrl: matchedUser.media!.mainPhoto!.url,
-                        height: 110,
-                        width: 110,
-                        imageBuilder: (context, imageProvider) => Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.white.withOpacity(0.4),
-                                spreadRadius: 10,
-                                blurRadius: 7,
-                              ),
-                            ],
-                          ),
-                        ),
-                        placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.white,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey,
-                              shape: BoxShape.circle
+                                      image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.white.withOpacity(0.4),
+                                          spreadRadius: 10,
+                                          blurRadius: 7,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  placeholder: (context, url) => Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.white,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }) : [
+                                Container(
+                                    child: Center(
+                                      child: Text('Нет фотографий', style: TextStyle(fontSize: 20)),
+                                    )
+                                )
+                              ],
                             ),
                           ),
                         ),
-                      ) : SizedBox(
-                        height: 110,
-                        width: 110,
-                        child: Icon(Icons.account_circle_rounded, size: 110, color: Colors.grey),
-                      ),
+                        matchedUser.media!.mainPhotosList != null ? StatefulBuilder(
+                          builder: (context, setState){
+                            _indicatorsState = setState;
+                            return Positioned(
+                                bottom: 300,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: width / 2),
+                                  child: Row(
+                                    children: List.generate(matchedUser.media!.mainPhotosList!.length, (index) {
+                                      return Container(
+                                        margin: EdgeInsets.all(3),
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                            color: _photosIndexes![index] - 1 == index ? Colors.white : Colors.white38,
+                                            shape: BoxShape.circle),
+                                      );
+                                    }),
+                                  ),
+                                )
+                            );
+                          },
+                        ) : Container()
+                      ],
                     ),
-                    Positioned(
-                      top: 5,
-                      left: 5,
-                      child: SizedBox(
-                        height: 100,
-                        width: 100,
-                        child: SimpleCircularProgressBar(
-                          valueNotifier: ValueNotifier(double.parse(matchedUser.matchPercent.toString())),
-                          backColor: Colors.grey[300]!,
-                          animationDuration: 0,
-                          backStrokeWidth: 10,
-                          progressStrokeWidth: 10,
-                          startAngle: 187,
-                          progressColors: const [
-                            Colors.red,
-                            Colors.yellowAccent,
-                            Colors.green
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 28,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                        child: Text('${matchedUser.matchPercent} %', style: TextStyle(
-                            color: Colors.white, fontSize: 19)),
-                        decoration: BoxDecoration(
-                          color: matchedUser.matchPercent < 49 ? Colors.red
-                              : (matchedUser.matchPercent > 49 && matchedUser.matchPercent < 65)
-                              ? Colors.orange : (matchedUser.matchPercent > 65) ? Colors.green : null,
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Positioned(
-                  bottom: 190,
-                  left: 120,
-                  child: Row(
-                    children: [
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            matchedUser.firstName + ' ' + matchedUser.lastName + ' ' + matchedUser.age.toString(),
-                            style: TextStyle(fontSize: 25),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                              'Job'
-                          ),
-                          SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Container(
-                                height: 20,
-                                width: 20,
-                                child: Icon(Icons.home_rounded, color: Colors.white, size: 15),
+                  ),
+                  Positioned(
+                    bottom: 190,
+                    right: 335,
+                    child: Stack(
+                      children: [
+                        SizedBox(
+                          height: 110,
+                          width: 110,
+                          child: matchedUser.media!.mainPhoto != null ? CachedNetworkImage(
+                            imageUrl: matchedUser.media!.mainPhoto!.url,
+                            height: 110,
+                            width: 110,
+                            imageBuilder: (context, imageProvider) => Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.4),
+                                    spreadRadius: 10,
+                                    blurRadius: 7,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            placeholder: (context, url) => Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.white,
+                              child: Container(
                                 decoration: BoxDecoration(
-                                    color: Colors.blue,
+                                    color: Colors.grey,
                                     shape: BoxShape.circle
                                 ),
                               ),
-                              SizedBox(width: 5),
-                              Text(matchedUser.location),
-                              SizedBox(width: 20),
-                              Container(
-                                height: 20,
-                                width: 20,
-                                child: Icon(Icons.location_on, color: Colors.white, size: 15),
+                            ),
+                          ) : SizedBox(
+                            height: 110,
+                            width: 110,
+                            child: Icon(Icons.account_circle_rounded, size: 110, color: Colors.grey),
+                          ),
+                        ),
+                        Positioned(
+                          top: 5,
+                          left: 5,
+                          child: SizedBox(
+                            height: 100,
+                            width: 100,
+                            child: SimpleCircularProgressBar(
+                              valueNotifier: ValueNotifier(double.parse(matchedUser.matchPercent.toString())),
+                              backColor: Colors.grey[300]!,
+                              animationDuration: 0,
+                              backStrokeWidth: 10,
+                              progressStrokeWidth: 10,
+                              startAngle: 187,
+                              progressColors: const [
+                                Colors.red,
+                                Colors.yellowAccent,
+                                Colors.green
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                            bottom: 0,
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                child: Text('${matchedUser.matchPercent} %', style: TextStyle(
+                                    color: Colors.white, fontSize: 19)),
                                 decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.topRight,
-                                        colors: const [
-                                          Color.fromRGBO(145, 10, 251, 10),
-                                          Color.fromRGBO(217, 10, 251, 10)
-                                        ]
-                                    )
+                                  color: matchedUser.matchPercent < 49 ? Colors.red
+                                      : (matchedUser.matchPercent > 49 && matchedUser.matchPercent < 65)
+                                      ? Colors.orange : (matchedUser.matchPercent > 65) ? Colors.green : null,
+                                  borderRadius: BorderRadius.all(Radius.circular(20)),
                                 ),
                               ),
-                              SizedBox(width: 5),
-                              Text('${Random().nextInt(1000)} м'),
-                              SizedBox(width: 20),
-                              ZodiacSigns.getZodiacSign(birthDay, 0)
+                            )
+                        )
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                      bottom: 190,
+                      left: 120,
+                      child: Row(
+                        children: [
+                          SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                matchedUser.firstName + ' ' + matchedUser.lastName + ' ' + matchedUser.age.toString(),
+                                style: TextStyle(fontSize: 25),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                  'Job'
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Container(
+                                    height: 20,
+                                    width: 20,
+                                    child: Icon(Icons.home_rounded, color: Colors.white, size: 15),
+                                    decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                        shape: BoxShape.circle
+                                    ),
+                                  ),
+                                  SizedBox(width: 5),
+                                  Text(matchedUser.location),
+                                  SizedBox(width: 20),
+                                  Container(
+                                    height: 20,
+                                    width: 20,
+                                    child: Icon(Icons.location_on, color: Colors.white, size: 15),
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.topRight,
+                                            colors: const [
+                                              Color.fromRGBO(145, 10, 251, 10),
+                                              Color.fromRGBO(217, 10, 251, 10)
+                                            ]
+                                        )
+                                    ),
+                                  ),
+                                  SizedBox(width: 5),
+                                  Text('${Random().nextInt(1000)} м'),
+                                  SizedBox(width: 20),
+                                  ZodiacSigns.getZodiacSign(birthDay, 0)
+                                ],
+                              )
                             ],
                           )
                         ],
                       )
-                    ],
-                  )
-              ),
-              Positioned(
-                  bottom: 75,
-                  child: SizedBox(
-                    height: 100,
-                    width: width,
-                    child: MasonryGridView.count(
-                        padding: EdgeInsets.only(left: 10, bottom: 10),
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 7,
-                        mainAxisSpacing: 9,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: matchedUser.interests!.length,
-                        itemBuilder: (context, index){
-                          InterestsDataModel _interests = matchedUser.interests![index];
-                          return Material(
-                            child: InkWell(
-                                borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                child: Container(
-                                  height: 40,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: Center(
-                                    widthFactor: 1,
-                                    child: Text(
-                                      _interests.interest!,
-                                      style: const TextStyle(color: Colors.white),
-                                      textAlign: TextAlign.center,
+                  ),
+                  Positioned(
+                    bottom: 75,
+                    child: SizedBox(
+                      height: 100,
+                      width: width,
+                      child: MasonryGridView.count(
+                          padding: EdgeInsets.only(left: 10, bottom: 10),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 7,
+                          mainAxisSpacing: 9,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: matchedUser.interests!.length,
+                          itemBuilder: (context, index){
+                            InterestsDataModel _interests = matchedUser.interests![index];
+                            return Material(
+                              child: InkWell(
+                                  borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                  child: Container(
+                                    height: 40,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: Center(
+                                      widthFactor: 1,
+                                      child: Text(
+                                        _interests.interest!,
+                                        style: const TextStyle(color: Colors.white),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
-                                  ),
-                                  decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                      color: Color(int.parse('0x' + _interests.color!)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
-                                            offset: const Offset(3, 3),
-                                            blurRadius: 0,
-                                            spreadRadius: 0
-                                        )
-                                      ]
-                                  ),
-                                )
-                            ),
-                          );
-                        }
+                                    decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                        gradient: LinearGradient(
+                                            colors: [
+                                              Color(int.parse('0x' + _interests.startColor!)),
+                                              Color(int.parse('0x' + _interests.endColor!)),
+                                            ]
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Color(int.parse('0x' + _interests.startColor!)).withOpacity(0.7),
+                                              offset: const Offset(3, 3),
+                                              blurRadius: 0,
+                                              spreadRadius: 0
+                                          )
+                                        ]
+                                    ),
+                                  )
+                              ),
+                            );
+                          }
+                      ),
                     ),
                   ),
-              ),
-              Positioned(
-                bottom: 0,
-                child: Center(
-                  widthFactor: 1.12,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    child: GestureDetector(
-                      onTap: () async {
-
-                      },
-                      child: Container(
-                        width: 400,
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
-                            SizedBox(width: 5),
-                            Text('Отправить подарок', style: TextStyle(
-                                color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
-                          ],
-                        ),
-                        decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                                colors: const [
-                                  Color.fromRGBO(255, 0, 92, 10),
-                                  Color.fromRGBO(255, 172, 47, 10),
-                                ]
-                            )
-                        ),
-                      ),
-                    )
-                  ),
-                ),
-              ),
-              Positioned(
-                  bottom: 0,
-                  child: Row(
-                    children: [
-                      Center(
-                        widthFactor: 1.12,
-                        child: ClipRRect(
+                  Positioned(
+                    bottom: 0,
+                    child: Center(
+                      widthFactor: 1.12,
+                      child: ClipRRect(
                           borderRadius: BorderRadius.all(Radius.circular(20)),
-                          child: Container(
-                            width: 400,
-                            height: 60,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
-                                SizedBox(width: 5),
-                                Text('Отправить подарок', style: TextStyle(
-                                    color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
-                              ],
+                          child: GestureDetector(
+                            onTap: () async {
+
+                            },
+                            child: Container(
+                              width: 400,
+                              height: 60,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
+                                  SizedBox(width: 5),
+                                  Text('Отправить подарок', style: TextStyle(
+                                      color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
+                                ],
+                              ),
+                              decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                      colors: const [
+                                        Color.fromRGBO(255, 0, 92, 10),
+                                        Color.fromRGBO(255, 172, 47, 10),
+                                      ]
+                                  )
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                    colors: const [
-                                      Color.fromRGBO(255, 0, 92, 10),
-                                      Color.fromRGBO(255, 172, 47, 10),
-                                    ]
-                                )
+                          )
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                      bottom: 0,
+                      child: Row(
+                        children: [
+                          Center(
+                            widthFactor: 1.12,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(20)),
+                              child: Container(
+                                width: 400,
+                                height: 60,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Text('🤝', style: TextStyle(fontSize: 30, color: Colors.yellow)),
+                                    SizedBox(width: 5),
+                                    Text('Отправить подарок', style: TextStyle(
+                                        color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
+                                  ],
+                                ),
+                                decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                        colors: const [
+                                          Color.fromRGBO(255, 0, 92, 10),
+                                          Color.fromRGBO(255, 172, 47, 10),
+                                        ]
+                                    )
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  )
+                        ],
+                      )
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -801,7 +846,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
 
   Widget showSearchFilterOptions() {
     return StatefulBuilder(
-      builder: (context1, setState) {
+      builder: (context1, dialogState) {
         return Material(
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(35), topRight: Radius.circular(35)),
@@ -824,7 +869,7 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                             TextButton(
                               onPressed: (){
                                 ShPreferences.clear();
-                                setState((){
+                                dialogState((){
                                   Provider.of<InterestsCounterProvider>(context,listen: false).resetCounter();
 
                                   _isManSelected = false;
@@ -970,15 +1015,15 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                     ),
                                     onChanged: (value){
                                       if(int.parse(value) < 18){
-                                        setState((){
+                                        dialogState((){
                                           _isSmaller18StartAgeField = true;
                                         });
                                       }else if(int.parse(value) > 100){
-                                        setState((){
+                                        dialogState((){
                                           _isGreater100StartAgeField = true;
                                         });
                                       }else{
-                                        setState((){
+                                        dialogState((){
                                           _isSmaller18StartAgeField = false;
                                           _isGreater100StartAgeField = false;
                                         });
@@ -1015,15 +1060,15 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                     ),
                                     onChanged: (value){
                                       if(int.parse(value) < 18){
-                                        setState((){
+                                        dialogState((){
                                           _isSmaller18EndAgeField = true;
                                         });
                                       }else if(int.parse(value) > 100){
-                                        setState((){
+                                        dialogState((){
                                           _isGreater100EndAgeField = true;
                                         });
                                       }else{
-                                        setState((){
+                                        dialogState((){
                                           _isSmaller18EndAgeField = false;
                                           _isGreater100EndAgeField = false;
                                         });
@@ -1045,8 +1090,11 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                               children: [
                                 InkWell(
                                   onTap: () {
-                                    setState(() {
-                                      _isManSelected = !_isManSelected;
+                                    dialogState(() {
+                                      _isManSelected = true;
+
+                                      _isWomanSelected = false;
+                                      _isAnotherSelected = false;
                                     });
                                   },
                                   borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -1076,8 +1124,11 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                 SizedBox(width: 10),
                                 InkWell(
                                   onTap: () {
-                                    setState(() {
-                                      _isWomanSelected = !_isWomanSelected;
+                                    dialogState(() {
+                                      _isWomanSelected = true;
+
+                                      _isManSelected = false;
+                                      _isAnotherSelected = false;
                                     });
                                   },
                                   borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -1107,8 +1158,11 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                                 SizedBox(width: 10),
                                 InkWell(
                                   onTap: () {
-                                    setState(() {
-                                      _isAnotherSelected = !_isAnotherSelected;
+                                    dialogState(() {
+                                      _isAnotherSelected = true;
+
+                                      _isManSelected = false;
+                                      _isWomanSelected = false;
                                     });
                                   },
                                   borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -1140,7 +1194,53 @@ class _PhotoSearchPageState extends State<PhotoSearchPage>{
                               onTap: _isSmaller18StartAgeField
                                   || _isSmaller18EndAgeField
                                   || _isGreater100StartAgeField
-                                  || _isGreater100EndAgeField ? null : () => null,
+                                  || _isGreater100EndAgeField ? null : () async {
+
+                                List<InterestsModel> interestsModelList = ShPreferences.getAllInterestsShPref();
+
+                                List<Map<String, String>> interestsMapList = [];
+
+                                for(var interest in interestsModelList){
+                                  Map<String, String> interestsMap = {};
+                                  interestsMap.addAll({
+                                    'type' : interest.type.toString(),
+                                    'interest' : interest.name.toString()
+                                  });
+
+                                  interestsMapList.add(interestsMap);
+                                }
+
+                                Map<String, dynamic> data = {
+                                  'gender' : _isManSelected ? 'male' : _isWomanSelected ? 'female' : _isAnotherSelected ? 'other' : '',
+                                  'interests' : interestsModelList.isNotEmpty ? jsonEncode(interestsMapList) : ''
+                                };
+
+                                if(_startAgeFieldTextController.text.isNotEmpty){
+                                  data.addAll({
+                                    'age_from' : int.parse(_startAgeFieldTextController.text)
+                                  });
+                                }
+
+                                if(_endAgeFieldTextController.text.isNotEmpty){
+                                  data.addAll({
+                                    'age_to' : int.parse(_endAgeFieldTextController.text)
+                                  });
+                                }
+
+                                Response<FilterUserDataModel> response = await UnyAPI.create(Constants.FILTER_USER_MODEL_CONVERTER).filterUsers(token, data);
+                                if(response.body!.users != null){
+                                  _matchedUsersList = response.body!.users;
+
+                                  _secondaryUsersList = List.from(_matchedUsersList!.toList());
+
+                                  _secondaryUsersList!.sort((a,b) => int.parse(b.matchPercent.toString()).compareTo(int.parse(a.matchPercent.toString())));
+                                }else{
+                                  _matchedUsersList = [];
+                                }
+                                Navigator.pop(context);
+                                _usersListState!((){});
+                                _secondaryUsersListState!((){});
+                              },
                               child: ClipRRect(
                                 borderRadius: BorderRadius.all(Radius.circular(15)),
                                 child: Container(

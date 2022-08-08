@@ -35,6 +35,12 @@ abstract class UnyAPI extends ChopperService{
   @Post(path: '/user/filter_match_users_with_percent')
   Future<Response<PhotoSearchDataModel>> getUserPhotoSearch(@Header('Authorization') String token, @Body() var data);
 
+  @Post(path: '/user/search_by_name')
+  Future<Response<PhotoSearchDataModel>> searchUserByName(@Header('Authorization') String token, @Body() var data);
+
+  @Post(path: '/user/search_user')
+  Future<Response<FilterUserDataModel>> filterUsers(@Header('Authorization') String token, @Body() var data);
+
   @Post(path: '/user/upload_media')
   Future<Response> uploadMedia(@Header('Authorization') String token, @Body() var data);
 
@@ -77,7 +83,8 @@ abstract class UnyAPI extends ChopperService{
   @Post(path: '/user/remove_chat_room')
   Future<Response> deleteChatRoom(@Header('Authorization') String token, @Body() var data);
 
-
+  @Post(path: '/user/get_user_by_id')
+  Future<Response<Matches>> getUserById(@Header('Authorization') String token, @Query('user_id') String userId);
 
   /* GET Requests */
 
@@ -124,6 +131,11 @@ abstract class UnyAPI extends ChopperService{
           PhotoSearchDataModel: (json) => PhotoSearchDataModel.fromJson(json)
         });
         break;
+      case Constants.FILTER_USER_MODEL_CONVERTER:
+        converter = JsonToTypeConverter({
+          FilterUserDataModel: (json) => FilterUserDataModel.fromJson(json)
+        });
+        break;
       case Constants.ALL_MESSAGES_MODEL_CONVERTER:
         converter = JsonToTypeConverter({
           AllChatsModel: (json) => AllChatsModel.fromJson(json)
@@ -137,6 +149,11 @@ abstract class UnyAPI extends ChopperService{
       case Constants.SIMPLE_MESSAGE_CONVERTER:
         converter = JsonToTypeConverter({
           Message: (json) => Message.fromJson(json)
+        });
+        break;
+      case Constants.MATCHES_JSON_CONVERTER:
+        converter = JsonToTypeConverter({
+          Matches: (json) => Matches.fromJson(json)
         });
         break;
 

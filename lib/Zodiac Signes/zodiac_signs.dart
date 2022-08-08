@@ -13,8 +13,15 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/bliznetsi.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.lightBlue,
-              shape: BoxShape.circle,
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: const [
+                Color.fromRGBO(137, 238, 254, 10),
+                Color.fromRGBO(35, 113, 231, 10),
+              ]
+            )
           ),
         ),
         SizedBox(width: 5),
@@ -31,7 +38,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/bliznetsi.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.lightBlue,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(137, 238, 254, 10),
+                  Color.fromRGBO(35, 113, 231, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -49,7 +63,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/deva.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.lightGreen,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(105, 218, 52, 10),
+                  Color.fromRGBO(24, 160, 62, 10),
+                ]
+             ),
               shape: BoxShape.circle,
           ),
         ),
@@ -67,7 +88,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/deva.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.lightGreen,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(105, 218, 52, 10),
+                  Color.fromRGBO(24, 160, 62, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -85,7 +113,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/kozerog.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.green,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(75, 182, 25, 10),
+                  Color.fromRGBO(22, 123, 50, 10),
+                ]
+            ),
               shape: BoxShape.circle,
 
           ),
@@ -104,9 +139,15 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/kozerog.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.green,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(75, 182, 25, 10),
+                  Color.fromRGBO(22, 123, 50, 10),
+                ]
+            ),
             shape: BoxShape.circle,
-
           ),
         ),
       ],
@@ -123,7 +164,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/lev.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.orange,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(246, 172, 97, 10),
+                  Color.fromRGBO(248, 108, 21, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -141,7 +189,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/lev.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.orange,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(246, 172, 97, 10),
+                  Color.fromRGBO(248, 108, 21, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -159,7 +214,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/oven.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.yellow,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(250, 230, 73, 10),
+                  Color.fromRGBO(231, 144, 1, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -177,7 +239,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/oven.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.yellow,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(250, 230, 73, 10),
+                  Color.fromRGBO(231, 144, 1, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -195,7 +264,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/rak.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.purpleAccent,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(227, 139, 255, 10),
+                  Color.fromRGBO(156, 35, 231, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -213,7 +289,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/rak.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.purpleAccent,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(227, 139, 255, 10),
+                  Color.fromRGBO(156, 35, 231, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -231,7 +314,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/ribi.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.pinkAccent,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(255, 135, 149, 10),
+                  Color.fromRGBO(249, 90, 90, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -249,7 +339,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/ribi.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.pinkAccent,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(255, 135, 149, 10),
+                  Color.fromRGBO(249, 90, 90, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -267,7 +364,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/scorpion.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.purpleAccent[100],
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(255, 135, 219, 10),
+                  Color.fromRGBO(249, 90, 119, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -285,7 +389,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/scorpion.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.purpleAccent[100],
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(255, 135, 219, 10),
+                  Color.fromRGBO(249, 90, 119, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -303,7 +414,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/strelets.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.red,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(255, 137, 145, 10),
+                  Color.fromRGBO(223, 30, 30, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -321,7 +439,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/strelets.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.red,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(255, 137, 145, 10),
+                  Color.fromRGBO(223, 30, 30, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -339,7 +464,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/telec.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.green[400],
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(156, 218, 52, 10),
+                  Color.fromRGBO(54, 190, 20, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -357,7 +489,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/telec.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.green[400],
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(156, 218, 52, 10),
+                  Color.fromRGBO(54, 190, 20, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -375,7 +514,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/vesi.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.blueAccent[400],
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(137, 198, 254, 10),
+                  Color.fromRGBO(35, 42, 231, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -393,7 +539,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/vesi.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.blueAccent[400],
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(137, 198, 254, 10),
+                  Color.fromRGBO(35, 42, 231, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),
@@ -411,7 +564,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/vodolei.svg'),
           ),
           decoration: BoxDecoration(
-              color: Colors.purple,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(137, 142, 254, 10),
+                  Color.fromRGBO(121, 35, 231, 10),
+                ]
+            ),
               shape: BoxShape.circle,
           ),
         ),
@@ -429,7 +589,14 @@ class ZodiacSigns {
             child: SvgPicture.asset('assets/vodolei.svg'),
           ),
           decoration: BoxDecoration(
-            color: Colors.purple,
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: const [
+                  Color.fromRGBO(137, 142, 254, 10),
+                  Color.fromRGBO(121, 35, 231, 10),
+                ]
+            ),
             shape: BoxShape.circle,
           ),
         ),

@@ -11,10 +11,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mute/flutter_mute.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:mime/mime.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +25,8 @@ import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
+import 'package:uny_app/Balance%20Pages/balance_page.dart';
+import 'package:uny_app/Balance%20Pages/withdrawal_page.dart';
 import 'package:uny_app/Chats%20Page/chat_page_visibility.dart';
 import 'package:uny_app/Chats%20Page/messages_page.dart';
 import 'package:uny_app/Constants/constants.dart';
@@ -57,6 +62,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
   late double width;
 
   final ImagePicker _picker = ImagePicker();
+  final AudioPlayer _player = AudioPlayer();
   
   final String _mainButtonAsset = 'assets/bnm_main_icon.svg';
   final String _chatButtonAsset = 'assets/chat_icon.svg';
@@ -65,10 +71,10 @@ class _UserProfilePageState extends State<UserProfilePage>{
   final String _optionsButtonAsset = 'assets/options_icon.svg';
 
   StateSetter? _bioState;
-  StateSetter? _mainPageState;
 
   Widget? _zodiacSignWidget;
 
+  bool _isAppForeground = false;
   bool _showEditBioLoading = false;
 
   Future<Response<AllUserDataModel>>? _allUserDataModelFuture;
@@ -101,6 +107,10 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   void initState() {
+
+    _isAppForeground = true;
+
+
     token = 'Bearer ' + TokenData.getUserToken();
 
     _allUserDataModelFuture = UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
@@ -112,26 +122,120 @@ class _UserProfilePageState extends State<UserProfilePage>{
       initialPage: _bottomNavBarIndex
     );
 
-    FirebaseMessaging.onMessage.listen((message) {
-      if(message.data['chatId'].toString() != ChatPageVisibility.openedChatId){
-        if(message.notification!.title.toString() != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.firstName.toString()){
-          AwesomeNotifications().isNotificationAllowed().then((isAllowed){
-            if(!isAllowed){
-              AwesomeNotifications().requestPermissionToSendNotifications();
-            }else{
-              AwesomeNotifications().createNotification(
-                  content: NotificationContent(
-                    id: 2,
-                    displayOnBackground: true,
-                    displayOnForeground: true,
-                    channelKey: 'high_importance_channel',
-                    notificationLayout: NotificationLayout.Messaging,
-                    title: '${message.notification!.title}',
-                    body: '${message.notification!.body}',
-                  )
-              );
-            }
-          });
+
+    FirebaseMessaging.onMessage.listen((message) async {
+
+      String profilePictureUrl = message.data['profilePicture'].toString();
+      String sender = message.notification!.title.toString();
+      String txt = message.notification!.body.toString();
+
+      if(!_isAppForeground) {
+        if(message.data['chatId'].toString() != ChatPageVisibility.openedChatId) {
+
+          if(message.data['userId'].toString() != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id.toString()) {
+
+            AwesomeNotifications().isNotificationAllowed().then((isAllowed){
+
+              if(!isAllowed){
+
+                AwesomeNotifications().requestPermissionToSendNotifications();
+
+              }else{
+
+                AwesomeNotifications().createNotification(
+                    content: NotificationContent(
+                      id: 2,
+                      displayOnBackground: true,
+                      displayOnForeground: true,
+                      channelKey: 'high_importance_channel',
+                      notificationLayout: NotificationLayout.Messaging,
+                      title: '${message.notification!.title}',
+                      body: '${message.notification!.body}',
+                    )
+                );
+              }
+            });
+          }
+        }
+      }else{
+
+        if(message.data['chatId'].toString() != ChatPageVisibility.openedChatId) {
+
+          if(message.data['userId'].toString() != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id.toString()) {
+
+            await FlutterMute.getRingerMode().then((mode) async {
+              if(mode == RingerMode.Normal){
+                _player.setAsset('assets/sounds/in_app_notif_sound.mp3');
+                _player.play();
+                _player.setVolume(1);
+              }
+            });
+
+            showToastWidget(
+                Container(
+                  height: 70,
+                  width: width,
+                  margin: EdgeInsets.only(left: 10, right: 10),
+                  padding: EdgeInsets.only(left: 10),
+                  child: Row(
+                    children: [
+                      ClipOval(
+                        child: SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: CachedNetworkImage(
+                            imageUrl: profilePictureUrl,
+                            height: 50,
+                            width: 50,
+                            imageBuilder: (context, imageProvider){
+                              return ClipOval(
+                                child: Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: imageProvider,
+                                      fit: BoxFit.cover
+                                    )
+                                  ),
+                                )
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Container(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(sender, style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontWeight: FontWeight.w500, fontSize: 15)),
+                            SizedBox(height: 5),
+                            Text(txt, style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontSize: 13))
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  decoration: BoxDecoration(
+                      color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.black54 : Colors.white,
+                      borderRadius: BorderRadius.circular(20)
+                  ),
+                ),
+                context: context,
+                curve: Curves.easeIn,
+                position: StyledToastPosition.top,
+                animationBuilder: (context, controller, duration, child){
+                  return SlideTransition(
+                    position: Tween<Offset>(begin: Offset(0, -2), end: Offset(0, 0)).animate(
+                      CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn),
+                    ),
+                    child: child,
+                  );
+                }
+            );
+          }
         }
       }
     });
@@ -162,9 +266,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
     super.initState();
   }
 
-
   @override
   void dispose() {
+    _isAppForeground = false;
 
     bioTextFocusNode!.dispose();
     bioTextController!.dispose();
@@ -201,17 +305,12 @@ class _UserProfilePageState extends State<UserProfilePage>{
                controller: _pageController,
                children: [
                  ChatsPage(),
-                 StatefulBuilder(
-                   builder: (context, setState){
-                     _mainPageState = setState;
-                     return Stack(
-                       children: [
-                         Container(
-                           child: _allUserDataModel != null ? mainBody() : getUserData(),
-                         ),
-                       ],
-                     );
-                   },
+                 Stack(
+                   children: [
+                     Container(
+                       child: _allUserDataModel != null ? mainBody(context) : getUserData(),
+                     ),
+                   ],
                  ),
                  PhotoSearchPage(),
                  VideoSearchPage(),
@@ -254,29 +353,29 @@ class _UserProfilePageState extends State<UserProfilePage>{
                            return Stack(
                              children: [
                                SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 0 ? Colors.grey : Colors.white, height: 20, width: 20),
-                               Positioned(
-                                 left: constraints.maxWidth / 2.2,
-                                 bottom: 5,
-                                 child:  Container(
-                                   padding: EdgeInsets.all(1),
-                                   decoration:  BoxDecoration(
-                                     color: Colors.red,
-                                     borderRadius: BorderRadius.circular(6),
-                                   ),
-                                   constraints: BoxConstraints(
-                                     minWidth: 15,
-                                     minHeight: 15,
-                                   ),
-                                   child: Text(
-                                     '3',
-                                     style: TextStyle(
-                                       color: Colors.white,
-                                       fontSize: 10,
-                                     ),
-                                     textAlign: TextAlign.center,
-                                   ),
-                                 ),
-                               )
+                               // Positioned(
+                               //   left: constraints.maxWidth / 2.2,
+                               //   bottom: 5,
+                               //   child:  Container(
+                               //     padding: EdgeInsets.all(1),
+                               //     decoration:  BoxDecoration(
+                               //       color: Colors.red,
+                               //       borderRadius: BorderRadius.circular(6),
+                               //     ),
+                               //     constraints: BoxConstraints(
+                               //       minWidth: 15,
+                               //       minHeight: 15,
+                               //     ),
+                               //     child: Text(
+                               //       '3',
+                               //       style: TextStyle(
+                               //         color: Colors.white,
+                               //         fontSize: 10,
+                               //       ),
+                               //       textAlign: TextAlign.center,
+                               //     ),
+                               //   ),
+                               // )
                              ],
                            );
                          },
@@ -320,7 +419,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
     );
   }
 
-  Widget mainBody() {
+  Widget mainBody(BuildContext context) {
     return SingleChildScrollView(
       physics: BouncingScrollPhysics(),
       child: Column(
@@ -334,7 +433,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         bottomLeft: Radius.circular(20)
                     ),
                     child: Container(
-                        height: 180,
+                        height: 300,
                         decoration: BoxDecoration(
                             gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -345,128 +444,193 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                 ]
                             )
                         ),
-                        child: Container (
+                        child: Container(
                           padding: EdgeInsets.only(left: width / 20, top: height / 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Column(
                             children: [
-                              Consumer<UserDataProvider>(
-                                builder: (context, viewModel, child){
-                                  return  Container(
-                                    margin: EdgeInsets.symmetric(vertical: 25),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        SizedBox(
-                                          width: 150,
-                                          child: Text('${viewModel.userDataModel!.firstName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1)
-                                        ),
-                                        SizedBox(
-                                          width: 150,
-                                          child: Text('${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
-                                        ),
-                                        Flexible(
+                              Flexible(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Consumer<UserDataProvider>(
+                                      builder: (context, viewModel, child){
+                                        return  Container(
+                                          margin: EdgeInsets.symmetric(vertical: 25),
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                             children: [
-                                              viewModel.userDataModel!.job != null
-                                                  ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container(),
-                                              SizedBox(height: 5),
-                                              viewModel.userDataModel!.jobCompany != null
-                                                  ? Text(viewModel.userDataModel!.jobCompany, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                              Center(
-                                widthFactor: 0.2,
-                                child: SizedBox(
-                                    height: 100,
-                                    width: 100,
-                                    child: Consumer<UserDataProvider>(
-                                      builder: (context, viewModel, child) {
-                                        MediaModel? mainPhoto = viewModel.mediaDataModel!.mainPhoto;
-                                        return mainPhoto != null ? CachedNetworkImage(
-                                          imageUrl: mainPhoto.url,
-                                          fadeOutDuration: Duration(seconds: 0),
-                                          fadeInDuration: Duration(seconds: 0),
-                                          imageBuilder: (context, imageProvider) => Container(
-                                            width: 100,
-                                            height: 100,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.white.withOpacity(0.4),
-                                                  spreadRadius: 10,
-                                                  blurRadius: 7,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          placeholder: (context, url) => Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.white,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey,
-                                                shape: BoxShape.circle
+                                              SizedBox(
+                                                  width: 150,
+                                                  child: Text('${viewModel.userDataModel!.firstName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1)
                                               ),
-                                            ),
-                                          ),
-                                        ) : Container(
-                                          width: 100,
-                                          height: 100,
-                                          child: Center(
-                                            child: Icon(Icons.person, size: 85, color: Colors.white),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.white),
-                                              shape: BoxShape.circle
+                                              SizedBox(
+                                                width: 150,
+                                                child: Text('${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
+                                              ),
+                                              Flexible(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    viewModel.userDataModel!.job != null
+                                                        ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container(),
+                                                    SizedBox(height: 5),
+                                                    viewModel.userDataModel!.jobCompany != null
+                                                        ? Text(viewModel.userDataModel!.jobCompany, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
+                                                  ],
+                                                ),
+                                              )
+                                            ],
                                           ),
                                         );
                                       },
                                     ),
+                                    Container(
+                                      height: 100,
+                                      width: 100,
+                                      margin: EdgeInsets.only(top: 20, right: 20),
+                                      child: Consumer<UserDataProvider>(
+                                        builder: (context, viewModel, child) {
+                                          MediaModel? mainPhoto = viewModel.mediaDataModel!.mainPhoto;
+                                          return mainPhoto != null ? CachedNetworkImage(
+                                            imageUrl: mainPhoto.url,
+                                            fadeOutDuration: Duration(seconds: 0),
+                                            fadeInDuration: Duration(seconds: 0),
+                                            imageBuilder: (context, imageProvider) => Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.white.withOpacity(0.4),
+                                                    spreadRadius: 10,
+                                                    blurRadius: 7,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            placeholder: (context, url) => Shimmer.fromColors(
+                                              baseColor: Colors.grey[300]!,
+                                              highlightColor: Colors.white,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                    color: Colors.grey,
+                                                    shape: BoxShape.circle
+                                                ),
+                                              ),
+                                            ),
+                                          ) : Container(
+                                            width: 100,
+                                            height: 100,
+                                            child: Center(
+                                              child: Icon(Icons.person, size: 85, color: Colors.white),
+                                            ),
+                                            decoration: BoxDecoration(
+                                                border: Border.all(color: Colors.white),
+                                                shape: BoxShape.circle
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Consumer<UserDataProvider>(
+                                      builder: (context, viewModel, child){
+                                        return Container(
+                                          padding: EdgeInsets.only(right: 10),
+                                          margin: EdgeInsets.only(top: 10),
+                                          height: 100,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(viewModel.userDataModel!.location, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                                  SizedBox(width: 5),
+                                                  SizedBox(
+                                                      height: 20,
+                                                      width: 20,
+                                                      child: ClipOval(
+                                                        child: SvgPicture.asset('assets/russian_flag.svg'),
+                                                      )
+                                                  ),
+                                                ],
+                                              ),
+                                              SizedBox(height: 10),
+                                              _zodiacSignWidget!
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  ],
                                 ),
                               ),
-                              SizedBox(width: 10),
-                              Consumer<UserDataProvider>(
-                                builder: (context, viewModel, child){
-                                  return Container(
-                                    padding: EdgeInsets.only(right: 10),
+                              SizedBox(height: 20),
+                              Flexible(
+                                child: GestureDetector(
+                                  onTap: (){
+                                    Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (context) => BalancePage()
+                                      )
+                                    );
+                                  },
+                                  child: Container(
                                     height: 100,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    width: width,
+                                    margin: EdgeInsets.only(right: 20, bottom: 20),
+                                    padding: EdgeInsets.only(left: 20, right: 20),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.3),
+                                        borderRadius: BorderRadius.all(Radius.circular(20))
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Text(viewModel.userDataModel!.location, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                            SizedBox(width: 5),
-                                            SizedBox(
-                                              height: 20,
-                                              width: 20,
-                                              child: ClipOval(
-                                                child: SvgPicture.asset('assets/russian_flag.svg'),
-                                              )
-                                            ),
+                                            Text('Баланс', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w500)),
+                                            SizedBox(height: 3),
+                                            Text('1000 UNY', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                                            SizedBox(height: 3),
+                                            Text('10 000 ₽', style: TextStyle(color: Colors.black.withOpacity(0.5)))
                                           ],
                                         ),
-                                        SizedBox(height: 10),
-                                        _zodiacSignWidget!
+                                        SizedBox(width: 30),
+                                        GestureDetector(
+                                          onTap: (){
+                                            Navigator.push(
+                                              context,
+                                              CupertinoPageRoute(builder: (context) => WithdrawalPage())
+                                            );
+                                          },
+                                          child: Container(
+                                            height: 45,
+                                            width: 200,
+                                            child: Center(
+                                              child: Text('Вывод средств', style: TextStyle(fontSize: 14, color: Color.fromRGBO(29, 105, 217, 10))),
+                                            ),
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(15)
+                                            ),
+                                          ),
+                                        )
                                       ],
                                     ),
-                                  );
-                                },
+                                  ),
+                                )
                               )
                             ],
-                          ),
+                          )
                         )
                     ),
                   )
@@ -481,7 +645,57 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Мои интересы', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                    InkWell(
+                      onTap: (){
+                        showToastWidget(
+                            Container(
+                              height: 70,
+                              width: width,
+                              margin: EdgeInsets.only(left: 10, right: 10),
+                              padding: EdgeInsets.only(left: 10),
+                              child: Row(
+                                children: [
+                                  ClipOval(
+                                    child: Container(
+                                      height: 50,
+                                      width: 50,
+                                      color: Colors.green
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Container(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('sender', style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontWeight: FontWeight.w500, fontSize: 15)),
+                                        SizedBox(height: 5),
+                                        Text('txt', style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontSize: 13))
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                              decoration: BoxDecoration(
+                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.black54 : Colors.white,
+                                  borderRadius: BorderRadius.circular(20)
+                              ),
+                            ),
+                            context: context,
+                            curve: Curves.easeIn,
+                            position: StyledToastPosition.top,
+                            animationBuilder: (context, controller, duration, child){
+                              return SlideTransition(
+                                position: Tween<Offset>(begin: Offset(0, -2), end: Offset(0, 0)).animate(
+                                  CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn),
+                                ),
+                                child: child,
+                              );
+                            }
+                        );
+                      },
+                      child: Text('Мои интересы', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                    ),
                     InkWell(
                       onTap: () {
                         Navigator.push(
@@ -508,8 +722,10 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         crossAxisSpacing: 7,
                         mainAxisSpacing: 9,
                         scrollDirection: Axis.horizontal,
-                        itemCount: _interests!.length,
+                        itemCount: viewModel.interestsDataModel!.length,
                         itemBuilder: (context, index){
+                          int itemCount = viewModel.interestsDataModel!.length;
+                          int reversedIndex = itemCount - 1 - index;
                           return Material(
                             child: InkWell(
                                 borderRadius: const BorderRadius.all(Radius.circular(30)),
@@ -519,17 +735,22 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                   child: Center(
                                     widthFactor: 1,
                                     child: Text(
-                                      _interests![index].interest!,
+                                      viewModel.interestsDataModel![reversedIndex].interest!,
                                       style: const TextStyle(color: Colors.white),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
                                   decoration: BoxDecoration(
                                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                      color: Color(int.parse('0x' + _interests![index].color!)),
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(int.parse('0x' + viewModel.interestsDataModel![reversedIndex].startColor)),
+                                          Color(int.parse('0x' + viewModel.interestsDataModel![reversedIndex].endColor)),
+                                        ]
+                                      ),
                                       boxShadow: [
                                         BoxShadow(
-                                            color: Color(int.parse('0x' + _interests![index].color!)).withOpacity(0.7),
+                                            color: Color(int.parse('0x' + viewModel.interestsDataModel![reversedIndex].startColor!)).withOpacity(0.7),
                                             offset: const Offset(3, 3),
                                             blurRadius: 0,
                                             spreadRadius: 0
@@ -1126,7 +1347,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
             ..setMediaDataModel(_media)
             ..setInterestsDataModel(_interests);
 
-          return mainBody();
+          return mainBody(context);
         }else{
           return Center(
             heightFactor: 10,

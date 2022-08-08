@@ -26,13 +26,15 @@ class ShPreferences{
     return _sharedPreferences.getBool('isFirstRun');
   }
 
-  static List<InterestsModel>?  getAllInterestsShPref() {
+  static List<InterestsModel> getAllInterestsShPref() {
+    List<InterestsModel> _allInterests = [];
     if(_sharedPreferences.getString('all_interests') != null) {
       List<dynamic> parsedList =  jsonDecode(_sharedPreferences.getString('all_interests'));
-      List<InterestsModel> _allInterests = List<InterestsModel>.from(parsedList.map((e) => InterestsModel.fromJson(e)));
+
+       _allInterests = List<InterestsModel>.from(parsedList.map((e) => InterestsModel.fromJson(e)));
       return _allInterests;
     }else{
-      return null;
+      return _allInterests;
     }
   }
 

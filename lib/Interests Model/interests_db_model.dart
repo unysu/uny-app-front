@@ -12,21 +12,24 @@ class InterestsModel{
 
   String? type;
 
-  String? color;
+  String? startColor;
+
+  String? endColor;
 
 
-  InterestsModel(this.id, this.name, this.type, this.color);
+  InterestsModel(this.id, this.name, this.type, this.startColor, this.endColor);
 
-  InterestsModel.ForDB(this.name, this.type, this.color);
+  InterestsModel.ForDB(this.name, this.type, this.startColor, this.endColor);
 
-  InterestsModel._(this.name, this.type, this.color);
+  InterestsModel._(this.name, this.type, this.startColor, this.endColor);
 
 
   factory InterestsModel.fromMap(Map<String, dynamic> dataMap) {
     return InterestsModel._(
         dataMap['name'],
         dataMap['type'],
-        dataMap['color']
+        dataMap['start_color'],
+        dataMap['end_color']
     );
   }
 
@@ -34,14 +37,16 @@ class InterestsModel{
       InterestsModel._(
           json['name'],
           json['type'],
-          json['color']
+          json['start_color'],
+          json['end_color']
       );
 
   Map<String, dynamic> toJson() {
     return {
       'name' : name,
       'type' : type,
-      'color' : color
+      'start_color' : startColor,
+      'end_color' : endColor
     };
   }
 

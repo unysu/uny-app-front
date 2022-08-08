@@ -6,6 +6,7 @@ class NotificationManager{
 
   static NotificationManager? _instance;
 
+
   static NotificationManager init(){
     if(_instance == null){
       return _instance = NotificationManager();
@@ -14,14 +15,16 @@ class NotificationManager{
     }
   }
 
-  void notify(String sender, String msg, String chatId) async {
+
+  void notify(String sender, String profilePictureUrl, String msg, String chatId, String userId) async {
     var bytes = utf8.encode(chatId);
     String notificationJsonData = '{'
         '"notification" : {'
         '"body" : "$msg", '
         '"title" : "$sender", '
         '"sound" : "default"'
-        '}, "to" : "/topics/${sha256.convert(bytes).toString()}", "data" : {"chatId" : "${sha256.convert(bytes).toString()}"}}';
+        '}, "to" : "/topics/${sha256.convert(bytes).toString()}", '
+        '"data" : {"chatId" : "${sha256.convert(bytes).toString()}", "userId" : "$userId", "profilePicture" : "${profilePictureUrl.toString()}"}}';
 
     await FCMClient.create().notify(jsonDecode(notificationJsonData));
   }

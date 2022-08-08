@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -18,32 +19,37 @@ import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Data%20Models/Interests%20Data%20Model/interests_data_model.dart';
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Data%20Models/Photo%20Search%20Data%20Model/photo_search_data_model.dart';
+import 'package:uny_app/Gifts%20Model/gifts_model.dart';
 import 'package:uny_app/Other%20Users%20Page/other_users_photo_viewer.dart';
 import 'package:uny_app/Other%20Users%20Page/other_users_video_player.dart';
 import 'package:uny_app/Report%20Page%20Android/report_page_android.dart';
 import 'package:uny_app/Report%20Types/report_types.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
-import 'package:uny_app/Web%20Socket%20Settings/web_socket_settings.dart';
 import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
 
 class OtherUsersPage extends StatefulWidget{
   
   Matches? user;
 
-  OtherUsersPage({required this.user});
+  OtherUsersPage({Key? key, required this.user}) : super(key: key);
 
   @override
   _OtherUsersPage createState() => _OtherUsersPage();
 }
 
-class _OtherUsersPage extends State<OtherUsersPage>{
+class _OtherUsersPage extends State<OtherUsersPage> with TickerProviderStateMixin{
 
   late String token;
 
   late double height;
   late double width;
-  
-  late SocketSettings _socket;
+
+  late TabController _tabController;
+
+  late AnimationController emojisAnimationController;
+  late AnimationController controller;
+
+  final String _unyLogo = 'assets/gift_page_uny_logo.svg';
 
   FToast? _fToast;
   Reports? _reports;
@@ -59,17 +65,78 @@ class _OtherUsersPage extends State<OtherUsersPage>{
 
   int _currentPic = 1;
 
+  int? _selectedGiftIndex;
+
+  bool _isReactionButtonTapped = false;
+
+  double _begin = 10.0;
+  double _end = 0.0;
+
+  List<GiftModel> giftsList = [
+    GiftModel(
+        image: 'assets/gifts/bikini_bottom.png',
+        name: 'Bikini Bottom',
+        price: '25',
+        type: 'vip'
+    ),
+    GiftModel(
+        image: 'assets/gifts/bounty_bar.png',
+        name: 'Bounty Bar',
+        price: '1.3',
+        type: ''
+    ),
+    GiftModel(
+        image: 'assets/gifts/bouquet.png',
+        name: 'Bouquet',
+        price: '2.2',
+        type: ''
+    ),
+    GiftModel(
+        image: 'assets/gifts/cookie_boopie.png',
+        name: 'Cookie Boopie',
+        price: '2.2',
+        type: ''
+    ),
+    GiftModel(
+        image: 'assets/gifts/ice_mice.png',
+        name: 'Ice Mice',
+        price: '1.5',
+        type: 'new'
+    ),
+    GiftModel(
+        image: 'assets/gifts/no_comments.png',
+        name: 'No comments',
+        price: '2.2',
+        type: ''
+    ),
+    GiftModel(
+        image: 'assets/gifts/ratman.png',
+        name: 'Ratman',
+        price: '0',
+        type: ''
+    ),
+    GiftModel(
+        image: 'assets/gifts/rich_watch.png',
+        name: 'Rich Watch',
+        price: '20',
+        type: ''
+    )
+  ];
+
   @override
   void initState() {
     super.initState();
-    
-    _socket = SocketSettings.init();
 
     token = 'Bearer ' + TokenData.getUserToken();
 
     _fToast = FToast();
 
     user = widget.user;
+
+    _tabController = TabController(length: 5, vsync: this);
+
+    controller = AnimationController(vsync: this, duration: Duration(milliseconds: 250));
+    emojisAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 400));
 
     if(user!.media!.mainPhoto != null){
       userProfilePhoto = user!.media!.mainPhoto;
@@ -95,213 +162,410 @@ class _OtherUsersPage extends State<OtherUsersPage>{
     });
   }
 
+
+  @override
+  void dispose() {
+
+    controller.dispose();
+    emojisAnimationController.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-        return Sizer(
-          builder: (context, orientation, deviceType) {
-            return ResponsiveWrapper.builder(
-              Scaffold(
-                body: NestedScrollView(
-                    physics: BouncingScrollPhysics(),
-                    headerSliverBuilder: (context, innerBoxIsScrolled) {
-                      return
-                        [
-                        SliverAppBar(
-                          backgroundColor: Colors.white,
-                          expandedHeight: 300,
-                          automaticallyImplyLeading: false,
-                          systemOverlayStyle: SystemUiOverlayStyle.light,
-                          toolbarHeight: mainPhotos!.length > 1 ? 120 : 90,
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                                        onPressed: () => Navigator.pop(context),
-                                      ),
-                                      Container(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            SizedBox(height: 10),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                '${user!.firstName} ' '${user!.lastName[0]}' ' ' '${user!.age}',
-                                                style: TextStyle(fontSize: 24, color: Colors.white),
-                                              ),
-                                                SizedBox(width: 10),
-                                                SizedBox(
-                                                    height: 20,
-                                                    width: 20,
-                                                    child: ClipOval(
-                                                      child: SvgPicture.asset('assets/russian_flag.svg'),
-                                                    )
-                                                ),
-                                              ],
-                                            ),
-                                            user!.job != null ? Text('${user!.job}') : Container(),
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 5,
-                                                  height: 5,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: Colors.green,
+        return GestureDetector(
+          onTap: _isReactionButtonTapped ? (){
+            setState(() {
+              _isReactionButtonTapped = false;
+            });
 
+            controller.reverse();
+            emojisAnimationController.reverse();
+
+            animateBlur();
+          } : null,
+          child: Material(
+            child: Stack(
+              children: [
+                Sizer(
+                  builder: (context, orientation, deviceType) {
+                    return ResponsiveWrapper.builder(
+                      Scaffold(
+                        body: NestedScrollView(
+                            physics: BouncingScrollPhysics(),
+                            headerSliverBuilder: (context, innerBoxIsScrolled) {
+                              return
+                                [
+                                  SliverAppBar(
+                                    backgroundColor: Colors.white,
+                                    expandedHeight: 300,
+                                    automaticallyImplyLeading: false,
+                                    systemOverlayStyle: SystemUiOverlayStyle.light,
+                                    toolbarHeight: mainPhotos!.length > 1 ? 120 : 90,
+                                    title: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                IconButton(
+                                                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                                                  onPressed: () => Navigator.pop(context),
+                                                ),
+                                                Container(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      SizedBox(height: 10),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            '${user!.firstName} ' '${user!.lastName[0]}' ' ' '${user!.age}',
+                                                            style: TextStyle(fontSize: 24, color: Colors.white),
+                                                          ),
+                                                          SizedBox(width: 10),
+                                                          SizedBox(
+                                                              height: 20,
+                                                              width: 20,
+                                                              child: ClipOval(
+                                                                child: SvgPicture.asset('assets/russian_flag.svg'),
+                                                              )
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      user!.job != null ? Text('${user!.job}') : Container(),
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            width: 5,
+                                                            height: 5,
+                                                            decoration: BoxDecoration(
+                                                              shape: BoxShape.circle,
+                                                              color: Colors.green,
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 5),
+                                                          Text('В сети', style: TextStyle(fontSize: 12))
+                                                        ],
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
-                                                SizedBox(width: 5),
-                                                Text('В сети', style: TextStyle(fontSize: 12))
                                               ],
-                                            ),
-                                          ],
+                                            )
                                         ),
-                                      ),
-                                    ],
-                                  )
-                              ),
-                              Container(
-                                child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 5),
-                                    child: Column(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.more_horiz),
-                                          onPressed: (){
-                                            showActionsSheet();
-                                          },
-                                        ),
-                                        SizedBox(
-                                          height: 30,
-                                          width: 30,
-                                          child: SvgPicture.asset('assets/mail_icon.svg'),
+                                        Container(
+                                          child: Padding(
+                                              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 5),
+                                              child: Column(
+                                                children: [
+                                                  IconButton(
+                                                    icon: Icon(Icons.more_horiz),
+                                                    onPressed: (){
+                                                      showActionsSheet();
+                                                    },
+                                                  ),
+                                                  SizedBox(
+                                                    height: 30,
+                                                    width: 30,
+                                                    child: SvgPicture.asset('assets/mail_icon.svg'),
+                                                  )
+                                                ],
+                                              )
+                                          ),
                                         )
                                       ],
-                                    )
-                                ),
-                              )
-                            ],
-                          ),
-                          flexibleSpace: FlexibleSpaceBar(
-                            background: ClipRRect(
-                              borderRadius: BorderRadius.only(
-                                bottomRight: Radius.circular(50),
-                              ),
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    child: CarouselSlider(
-                                      options: CarouselOptions(
-                                          height: height / 1.5,
-                                          enlargeCenterPage: true,
-                                          scrollPhysics: PageScrollPhysics(),
-                                          viewportFraction: 1,
-                                          enableInfiniteScroll: false,
-                                          disableCenter: false,
-                                          pageSnapping: true,
-                                          enlargeStrategy: CenterPageEnlargeStrategy.scale,
-                                          scrollDirection: Axis.horizontal,
-                                          onPageChanged: (index, reason){
-                                            picsState!(() {
-                                              _currentPic = index + 1;
-                                            });
-                                          }
+                                    ),
+                                    flexibleSpace: FlexibleSpaceBar(
+                                      background: ClipRRect(
+                                          borderRadius: BorderRadius.only(
+                                            bottomRight: Radius.circular(50),
+                                          ),
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                child: CarouselSlider(
+                                                    options: CarouselOptions(
+                                                        height: height / 1.5,
+                                                        enlargeCenterPage: true,
+                                                        scrollPhysics: PageScrollPhysics(),
+                                                        viewportFraction: 1,
+                                                        enableInfiniteScroll: false,
+                                                        disableCenter: false,
+                                                        pageSnapping: true,
+                                                        enlargeStrategy: CenterPageEnlargeStrategy.scale,
+                                                        scrollDirection: Axis.horizontal,
+                                                        onPageChanged: (index, reason){
+                                                          picsState!(() {
+                                                            _currentPic = index + 1;
+                                                          });
+                                                        }
+                                                    ),
+                                                    items: List.generate(mainPhotos!.length, (index){
+                                                      return CachedNetworkImage(
+                                                        imageUrl: mainPhotos![index].url,
+                                                        imageBuilder: (context, imageProvider) => Material(
+                                                          elevation: 100,
+                                                          child: Container(
+                                                            decoration: BoxDecoration(
+                                                                color: Colors.red,
+                                                                image: DecorationImage(
+                                                                    image: imageProvider,
+                                                                    fit: BoxFit.cover
+                                                                )
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        placeholder: (context, url) => Shimmer.fromColors(
+                                                          baseColor: Colors.grey[300]!,
+                                                          highlightColor: Colors.white,
+                                                          child: Container(
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.grey,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    })
+                                                ),
+                                              ),
+                                              mainPhotos!.length > 1 ? StatefulBuilder(
+                                                builder: (context, setState){
+                                                  picsState = setState;
+                                                  return Positioned(
+                                                    top: height * 0.07,
+                                                    left: 10,
+                                                    right: 10,
+                                                    child: SizedBox(
+                                                      height: 8,
+                                                      width: width,
+                                                      child: Row(
+                                                        children: List.generate(mainPhotos!.length, (index) {
+                                                          return Expanded(
+                                                            child: Container(
+                                                              margin: EdgeInsets.all(3),
+                                                              width: 100,
+                                                              height: 5,
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.circular(20),
+                                                                color: _currentPic - 1 == index ? Colors.white : Colors.grey,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ) : Container()
+                                            ],
+                                          )
                                       ),
-                                      items: List.generate(mainPhotos!.length, (index){
-                                        return CachedNetworkImage(
-                                          imageUrl: mainPhotos![index].url,
-                                          imageBuilder: (context, imageProvider) => Material(
-                                            elevation: 100,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                  color: Colors.red,
-                                                  image: DecorationImage(
-                                                      image: imageProvider,
-                                                      fit: BoxFit.cover
-                                                  )
-                                              ),
-                                            ),
-                                          ),
-                                          placeholder: (context, url) => Shimmer.fromColors(
-                                            baseColor: Colors.grey[300]!,
-                                            highlightColor: Colors.white,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                  color: Colors.grey,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      })
                                     ),
                                   ),
-                                  mainPhotos!.length > 1 ? StatefulBuilder(
-                                    builder: (context, setState){
-                                      picsState = setState;
-                                      return Positioned(
-                                        top: height * 0.07,
-                                        left: 10,
-                                        right: 10,
-                                        child: SizedBox(
-                                          height: 8,
-                                          width: width,
-                                          child: Row(
-                                            children: List.generate(mainPhotos!.length, (index) {
-                                              return Expanded(
-                                                child: Container(
-                                                  margin: EdgeInsets.all(3),
-                                                  width: 100,
-                                                  height: 5,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(20),
-                                                    color: _currentPic - 1 == index ? Colors.white : Colors.grey,
-                                                  ),
-                                                ),
-                                              );
-                                            }),
+                                ];
+                            },
+                            body: MediaQuery.removePadding(
+                                context: context,
+                                removeTop: true,
+                                child: IgnorePointer(
+                                  ignoring: _isReactionButtonTapped,
+                                  child: mainBody(),
+                                )
+                            )
+                        ),
+                      ),
+                      maxWidth: 800,
+                      minWidth: 450,
+                      defaultScale: true,
+                      breakpoints: [
+                        ResponsiveBreakpoint.resize(450, name: MOBILE),
+                        ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+                      ],
+                    );
+                  },
+                ),
+                StatefulBuilder(
+                  builder: (context, setState1){
+                    return Positioned(
+                      top: height / 4.5,
+                      width: 500,
+                      child: _isReactionButtonTapped ? TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: _begin, end: _end),
+                        duration: Duration(milliseconds: 250),
+                        curve: Curves.easeIn,
+                        builder: (_, value, __){
+                          return BackdropFilter(
+                            filter: ImageFilter.blur(
+                                sigmaX: value,
+                                sigmaY: value
+                            ),
+                            child: AnimatedSwitcher(
+                                duration: Duration(milliseconds: 400),
+                                transitionBuilder: (child, transition) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                        begin: Offset(0, 5),
+                                        end: Offset.zero
+                                    ).animate(
+                                      CurvedAnimation(
+                                          parent: emojisAnimationController,
+                                          curve: Curves.fastOutSlowIn),
+                                    ),
+                                    child: child,
+                                  );
+                                },
+                                child: SizedBox(
+                                  height: height,
+                                  child: Stack(
+                                    clipBehavior: Clip.antiAlias,
+                                    children: [
+                                      Positioned(
+                                        top: height / 2.7,
+                                        left: width / 2,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 5,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/angry.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
                                           ),
                                         ),
-                                      );
-                                    },
-                                  ) : Container()
-                                ],
-                              )
+                                      ),
+                                      Positioned(
+                                        top: height / 2.7,
+                                        left: width / 3.5,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 5,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/surprised.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 4,
+                                        left: width / 2.46,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 6,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/wink.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 4,
+                                        left: width / 7,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/happy.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 4,
+                                        left: width / 1.7,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/fire.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 7.5,
+                                        left: width / 3.9,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/loved.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: height / 7.3,
+                                        left: width / 2.1,
+                                        child: InkWell(
+                                          child: Container(
+                                            height: height / 12,
+                                            width: width / 4,
+                                            decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                    image: AssetImage('assets/crazy.png'),
+                                                    fit: BoxFit.contain
+                                                )
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                          top: height / 2.1,
+                                          left: width / 3.8,
+                                          child: Text(
+                                            'Отправьте вашу реакцию',
+                                            style: TextStyle(fontSize: 17, color: Colors.white),
+                                          )
+                                      ),
+                                    ],
+                                  ),
+                                )
                             ),
-                          ),
-                        ),
-                      ];
-                    },
-                    body: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: mainBody()
-                    )
+                          );
+                        },
+                      ) : Container(),
+                    );
+                  },
                 ),
-              ),
-              maxWidth: 800,
-              minWidth: 450,
-              defaultScale: true,
-              breakpoints: [
-                ResponsiveBreakpoint.resize(450, name: MOBILE),
-                ResponsiveBreakpoint.autoScale(800, name: MOBILE),
               ],
-            );
-          },
+            ),
+          ),
         );
       },
     );
   }
+
 
   Widget mainBody(){
     return ListView(
@@ -324,8 +588,15 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                             width: 20,
                             child: Icon(Icons.home_rounded, color: Colors.white, size: 15),
                             decoration: BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: const [
+                                    Color.fromRGBO(22, 126, 218, 10),
+                                    Color.fromRGBO(98, 181, 255, 10),
+                                  ]
+                                )
                             ),
                           ),
                           SizedBox(width: 5),
@@ -363,20 +634,438 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                 child: Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        height: 50,
-                        child: Center(
-                          child: Text('Реакция', style: TextStyle(color: Colors.black)),
+                      child: GestureDetector(
+                        onTap: (){
+                          setState(() {
+                            _isReactionButtonTapped = !_isReactionButtonTapped;
+                          });
+
+                          _isReactionButtonTapped
+                              ? controller.forward()
+                              : controller.reverse();
+                          _isReactionButtonTapped ? emojisAnimationController
+                              .forward() : emojisAnimationController.reverse();
+
+                          animateBlur();
+                        },
+                        child: Container(
+                          height: 40,
+                          child: Center(
+                            child: Text('Реакция', style: TextStyle(color: Colors.black)),
+                          ),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: Colors.deepOrange)
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.deepOrange)
-                        ),
-                      ),
+                      )
                     ),
                     SizedBox(width: 10),
                     Expanded(
                         child: GestureDetector(
+                          onLongPress: (){
+                            showCupertinoModalPopup(
+                                context: context,
+                                builder: (context){
+                                  return StatefulBuilder(
+                                    builder: (context, setState){
+                                      return Material(
+                                        borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                                        child: Container(
+                                          padding: EdgeInsets.only(top: height / 80),
+                                          height: height * 0.7,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10, right: 10),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    SizedBox(width: width / 8),
+                                                    Text('Отправить подарок',
+                                                        style:
+                                                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                                                    IconButton(
+                                                      icon: Icon(CupertinoIcons.clear_thick_circled),
+                                                      color: Colors.grey.withOpacity(0.5),
+                                                      onPressed: () => Navigator.pop(context),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                              TabBar(
+                                                controller: _tabController,
+                                                unselectedLabelColor: Colors.grey,
+                                                indicatorColor: Color.fromRGBO(145, 10, 251, 5),
+                                                labelColor: Color.fromRGBO(145, 10, 251, 5),
+                                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                                physics: BouncingScrollPhysics(),
+                                                isScrollable: true,
+                                                tabs: const [
+                                                  Tab(text: 'Обычные'),
+                                                  Tab(text: 'Необычные'),
+                                                  Tab(text: 'Редкие'),
+                                                  Tab(text: 'Эпические'),
+                                                  Tab(text: 'Легендарные'),
+                                                ],
+                                              ),
+                                              SizedBox(height: 10),
+                                              Container(
+                                                height: 60,
+                                                child: Center(
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Text('Ваш баланс', style: TextStyle(color: Colors.grey, fontSize: 17)),
+                                                        SizedBox(width: 10),
+                                                        Text('12', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                                                        SizedBox(width: 5),
+                                                        SvgPicture.asset(_unyLogo, height: 17)
+                                                      ],
+                                                    )
+                                                ),
+                                                decoration: BoxDecoration(
+                                                    color: Colors.grey.withOpacity(0.2),
+                                                    border: Border(
+                                                        top: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                                                        bottom: BorderSide(color: Colors.grey.withOpacity(0.5))
+                                                    )
+                                                ),
+                                              ),
+                                              SizedBox(height: 20),
+                                              Container(
+                                                height: 270,
+                                                padding: EdgeInsets.only(left: 10),
+                                                child: TabBarView(
+                                                  controller: _tabController,
+                                                  children: [
+                                                    SizedBox(
+                                                      child: GridView.count(
+                                                          crossAxisCount: 2,
+                                                          crossAxisSpacing: 4,
+                                                          mainAxisSpacing: 4,
+                                                          shrinkWrap: true,
+                                                          scrollDirection: Axis.horizontal,
+                                                          children: List.generate(giftsList.length, (index){
+                                                            return GestureDetector(
+                                                              onTap: (){
+                                                                setState((){
+                                                                  _selectedGiftIndex = index;
+                                                                });
+                                                              },
+                                                              child: Stack(
+                                                                children: [
+                                                                  AnimatedContainer(
+                                                                    height: 150,
+                                                                    width: 150,
+                                                                    duration: Duration(milliseconds: 150),
+                                                                    curve: Curves.easeIn,
+                                                                    child: Center(
+                                                                        child: Column(
+                                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                                          children: [
+                                                                            Image.asset(giftsList[index].image!, scale: 4),
+                                                                            SizedBox(height: 10),
+                                                                            Text(giftsList[index].name!, style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+                                                                            Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                              children: [
+                                                                                Text(
+                                                                                  giftsList[index].price == '0'
+                                                                                      ? 'Бесплатно'
+                                                                                      : giftsList[index].price!,
+                                                                                  style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(145, 10, 251, 5)),
+                                                                                ),
+                                                                                SizedBox(width: 5),
+                                                                                giftsList[index].price != '0' ? SvgPicture.asset(_unyLogo, height: 10) : Container()
+                                                                              ],
+                                                                            )
+                                                                          ],
+                                                                        )
+                                                                    ),
+                                                                    decoration: BoxDecoration(
+                                                                        color: _selectedGiftIndex == index ? Colors.grey.withOpacity(0.3) : Colors.transparent,
+                                                                        borderRadius: BorderRadius.circular(20)
+                                                                    ),
+                                                                  ),
+                                                                  Positioned(
+                                                                    top: 15,
+                                                                    left: 15,
+                                                                    child: ClipOval(
+                                                                      child: Container(
+                                                                        height: 10,
+                                                                        width: 10,
+                                                                        color: Colors.grey.withOpacity(0.5),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  giftsList[index].type == 'new'
+                                                                  ? Positioned(
+                                                                    top: 10,
+                                                                    right: 10,
+                                                                    child: Container(
+                                                                      padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                                                                        child: Center(
+                                                                            child: Text('NEW', style: TextStyle(fontSize: 8, color: Colors.white))
+                                                                        ),
+                                                                      decoration: BoxDecoration(
+                                                                          color: Color.fromRGBO(253, 43, 93, 10),
+                                                                          borderRadius: BorderRadius.all(Radius.circular(20))
+                                                                      ),
+                                                                    ),
+                                                                  ) : giftsList[index].type == 'vip'
+                                                                  ? Positioned(
+                                                                    top: 10,
+                                                                    right: 10,
+                                                                    child: Container(
+                                                                      padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                                                                      child: Center(
+                                                                          child: Text('VIP', style: TextStyle(fontSize: 8, color: Colors.white))
+                                                                      ),
+                                                                      decoration: BoxDecoration(
+                                                                          color: Colors.black,
+                                                                          borderRadius: BorderRadius.all(Radius.circular(20))
+                                                                      ),
+                                                                    ),
+                                                                  ) : SizedBox()
+                                                                ],
+                                                              ),
+                                                            );
+                                                          })
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 100, width: 100),
+                                                    SizedBox(height: 100, width: 100),
+                                                    SizedBox(height: 100, width: 100)
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 50),
+                                              GestureDetector(
+                                                onTap: _selectedGiftIndex != null ? () {
+                                                  showCupertinoModalBottomSheet(
+                                                      context: context,
+                                                      enableDrag: true,
+                                                      duration: Duration(milliseconds: 250),
+                                                      topRadius: Radius.circular(30),
+                                                      builder: (context){
+                                                        return GestureDetector(
+                                                          onTap: (){
+                                                            FocusManager.instance.primaryFocus?.unfocus();
+                                                          },
+                                                          child: Material(
+                                                            child: StatefulBuilder(
+                                                              builder: (context, setState){
+                                                                return Column(
+                                                                  children: [
+                                                                    Container(
+                                                                      padding: EdgeInsets.only(top: 10, left: 10, right: 10),
+                                                                      child: Row(
+                                                                        children: [
+                                                                          TextButton(
+                                                                            onPressed: () => Navigator.pop(context),
+                                                                            child: Text('Отмена', style: TextStyle(color: Color.fromRGBO(253, 43, 93, 10), fontSize: 17)),
+                                                                          ),
+                                                                          Container(width: width / 6),
+                                                                          Text('Подарок', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+                                                                          Container(width: width / 6)
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: 50),
+                                                                    Material(
+                                                                        elevation: 5,
+                                                                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                                        child: Stack(
+                                                                          children: [
+                                                                            Container(
+                                                                              height: 200,
+                                                                              width: 200,
+                                                                              child: Center(
+                                                                                  child: Column(
+                                                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                                                    children: [
+                                                                                      Image.asset(giftsList[_selectedGiftIndex!].image!, scale: 2),
+                                                                                      SizedBox(height: 20),
+                                                                                      Text(giftsList[_selectedGiftIndex!].name!, style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500, fontSize: 20)),
+                                                                                      SizedBox(height: 10),
+                                                                                      Row(
+                                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                                        children: [
+                                                                                          Text(
+                                                                                            giftsList[_selectedGiftIndex!].price == '0'
+                                                                                                ? 'Бесплатно'
+                                                                                                : giftsList[_selectedGiftIndex!].price!,
+                                                                                            style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(145, 10, 251, 5), fontSize: 16),
+                                                                                          ),
+                                                                                          SizedBox(width: 10),
+                                                                                          giftsList[_selectedGiftIndex!].price != '0' ? SvgPicture.asset(_unyLogo, height: 14) : Container()
+                                                                                        ],
+                                                                                      )
+                                                                                    ],
+                                                                                  )
+                                                                              ),
+                                                                              decoration: BoxDecoration(
+                                                                                  color: Colors.white,
+                                                                                  borderRadius: BorderRadius.all(Radius.circular(20))
+                                                                              ),
+                                                                            ),
+                                                                            Positioned(
+                                                                              top: 15,
+                                                                              left: 15,
+                                                                              child: ClipOval(
+                                                                                child: Container(
+                                                                                  height: 15,
+                                                                                  width: 15,
+                                                                                  color: Colors.grey.withOpacity(0.5),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            giftsList[_selectedGiftIndex!].type == 'new'
+                                                                                ? Positioned(
+                                                                              top: 10,
+                                                                              right: 10,
+                                                                              child: Container(
+                                                                                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                                                                                child: Center(
+                                                                                    child: Text('NEW', style: TextStyle(fontSize: 13, color: Colors.white))
+                                                                                ),
+                                                                                decoration: BoxDecoration(
+                                                                                    color: Color.fromRGBO(253, 43, 93, 10),
+                                                                                    borderRadius: BorderRadius.all(Radius.circular(20))
+                                                                                ),
+                                                                              ),
+                                                                            ) : giftsList[_selectedGiftIndex!].type == 'vip'
+                                                                                ? Positioned(
+                                                                              top: 10,
+                                                                              right: 10,
+                                                                              child: Container(
+                                                                                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                                                                                child: Center(
+                                                                                    child: Text('VIP', style: TextStyle(fontSize: 13, color: Colors.white))
+                                                                                ),
+                                                                                decoration: BoxDecoration(
+                                                                                    color: Colors.black,
+                                                                                    borderRadius: BorderRadius.all(Radius.circular(20))
+                                                                                ),
+                                                                              ),
+                                                                            ) : SizedBox()
+                                                                          ],
+                                                                        )
+                                                                    ),
+                                                                    SizedBox(height: 30),
+                                                                    Container(
+                                                                      height: 130,
+                                                                      margin: EdgeInsets.only(left: 20, right: 20),
+                                                                      child: TextFormField(
+                                                                        maxLines: 15,
+                                                                        cursorColor: Colors.black.withOpacity(0.4),
+                                                                        textInputAction: TextInputAction.done,
+                                                                        decoration: InputDecoration(
+                                                                          hintText: 'Сообщение',
+                                                                          fillColor: Colors.grey.withOpacity(0.2),
+                                                                          filled: true,
+                                                                          border: OutlineInputBorder(
+                                                                              borderRadius: BorderRadius.circular(20),
+                                                                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.2))
+                                                                          ),
+                                                                          focusedBorder: OutlineInputBorder(
+                                                                              borderRadius: BorderRadius.circular(20),
+                                                                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.2))
+                                                                          ),
+                                                                          enabledBorder: OutlineInputBorder(
+                                                                              borderRadius: BorderRadius.circular(20),
+                                                                              borderSide: BorderSide(color: Colors.grey.withOpacity(0.2))
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(height: height / 4),
+                                                                    Container(
+                                                                        child: Column(
+                                                                          children: [
+                                                                            Divider(color: Colors.grey),
+                                                                            Center(
+                                                                                child: Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                                  children: [
+                                                                                    Text('Ваш баланс 12', style: TextStyle(color: Colors.grey)),
+                                                                                    SizedBox(width: 5),
+                                                                                    SvgPicture.asset(_unyLogo, color: Colors.grey)
+                                                                                  ],
+                                                                                )
+                                                                            ),
+                                                                            SizedBox(height: 20),
+                                                                            Material(
+                                                                              elevation: 10,
+                                                                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                                              child: ClipRRect(
+                                                                                borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                                                child: Container(
+                                                                                  width: 400,
+                                                                                  height: 50,
+                                                                                  color: Color.fromRGBO(145, 10, 251, 5),
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                                                    children: [
+                                                                                      SizedBox(width: 5),
+                                                                                      Text('Отправить за ${giftsList[_selectedGiftIndex!].price}', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
+                                                                                      SizedBox(width: 5),
+                                                                                      Container(
+                                                                                        child: SvgPicture.asset(_unyLogo, color: Colors.white),
+                                                                                      )
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                          mainAxisAlignment: MainAxisAlignment.end,
+                                                                        )
+                                                                    )
+                                                                  ],
+                                                                );
+                                                              },
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                  );
+                                                } : null,
+                                                child: Material(
+                                                  elevation: 5,
+                                                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                    child: Container(
+                                                      width: 400,
+                                                      height: 50,
+                                                      color: _selectedGiftIndex != null ? Color.fromRGBO(145, 10, 251, 5) : Colors.grey,
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: const [
+                                                          SizedBox(width: 5),
+                                                          Text('Отправить', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))
+                                                        ],
+                                                      ),
+                                                    ),
+                                                ),
+                                               ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }
+                            );
+                          },
                           onTap: () async {
                             var data = {
                               'user_id' : user!.id
@@ -384,11 +1073,10 @@ class _OtherUsersPage extends State<OtherUsersPage>{
 
                             await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).startChat(token, data).whenComplete((){
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Перейдите в раздел сообщения', style: TextStyle(fontWeight: FontWeight.bold))));
-
                             });
                           },
                           child: Container(
-                            height: 50,
+                            height: 40,
                             child: Center(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -443,10 +1131,15 @@ class _OtherUsersPage extends State<OtherUsersPage>{
                                 ),
                                 decoration: BoxDecoration(
                                     borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                    color: Color(int.parse('0x' + _interests.color!)),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(int.parse('0x' + _interests.startColor)),
+                                        Color(int.parse('0x' + _interests.endColor)),
+                                      ]
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
-                                          color: Color(int.parse('0x' + _interests.color!)).withOpacity(0.7),
+                                          color: Color(int.parse('0x' + _interests.startColor!)).withOpacity(0.7),
                                           offset: const Offset(3, 3),
                                           blurRadius: 0,
                                           spreadRadius: 0
@@ -1182,6 +1875,18 @@ class _OtherUsersPage extends State<OtherUsersPage>{
         context,
         MaterialPageRoute(builder: (context) => ReportPageAndroid())
       );
+    }
+  }
+
+  void animateBlur() {
+    setState(() {
+      _begin == 10.0 ? _begin = 0.0 : _begin = 10.0;
+      _end == 0.0 ? _end = 10.0 : _end = 0.0;
+    });
+
+    if(!_isReactionButtonTapped){
+      _begin = 10.0;
+      _end = 0.0;
     }
   }
 }

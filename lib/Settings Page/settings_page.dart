@@ -241,7 +241,7 @@ class _SettingsPageState extends State<SettingsPage>{
         SizedBox(height: 10),
         Consumer<UserDataProvider>(
           builder: (context, viewModel, child){
-            return Text('${viewModel.userDataModel!.firstName} ${viewModel.userDataModel!.lastName}  ${DateTime.now().year - (int.parse(viewModel.userDataModel!.dateOfBirth.split('-')[0]))}', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold));
+            return Text('${viewModel.userDataModel!.firstName} ${viewModel.userDataModel!.lastName}  ${DateTime.now().year - (int.parse(viewModel.userDataModel!.dateOfBirth.split('-')[0]))}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold));
           },
         ),
         SizedBox(height: 5),
@@ -253,7 +253,7 @@ class _SettingsPageState extends State<SettingsPage>{
                 + ' ' + _phoneNumber[5] + _phoneNumber[6] + _phoneNumber[7] + '-'
                 + _phoneNumber[8] + _phoneNumber[9] + '-' + _phoneNumber[10] + _phoneNumber[11];
 
-            return Text(_russianFormattedNumber, style: TextStyle(fontSize: 15, color: Colors.grey));
+            return Text(_russianFormattedNumber, style: TextStyle(fontSize: 13, color: Colors.grey));
           },
         ),
         SizedBox(height: height / 40),
@@ -268,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage>{
             );
           },
           child: Container(
-            height: height / 18,
+            height: 48,
             width: width * 0.9,
             child: Center(
                 child: Text('Редактировать профиль', style: TextStyle(fontSize: 17))

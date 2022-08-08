@@ -82,7 +82,7 @@ class _$InterestsDatabase extends InterestsDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `InterestsModel` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `type` TEXT, `color` TEXT)');
+            'CREATE TABLE IF NOT EXISTS `InterestsModel` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `type` TEXT, `startColor` TEXT, `endColor` TEXT)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -107,7 +107,8 @@ class _$InterestsDao extends InterestsDao {
                   'id': item.id,
                   'name': item.name,
                   'type': item.type,
-                  'color': item.color
+                  'startColor': item.startColor,
+                  'endColor': item.endColor
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -126,7 +127,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?),
+            row['startColor'] as String?,
+            row['endColor'] as String?),
         arguments: [start, end]);
   }
 
@@ -139,7 +141,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?),
+            row['startColor'] as String?,
+            row['endColor'] as String?),
         arguments: [start, end]);
   }
 
@@ -152,7 +155,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?),
+            row['startColor'] as String?,
+            row['endColor'] as String?),
         arguments: [start, end]);
   }
 
@@ -165,7 +169,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?),
+            row['startColor'] as String?,
+            row['endColor'] as String?),
         arguments: [start, end]);
   }
 
@@ -177,7 +182,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?));
+            row['startColor'] as String?,
+            row['endColor'] as String?));
   }
 
   @override
@@ -188,7 +194,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?));
+            row['startColor'] as String?,
+            row['endColor'] as String?));
   }
 
   @override
@@ -199,7 +206,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?),
+            row['startColor'] as String?,
+            row['endColor'] as String?),
         arguments: [name]);
   }
 
@@ -210,7 +218,8 @@ class _$InterestsDao extends InterestsDao {
             row['id'] as int?,
             row['name'] as String?,
             row['type'] as String?,
-            row['color'] as String?));
+            row['startColor'] as String?,
+            row['endColor'] as String?));
   }
 
   @override

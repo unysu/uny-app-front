@@ -48,11 +48,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   FocusNode? _nameTextFocusNode;
   FocusNode? _secondNameTextFocusNode;
 
-  String _genderString = 'Женский';
+  String _genderString = 'female';
 
   DateTime _date = DateTime.now();
-
-  final bool _containsSymbolsNameField = false;
 
   bool _showZodiacSign = true;
   bool _iAmNotWorking = true;
@@ -195,7 +193,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                      FilteringTextInputFormatter.deny(RegExp("/"))
                     ],
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
@@ -237,7 +236,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textCapitalization: TextCapitalization.sentences,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                      FilteringTextInputFormatter.deny(RegExp("/"))
                     ],
                     style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                     decoration: InputDecoration(
@@ -290,15 +290,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           underline: Container(),
                           items: [
                             DropdownMenuItem(
-                              value: 'Мужской',
+                              value: 'male',
                               child: Text('Мужской', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
                             ),
                             DropdownMenuItem(
-                              value: 'Женский',
+                              value: 'female',
                               child:  Text('Женский', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
                             ),
                             DropdownMenuItem(
-                              value: 'Другое',
+                              value: 'other',
                               child:  Text('Другое', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
                             )
                           ],
@@ -446,7 +446,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 cursorColor: Color.fromRGBO(145, 10, 251, 5),
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                  FilteringTextInputFormatter.deny(RegExp("/"))
                 ],
                 style: TextStyle(color: Colors.black),
                 decoration: InputDecoration(
@@ -520,7 +521,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   textCapitalization: TextCapitalization.sentences,
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                    FilteringTextInputFormatter.deny(RegExp("/"))
                   ],
                   style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                   decoration: InputDecoration(
@@ -548,7 +550,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   cursorColor: Color.fromRGBO(145, 10, 251, 5),
                   textCapitalization: TextCapitalization.sentences,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]"))
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                    FilteringTextInputFormatter.deny(RegExp("/"))
                   ],
                   style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
                   decoration: InputDecoration(
@@ -702,6 +705,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       showCupertinoModalPopup(
           context: context,
           builder: (context){
+            print(TokenData.getUserToken());
             return CupertinoActionSheet(
               title: Text.rich(
                 TextSpan(

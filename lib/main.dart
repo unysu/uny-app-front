@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,7 +7,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:random_color/random_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -19,6 +19,7 @@ import 'package:uny_app/Interests%20Model/general_interests.dart';
 import 'package:uny_app/Interests%20Model/interests_db_model.dart';
 import 'package:uny_app/Interests%20Model/sport_interests.dart';
 import 'package:uny_app/Interests%20Model/travelling_interests.dart';
+import 'package:uny_app/Interests%20Page/choose_interests_page.dart';
 import 'package:uny_app/Providers/chat_counter_provider.dart';
 import 'package:uny_app/Providers/chat_data_provider.dart';
 import 'package:uny_app/Providers/user_data_provider.dart';
@@ -27,6 +28,7 @@ import 'package:uny_app/Shared%20Preferences/shared_preferences.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:uny_app/User%20Profile%20Page/user_profile_page.dart';
 import 'package:uny_app/Video%20Search%20Page/interests_counter_provider.dart';
+import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
 import 'Interests Model/career_interests.dart';
 
 
@@ -73,10 +75,12 @@ void main() async {
     child: AdaptiveTheme(
       initial: AdaptiveThemeMode.light,
       light: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(brightness: Brightness.light)
+        colorScheme: ColorScheme.fromSwatch(brightness: Brightness.light),
+        fontFamily: 'SF Pro Display'
       ),
       dark: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark)
+        colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark),
+        fontFamily: 'SF Pro Display'
       ),
       builder: (theme, darkTheme){
         return MaterialApp(
@@ -98,8 +102,6 @@ class SplashScreenPage extends StatefulWidget{
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
-
-  final RandomColor _randomColor = RandomColor();
 
   late FamilyInterests familyInterests;
   late CareerInterests careerInterests;
@@ -237,57 +239,78 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
 
       List<InterestsModel> allInterests = [];
 
-      for(int i = 0; i < _familyInterestsList!.length; ++i){
-        Color? color = _randomColor.randomColor(
-            colorHue: ColorHue.custom(Range(120, 130)),
-            colorSaturation: ColorSaturation.mediumSaturation,
-            colorBrightness: ColorBrightness.primary);
+      Map<int, List<Color>> familyInterestsColor = {
+        0 : [Color.fromRGBO(77, 227, 63, 10), Color.fromRGBO(83, 234, 122, 10)],
+        1 : [Color.fromRGBO(7, 159, 59, 10), Color.fromRGBO(9, 86, 31, 10)],
+        2 : [Color.fromRGBO(120, 226, 42, 10), Color.fromRGBO(158, 218, 41, 10)]
+      };
 
-        final familyInterests = InterestsModel.ForDB(_familyInterestsList![i], 'family', color.value.toRadixString(16));
+      Map<int, List<Color>> careerInterestsColor = {
+        0 : [Color.fromRGBO(4, 223, 223, 10), Color.fromRGBO(32, 216, 216, 10)],
+        1 : [Color.fromRGBO(81, 214, 174, 10), Color.fromRGBO(83, 214, 206, 10)],
+        2 : [Color.fromRGBO(81, 198, 233, 10), Color.fromRGBO(22, 201, 247, 10)]
+      };
+
+      Map<int, List<Color>> sportInterestsColor = {
+        0 : [Color.fromRGBO(12, 65, 253, 10), Color.fromRGBO(35, 111, 240, 10)],
+        1 : [Color.fromRGBO(22, 120, 218, 10), Color.fromRGBO(22, 93, 216, 10)],
+        2 : [Color.fromRGBO(115, 175, 255, 10), Color.fromRGBO(81, 143, 241, 10)]
+      };
+
+      Map<int, List<Color>> travelingInterestsColor = {
+        0 : [Color.fromRGBO(254, 222, 2, 10), Color.fromRGBO(231, 152, 1, 10)],
+        1 : [Color.fromRGBO(255, 134, 2, 10), Color.fromRGBO(255, 151, 1, 10)],
+        2 : [Color.fromRGBO(255, 193, 104, 10), Color.fromRGBO(255, 153, 0, 10)]
+      };
+
+      Map<int, List<Color>> generalInterestsColor = {
+        0 : [Color.fromRGBO(208, 2, 255, 10), Color.fromRGBO(167, 2, 255, 10)],
+        1 : [Color.fromRGBO(77, 2, 169, 10), Color.fromRGBO(122, 14, 194, 10)],
+        2 : [Color.fromRGBO(85, 110, 241, 10), Color.fromRGBO(156, 116, 250, 10)]
+      };
+
+
+      for(int i = 0; i < _familyInterestsList!.length; ++i){
+
+        int rn = Random().nextInt(3);
+
+        final familyInterests = InterestsModel.ForDB(_familyInterestsList![i], 'family', familyInterestsColor[rn]![0].value.toRadixString(16), familyInterestsColor[rn]![1].value.toRadixString(16));
 
         allInterests.add(familyInterests);
       }
 
       for(int i = 0; i < _careerInterestsList!.length; ++i){
-        Color? color = _randomColor.randomColor(
-            colorHue: ColorHue.custom(Range(180, 190)),
-            colorSaturation: ColorSaturation.highSaturation,
-            colorBrightness: ColorBrightness.primary);
 
-        final careerInterests = InterestsModel.ForDB(_careerInterestsList![i], 'career', color.value.toRadixString(16));
+        int rn = Random().nextInt(3);
+
+        final careerInterests = InterestsModel.ForDB(_careerInterestsList![i], 'career', careerInterestsColor[rn]![0].value.toRadixString(16), careerInterestsColor[rn]![1].value.toRadixString(16));
 
         allInterests.add(careerInterests);
       }
 
       for(int i = 0; i < _sportInterestsList!.length; ++i){
-        Color? color = _randomColor.randomColor(
-            colorHue: ColorHue.custom(Range(200, 220)),
-            colorSaturation: ColorSaturation.highSaturation,
-            colorBrightness: ColorBrightness.primary);
 
-        final sportInterests = InterestsModel.ForDB(_sportInterestsList![i], 'sport', color.value.toRadixString(16));
+        int rn = Random().nextInt(3);
+
+        final sportInterests = InterestsModel.ForDB(_sportInterestsList![i], 'sport', sportInterestsColor[rn]![0].value.toRadixString(16), sportInterestsColor[rn]![1].value.toRadixString(16));
 
         allInterests.add(sportInterests);
       }
 
       for(int i = 0; i < _travelingInterestsList!.length; ++i){
-        Color? color = _randomColor.randomColor(
-            colorHue: ColorHue.custom(Range(10, 40)),
-            colorSaturation: ColorSaturation.highSaturation,
-            colorBrightness: ColorBrightness.light);
 
-        final travelingInterests = InterestsModel.ForDB(_travelingInterestsList![i], 'traveling', color.value.toRadixString(16));
+        int rn = Random().nextInt(3);
+
+        final travelingInterests = InterestsModel.ForDB(_travelingInterestsList![i], 'traveling', travelingInterestsColor[rn]![0].value.toRadixString(16), travelingInterestsColor[rn]![1].value.toRadixString(16));
 
         allInterests.add(travelingInterests);
       }
 
       for(int i = 0; i < _generalInterestsList!.length; ++i){
-        Color? color = _randomColor.randomColor(
-            colorHue: ColorHue.custom(Range(240, 315)),
-            colorSaturation: ColorSaturation.highSaturation,
-            colorBrightness: ColorBrightness.light);
 
-        final generalInterests = InterestsModel.ForDB(_generalInterestsList![i], 'general', color.value.toRadixString(16));
+        int rn = Random().nextInt(3);
+
+        final generalInterests = InterestsModel.ForDB(_generalInterestsList![i], 'general', generalInterestsColor[rn]![0].value.toRadixString(16), generalInterestsColor[rn]![1].value.toRadixString(16));
 
         allInterests.add(generalInterests);
       }

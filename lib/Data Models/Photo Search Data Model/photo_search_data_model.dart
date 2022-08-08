@@ -39,6 +39,40 @@ class PhotoSearchDataModel{
   }
 }
 
+@JsonSerializable()
+class FilterUserDataModel{
+
+  @JsonKey(name: 'success')
+  var success;
+
+  @JsonKey(name: 'users')
+  List<Matches>? users;
+
+  FilterUserDataModel({
+    this.success,
+    this.users
+  });
+
+  FilterUserDataModel.fromJson(Map<String, dynamic> json) {
+    success = json['success'];
+    if (json['users'] != null) {
+      users = <Matches>[];
+      json['users'].forEach((v) {
+        users!.add(Matches.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    if (users != null) {
+      data['users'] = users!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
 
 @JsonSerializable()
 class Matches{

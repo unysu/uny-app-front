@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class InterestsCounterProvider extends ChangeNotifier {
 
+
   int _counter = 0;
   bool _isPlaying = true;
 
@@ -34,5 +35,4 @@ class InterestsCounterProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-
 }

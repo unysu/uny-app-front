@@ -162,7 +162,7 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
     _generalInterestsFuture = db!.interestsModelDao.getGeneralInterestsByLimit(generalInterestsStart.toString(), end.toString()).then((value) => _generalFilteredList = value);
 
 
-    if(ShPreferences.getAllInterestsShPref() != null){
+    if(ShPreferences.getAllInterestsShPref().isNotEmpty){
       _selectedAllInterests = ShPreferences.getAllInterestsShPref();
     }
 
@@ -687,10 +687,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                       ),
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                          color: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)),
+                                          gradient: LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [
+                                                Color(int.parse('0x' + _allInterestsFilteredList![index].startColor!)),
+                                                Color(int.parse('0x' + _allInterestsFilteredList![index].endColor!))
+                                              ]
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                                color: Color(int.parse('0x' + _allInterestsFilteredList![index].color!)).withOpacity(0.7),
+                                                color: Color(int.parse('0x' + _allInterestsFilteredList![index].startColor!)).withOpacity(0.7),
                                                 offset: Offset(3, 3),
                                                 blurRadius: 0,
                                                 spreadRadius: 0
@@ -781,10 +788,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                       ),
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                          color: Color(int.parse('0x' + _familyFilteredList![index].color!)),
+                                          gradient: LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [
+                                                Color(int.parse('0x' + _familyFilteredList![index].startColor!)),
+                                                Color(int.parse('0x' + _familyFilteredList![index].endColor!))
+                                              ]
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                                color: Colors.green[800]!,
+                                                color: Color(int.parse('0x' + _familyFilteredList![index].startColor!)).withOpacity(0.7),
                                                 offset: Offset(3, 3),
                                                 blurRadius: 0,
                                                 spreadRadius: 0
@@ -877,10 +891,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _careerFilteredList![index].color!)),
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _careerFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _careerFilteredList![index].endColor!))
+                                                  ]
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.blue[600]!,
+                                                    color: Color(int.parse('0x' + _careerFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -972,10 +993,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _sportFilteredList![index].color!)),
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _sportFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _sportFilteredList![index].endColor!))
+                                                  ]
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.blue[600]!,
+                                                    color: Color(int.parse('0x' + _sportFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1068,10 +1096,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _travelingFilteredList![index].color!)),
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _travelingFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _travelingFilteredList![index].endColor!))
+                                                  ]
+                                              ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.orange[800]!,
+                                                    color: Color(int.parse('0x' + _travelingFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1164,10 +1199,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                                           ),
                                           decoration: BoxDecoration(
                                               borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                              color: Color(int.parse('0x' + _generalFilteredList![index].color!)),
-                                              boxShadow: const [
+                                              gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Color(int.parse('0x' + _generalFilteredList![index].startColor!)),
+                                                    Color(int.parse('0x' + _generalFilteredList![index].endColor!))
+                                                  ]
+                                              ),
+                                              boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.deepPurple,
+                                                    color: Color(int.parse('0x' + _generalFilteredList![index].startColor!)).withOpacity(0.7),
                                                     offset: Offset(3, 3),
                                                     blurRadius: 0,
                                                     spreadRadius: 0
@@ -1283,10 +1325,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedAllInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedAllInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedAllInterests![index].endColor!))
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Color(int.parse('0x' + _selectedAllInterests![index].color!)).withOpacity(0.7),
+                            color: Color(int.parse('0x' + _selectedAllInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1348,10 +1397,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedFamilyInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedFamilyInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedFamilyInterests![index].endColor!))
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.green[800]!,
+                            color: Color(int.parse('0x' + _selectedFamilyInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1413,10 +1469,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedCareerInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedCareerInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedCareerInterests![index].endColor!))
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.blue[600]!,
+                            color: Color(int.parse('0x' + _selectedCareerInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1478,10 +1541,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedSportInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedSportInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedSportInterests![index].endColor!))
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.blue[600]!,
+                            color: Color(int.parse('0x' + _selectedSportInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1543,10 +1613,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedTravelingInterests![index].color!)),
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedTravelingInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedTravelingInterests![index].endColor!))
+                          ]
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.orange[800]!,
+                            color: Color(int.parse('0x' + _selectedTravelingInterests![index].startColor!)).withOpacity(0.7),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0
@@ -1608,10 +1685,17 @@ class _FilterInterestsVideoPage extends State<FilterInterestsVideoPage>{
                   ),
                   decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(Radius.circular(30)),
-                      color: Color(int.parse('0x' + _selectedGeneralInterests![index].color!)),
-                      boxShadow: const [
+                      gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Color(int.parse('0x' + _selectedGeneralInterests![index].startColor!)),
+                            Color(int.parse('0x' + _selectedGeneralInterests![index].endColor!))
+                          ]
+                      ),
+                      boxShadow: [
                         BoxShadow(
-                            color: Colors.deepPurple,
+                            color: Color(int.parse('0x' + _selectedGeneralInterests![index].startColor!)).withOpacity(0.7),
                             offset: Offset(3, 3),
                             blurRadius: 0,
                             spreadRadius: 0

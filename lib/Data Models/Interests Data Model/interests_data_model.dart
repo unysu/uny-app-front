@@ -23,8 +23,11 @@ class InterestsDataModel{
   @JsonKey(name: 'updated_at')
   var updatedAt;
 
-  @JsonKey(name: 'color')
-  var color;
+  @JsonKey(name: 'start_color')
+  var startColor;
+
+  @JsonKey(name: 'end_color')
+  var endColor;
 
   InterestsDataModel({
     this.id,
@@ -33,7 +36,8 @@ class InterestsDataModel{
     this.type,
     this.createdAt,
     this.updatedAt,
-    this.color
+    this.startColor,
+    this.endColor
   });
 
 

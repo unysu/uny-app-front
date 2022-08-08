@@ -8,14 +8,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:uny_app/API/uny_app_api.dart';
 import 'package:uny_app/Constants/constants.dart';
-import 'package:uny_app/Interests%20Pages/choose_interests_page.dart';
+import 'package:uny_app/Interests%20Page/choose_interests_page.dart';
+import 'package:uny_app/Photo%20Video%20Upload%20Pages/video_trimmer_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+
+
 
 class UploadVideoPage extends StatefulWidget{
   @override
@@ -28,14 +33,31 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
   late double height;
   late double width;
 
+  late List<AssetPathEntity> albums;
+  late List<AssetEntity> media;
+
   final ImagePicker _picker = ImagePicker();
-  XFile? _video;
+
+  File? _selectedVideo;
+  File? _croppedVideo;
   Uint8List? _videoImageBytes;
 
   final String _mainImageAsset = 'assets/upload_video_page_icon.svg';
   final String _newMediaImageAsset = 'assets/new_media.svg';
 
   bool _showLoading = false;
+
+
+  @override
+  void initState() {
+    _fetchAlbums();
+    super.initState();
+  }
+
+  _fetchAlbums() async {
+    albums = await PhotoManager.getAssetPathList(onlyAll: true, type: RequestType.video);
+    media = await albums[0].getAssetListPaged(page: 0, size: 10000);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +121,8 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
         ),
         SizedBox(height: height * 0.01),
         Container(
-          height: _video != null ?  300 : height * 0.4,
-          width: _video != null ? width / 2 : width * 0.9,
+          height: _selectedVideo != null ?  300 : height * 0.4,
+          width: _selectedVideo != null ? width / 2 : width * 0.9,
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: LayoutBuilder(
             builder: (context, constraints){
@@ -109,26 +131,28 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
               return Stack(
                 children: [
                   Container(
-                    child: _video == null ? SvgPicture.asset(_mainImageAsset) : null,
+                    margin: _croppedVideo != null ? EdgeInsets.symmetric(horizontal: 60) : null,
+                    child: _croppedVideo == null ? SvgPicture.asset(_mainImageAsset) : Container(),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(
                             Radius.circular(10)),
-                        image: _video != null ? DecorationImage(
+                        image: _croppedVideo != null ? DecorationImage(
                             fit: BoxFit.cover,
                             image: MemoryImage(_videoImageBytes!)
                         ) : null
                     ),
                   ),
-                  _video != null ? Positioned(
-                      top: dHeight / 1.13,
-                      left: dWidth / 1.26,
+                  _croppedVideo != null ? Positioned(
+                      top: dHeight / 1.11,
+                      left: dWidth / 1.39,
                       child: IconButton(
                       alignment: Alignment.bottomRight,
                       icon: Icon(CupertinoIcons.clear_thick_circled,
                           color: Colors.white, size: 35),
                       onPressed: () {
                         setState(() {
-                          _video = null;
+                          _selectedVideo = null;
+                          _croppedVideo = null;
                           _videoImageBytes = null;
                         });
                       },
@@ -145,58 +169,16 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
           child: InkWell(
             borderRadius: BorderRadius.circular(11),
             onTap: () async {
-              _video = await _picker.pickVideo(source: ImageSource.gallery);
-
-              VideoPlayerController videoController = VideoPlayerController.file(File(_video!.path));
-              await videoController.initialize();
-
-              if(videoController.value.duration.inSeconds <= 15){
-                _videoImageBytes = await VideoThumbnail.thumbnailData(
-                  video: _video!.path,
-                  imageFormat: ImageFormat.PNG,
-                );
-                setState((){});
-              }else{
-                _video = null;
-                setState((){});
-                if(UniversalPlatform.isIOS){
-                  showCupertinoDialog(
-                    context: context,
-                    builder: (context){
-                      return CupertinoAlertDialog(
-                        title: Text('Ошибка загрузки'),
-                        content: Center(
-                          child: Text(
-                              'Длительность видео должен быть не более 15 сек'),
-                        ),
-                        actions: [
-                          CupertinoDialogAction(
-                            child: Text('Закрыть'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      );
-                    }
-                  );
-                }else if(UniversalPlatform.isAndroid){
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: Text('Ошибка загрузки'),
-                          content: Text('Длительность видео должен быть не более 15 сек'),
-                          actions: [
-                            FloatingActionButton.extended(
-                              label: Text('Закрыть'),
-                              backgroundColor: Color.fromRGBO(145, 10, 251, 5),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ],
-                        );
-                      }
-                  );
-                }
-              }
+              showCupertinoModalBottomSheet(
+                  context: context,
+                  duration: Duration(milliseconds: 250),
+                  topRadius: Radius.circular(25),
+                  builder: (context) {
+                    return media.isNotEmpty ? showPhotoVideoBottomSheet(media) : Center(
+                      child: Text('У вас нет фото или видео'),
+                    );
+                  }
+              );
             },
             child: Container(
               height: height / 15,
@@ -251,8 +233,8 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
                   _showLoading = true;
                 });
 
-                if(_video != null){
-                  String path = _video!.path;
+                if(_croppedVideo != null){
+                  String path = _croppedVideo!.path;
 
                   String? mime = lookupMimeType(path);
 
@@ -299,6 +281,139 @@ class _UploadVideoPageState extends State<UploadVideoPage>{
           ),
         )
       ],
+    );
+  }
+
+  Widget showPhotoVideoBottomSheet(List<AssetEntity> media) {
+    return Material(
+      child: ListView(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(width: width / 20),
+                Text('Видео', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+                InkWell(
+                  onTap: (){
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(5),
+                    child: Center(
+                      child: Icon(Icons.close, size: 17, color: Colors.grey),
+                    ),
+                    decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.3),
+                        shape: BoxShape.circle
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+          GridView.count(
+              physics: NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.only(left: 10, right: 10),
+              shrinkWrap: true,
+              crossAxisCount: 4,
+              mainAxisSpacing: 2,
+              crossAxisSpacing: 2,
+              children: List.generate(media.length, (index){
+                return InkWell(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  onTap: () async {
+                    media[index].file.then((file) async {
+                      String? path = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => TrimmerView(file!.path))
+                      );
+
+                      VideoPlayerController videoController = VideoPlayerController.file(File(path!));
+                      await videoController.initialize();
+
+                      if(videoController.value.duration.inSeconds >= 3 && videoController.value.duration.inSeconds <= 15){
+                        _croppedVideo = File(path);
+                        _videoImageBytes = await VideoThumbnail.thumbnailData(
+                          video: file!.path,
+                          imageFormat: ImageFormat.PNG,
+                        );
+
+                        Navigator.pop(context);
+                        setState((){});
+                      }else{
+                        _croppedVideo = null;
+                        setState((){});
+                        if(UniversalPlatform.isIOS){
+                          showCupertinoDialog(
+                              context: context,
+                              builder: (context){
+                                return CupertinoAlertDialog(
+                                  title: Text('Ошибка загрузки'),
+                                  content: Center(
+                                    child: Text(
+                                        'Длительность видео должен быть не более 15 сек'),
+                                  ),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      child: Text('Закрыть'),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ],
+                                );
+                              }
+                          );
+                        }else if(UniversalPlatform.isAndroid){
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text('Ошибка загрузки'),
+                                  content: Text('Длительность видео должен быть не более 15 сек'),
+                                  actions: [
+                                    FloatingActionButton.extended(
+                                      label: Text('Закрыть'),
+                                      backgroundColor: Color.fromRGBO(145, 10, 251, 5),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ],
+                                );
+                              }
+                          );
+                        }
+                      }
+                    });
+                  },
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Container(
+                        child: AssetEntityImage(
+                          media[index],
+                          width: 5,
+                          height: 5,
+                          fit: BoxFit.cover,
+                          isOriginal: false,
+                        ),
+                      ),
+                      Positioned(
+                          bottom: 10,
+                          left: 2,
+                          child: media[index].type.name.toString().startsWith('video') ? Icon(Icons.play_arrow, color: Colors.white, size: 20) : Container()
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        right: 10,
+                        child: media[index].type.name.toString().startsWith('video') ? Text(media[index].videoDuration.toString().split('.')[0], style: TextStyle(color: Colors.white)) : Container(),
+                      )
+                    ],
+                  ),
+                );
+              })
+          ),
+        ],
+      ),
     );
   }
 }

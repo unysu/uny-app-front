@@ -14,7 +14,8 @@ InterestsDataModel _$InterestsDataModelFromJson(Map<String, dynamic> json) =>
       type: json['type'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
-      color: json['color'],
+      startColor: json['start_color'],
+      endColor: json['end_color'],
     );
 
 Map<String, dynamic> _$InterestsDataModelToJson(InterestsDataModel instance) =>
@@ -25,5 +26,6 @@ Map<String, dynamic> _$InterestsDataModelToJson(InterestsDataModel instance) =>
       'type': instance.type,
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
-      'color': instance.color,
+      'start_color': instance.startColor,
+      'end_color': instance.endColor,
     };

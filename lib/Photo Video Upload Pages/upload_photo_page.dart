@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
@@ -198,15 +199,11 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
           }),
           onReorder: (oldIndex, newIndex) {
             Map<int, String?>? imagesMap = imagesList.asMap();
-            if(oldIndex != 0){
-              if(newIndex != 0){
-                if(imagesMap.containsKey(oldIndex) && imagesMap.containsKey(newIndex)){
-                  setState(() {
-                    final element = imagesList.removeAt(oldIndex);
-                    imagesList.insert(newIndex, element);
-                  });
-                }
-              }
+            if(imagesMap.containsKey(oldIndex) && imagesMap.containsKey(newIndex)){
+              setState(() {
+                final element = imagesList.removeAt(oldIndex);
+                imagesList.insert(newIndex, element);
+              });
             }
           },
         ),
@@ -262,7 +259,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
 
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialWithModalsPageRoute(
                       builder: (context) => UploadVideoPage()
                     )
                   );

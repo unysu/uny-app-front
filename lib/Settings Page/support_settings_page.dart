@@ -50,7 +50,7 @@ class _SupportPageState extends State<SupportPage>{
               centerTitle: false,
               systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
               backgroundColor: Colors.grey.withOpacity(0),
-              title: Text('Оставить обращение', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              title: Text('Оставить обращение', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
               leading: IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),

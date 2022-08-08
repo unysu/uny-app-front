@@ -80,6 +80,34 @@ class _$UnyAPI extends UnyAPI {
   }
 
   @override
+  Future<Response<PhotoSearchDataModel>> searchUserByName(
+      String token, dynamic data) {
+    final $url = '/user/search_by_name';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<PhotoSearchDataModel, PhotoSearchDataModel>($request);
+  }
+
+  @override
+  Future<Response<FilterUserDataModel>> filterUsers(
+      String token, dynamic data) {
+    final $url = '/user/search_user';
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $body = data;
+    final $request =
+        Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
+    return client.send<FilterUserDataModel, FilterUserDataModel>($request);
+  }
+
+  @override
   Future<Response<dynamic>> uploadMedia(String token, dynamic data) {
     final $url = '/user/upload_media';
     final $headers = {
@@ -260,6 +288,19 @@ class _$UnyAPI extends UnyAPI {
     final $request =
         Request('POST', $url, client.baseUrl, body: $body, headers: $headers);
     return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<Matches>> getUserById(String token, String userId) {
+    final $url = '/user/get_user_by_id';
+    final $params = <String, dynamic>{'user_id': userId};
+    final $headers = {
+      'Authorization': token,
+    };
+
+    final $request = Request('POST', $url, client.baseUrl,
+        parameters: $params, headers: $headers);
+    return client.send<Matches, Matches>($request);
   }
 
   @override
