@@ -19,14 +19,12 @@ import 'package:uny_app/Constants/constants.dart';
 import 'package:uny_app/Photo%20Video%20Upload%20Pages/upload_video_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
-class UploadPhotoPage extends StatefulWidget{
-
+class UploadPhotoPage extends StatefulWidget {
   @override
   _UploadPhotoPageState createState() => _UploadPhotoPageState();
 }
 
-class _UploadPhotoPageState extends State<UploadPhotoPage>{
-
+class _UploadPhotoPageState extends State<UploadPhotoPage> {
   late double height;
   late double width;
 
@@ -40,37 +38,41 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-        builder: (context, constraints) {
-          height = constraints.maxHeight;
-          width = constraints.maxWidth;
-          return ResponsiveWrapper.builder(
-              Scaffold(
-                extendBodyBehindAppBar: true,
-                appBar: AppBar(
-                  elevation: 0,
-                  automaticallyImplyLeading: false,
-                  systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
-                  backgroundColor: Colors.transparent,
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-                body: SingleChildScrollView(
-                  child: mainBody(),
-                )
+    return LayoutBuilder(builder: (context, constraints) {
+      height = constraints.maxHeight;
+      width = constraints.maxWidth;
+      return ResponsiveWrapper.builder(
+        Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              systemOverlayStyle:
+                  AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                      ? SystemUiOverlayStyle.dark
+                      : SystemUiOverlayStyle.light,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back,
+                    color: AdaptiveTheme.of(context).mode ==
+                            AdaptiveThemeMode.light
+                        ? Colors.grey
+                        : Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
-            maxWidth: 800,
-            minWidth: 450,
-            defaultScale: true,
-            breakpoints: [
-              ResponsiveBreakpoint.resize(450, name: MOBILE),
-              ResponsiveBreakpoint.autoScale(800, name: MOBILE),
-            ],
-          );
-        }
-    );
+            ),
+            body: SingleChildScrollView(
+              child: mainBody(),
+            )),
+        maxWidth: 800,
+        minWidth: 450,
+        defaultScale: true,
+        breakpoints: [
+          ResponsiveBreakpoint.resize(450, name: MOBILE),
+          ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+        ],
+      );
+    });
   }
 
   Widget mainBody() {
@@ -84,10 +86,13 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                  'Загрузи своё фото',
-                  style: TextStyle(fontSize: 24,
-                      color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white,
+              Text('Загрузи своё фото',
+                  style: TextStyle(
+                      fontSize: 24,
+                      color: AdaptiveTheme.of(context).mode ==
+                              AdaptiveThemeMode.light
+                          ? Colors.black
+                          : Colors.white,
                       fontWeight: FontWeight.bold)),
               SizedBox(height: 6),
               SizedBox(
@@ -103,7 +108,11 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
           ),
         ),
         ReorderableGridView.count(
-          padding: EdgeInsets.only(top: height / 50, left: width / 20, right: width / 20, bottom: height / 50),
+          padding: EdgeInsets.only(
+              top: height / 50,
+              left: width / 20,
+              right: width / 20,
+              bottom: height / 50),
           childAspectRatio: 20 / 33,
           crossAxisSpacing: width / 50,
           mainAxisSpacing: height / 80,
@@ -114,21 +123,22 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
             return GestureDetector(
               key: ValueKey(index),
               onTap: () async {
-                if(UniversalPlatform.isIOS){
+                if (UniversalPlatform.isIOS) {
                   var status = await Permission.photos.request();
                   if (status.isGranted) {
                     showBottomSheet();
                   } else if (status.isPermanentlyDenied) {
                     showAlertDialog();
-                  }else if(status.isLimited){
+                  } else if (status.isLimited) {
                     showAlertDialog();
                   }
-                }else if(UniversalPlatform.isAndroid){
+                } else if (UniversalPlatform.isAndroid) {
                   var storagePermission = await Permission.storage.request();
                   var photosPermission = await Permission.photos.request();
-                  if(storagePermission.isGranted && photosPermission.isGranted){
+                  if (storagePermission.isGranted &&
+                      photosPermission.isGranted) {
                     showBottomSheet();
-                  }else{
+                  } else {
                     showAlertDialog();
                   }
                 }
@@ -144,53 +154,53 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                           color: index != 0
                               ? Colors.grey.withOpacity(0.2)
                               : Colors.orange.withOpacity(0.4),
-                          borderRadius: BorderRadius.all(
-                              Radius.circular(10)),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
                           border: Border.all(
-                              color: index == 0 ? Colors.orange
-                                  .withOpacity(0.4) : Colors.transparent
-                          ),
+                              color: index == 0
+                                  ? Colors.orange.withOpacity(0.4)
+                                  : Colors.transparent),
                           image: imagesList.asMap().containsKey(index)
                               ? DecorationImage(
-                            fit: BoxFit.cover,
-                            image: FileImage(File(imagesList[index]!)),
-                          )
+                                  fit: BoxFit.cover,
+                                  image: FileImage(File(imagesList[index]!)),
+                                )
                               : null,
                         ),
                         child: !imagesList.asMap().containsKey(index)
                             ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                                CupertinoIcons.add_circled_solid,
-                                color: index != 0 ? Colors.grey
-                                    .withOpacity(0.2) : Colors.orange
-                                    .withOpacity(0.9)),
-                            SizedBox(height: 3),
-                            Text(
-                                index != 0
-                                    ? 'Нажмите для загрузки'
-                                    : 'Фотография профиля',
-                                style: TextStyle(fontSize: 15),
-                                textAlign: TextAlign.center)
-                          ],
-                        )
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.add_circled_solid,
+                                      color: index != 0
+                                          ? Colors.grey.withOpacity(0.2)
+                                          : Colors.orange.withOpacity(0.9)),
+                                  SizedBox(height: 3),
+                                  Text(
+                                      index != 0
+                                          ? 'Нажмите для загрузки'
+                                          : 'Фотография профиля',
+                                      style: TextStyle(fontSize: 15),
+                                      textAlign: TextAlign.center)
+                                ],
+                              )
                             : null,
                       ),
-                      imagesList.asMap().containsKey(index) ? Positioned(
-                        top: dHeight / 1.2,
-                        left: dWidth / 1.4,
-                        child: IconButton(
-                          alignment: Alignment.center,
-                          icon: Icon(CupertinoIcons.clear_thick_circled,
-                              color: Colors.white, size: dWidth / 4),
-                          onPressed: () {
-                            setState(() {
-                              imagesList.removeAt(index);
-                            });
-                          },
-                        ),
-                      ) : Container(),
+                      imagesList.asMap().containsKey(index)
+                          ? Positioned(
+                              top: dHeight / 1.2,
+                              left: dWidth / 1.4,
+                              child: IconButton(
+                                alignment: Alignment.center,
+                                icon: Icon(CupertinoIcons.clear_thick_circled,
+                                    color: Colors.white, size: dWidth / 4),
+                                onPressed: () {
+                                  setState(() {
+                                    imagesList.removeAt(index);
+                                  });
+                                },
+                              ),
+                            )
+                          : Container(),
                     ],
                   );
                 },
@@ -199,7 +209,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
           }),
           onReorder: (oldIndex, newIndex) {
             Map<int, String?>? imagesMap = imagesList.asMap();
-            if(imagesMap.containsKey(oldIndex) && imagesMap.containsKey(newIndex)){
+            if (imagesMap.containsKey(oldIndex) &&
+                imagesMap.containsKey(newIndex)) {
               setState(() {
                 final element = imagesList.removeAt(oldIndex);
                 imagesList.insert(newIndex, element);
@@ -218,81 +229,84 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   ? Color.fromRGBO(145, 10, 251, 5)
                   : Colors.grey.withOpacity(0.5),
               child: InkWell(
-                onTap: imagesList.asMap().isEmpty ? null : () async {
+                onTap: imagesList.asMap().isEmpty
+                    ? null
+                    : () async {
+                        String token = 'Bearer ' + TokenData.getUserToken();
 
-                  String token = 'Bearer ' + TokenData.getUserToken();
+                        setState(() {
+                          _showLoading = true;
+                        });
 
-                  setState(() {
-                    _showLoading = true;
-                  });
+                        for (var image in imagesList) {
+                          String? mime = lookupMimeType(image!);
 
-                  for(var image in imagesList) {
+                          Uint8List imageBytes = File(image).readAsBytesSync();
 
-                    String? mime = lookupMimeType(image!);
+                          String base64Img = base64Encode(imageBytes);
 
-                    Uint8List imageBytes = File(image).readAsBytesSync();
+                          Map<String, String?> data;
 
-                    String base64Img = base64Encode(imageBytes);
+                          if (image == imagesList[0]) {
+                            data = {
+                              'media': base64Img,
+                              'mime': mime,
+                              'filter': 'main+'
+                            };
+                          } else {
+                            data = {
+                              'media': base64Img,
+                              'mime': mime,
+                              'filter': '-'
+                            };
+                          }
 
-                    Map<String, String?> data;
+                          await UnyAPI.create(
+                                  Constants.SIMPLE_RESPONSE_CONVERTER)
+                              .uploadMedia(token, data);
+                        }
 
-                    if(image == imagesList[0]){
-                      data = {
-                        'media' : base64Img,
-                        'mime' : mime,
-                        'filter' : 'main+'
-                      };
-                    }else{
-                      data = {
-                        'media' : base64Img,
-                        'mime' : mime,
-                        'filter' : '-'
-                      };
-                    }
+                        setState(() {
+                          _showLoading = false;
+                        });
 
-                    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data);
-                  }
-
-                  setState(() {
-                    _showLoading = false;
-                  });
-
-                  Navigator.push(
-                    context,
-                    MaterialWithModalsPageRoute(
-                      builder: (context) => UploadVideoPage()
-                    )
-                  );
-                },
+                        Navigator.push(
+                            context,
+                            MaterialWithModalsPageRoute(
+                                builder: (context) => UploadVideoPage()));
+                      },
                 child: Container(
                   child: Center(
                       child: !_showLoading
-                          ? Text('Далее', style: TextStyle(
-                          color: imagesList.asMap().isEmpty ? Colors.white : Colors
-                              .white.withOpacity(0.9), fontSize: 17))
+                          ? Text('Далее',
+                              style: TextStyle(
+                                  color: imagesList.asMap().isEmpty
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.9),
+                                  fontSize: 17))
                           : SizedBox(
                               height: 30,
                               width: 30,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
                                 strokeWidth: 2,
-                        ),
-                      )
-                  ),
+                              ),
+                            )),
                 ),
               ),
-            )
-        )
+            ))
       ],
     );
   }
 
   void showBottomSheet() async {
-    try{
-      List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(onlyAll: true, type: RequestType.image);
-      List<AssetEntity> media = await albums[0].getAssetListPaged(page: 0, size: 60);
+    try {
+      List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+          onlyAll: true, type: RequestType.image);
+      List<AssetEntity> media =
+          await albums[0].getAssetListPaged(page: 0, size: 60);
 
-      if(UniversalPlatform.isIOS){
+      if (UniversalPlatform.isIOS) {
         showCupertinoModalPopup(
             context: context,
             builder: (context) {
@@ -318,8 +332,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                                     });
                                   },
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(8)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(8)),
                                     child: AssetEntityImage(
                                       media[index],
                                       isOriginal: false,
@@ -337,8 +351,13 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                         ),
                       ),
                       CupertinoActionSheetAction(
-                        child: Text(
-                            'Выбрать из библиотеки', textAlign: TextAlign.center, style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.lightBlue : Colors.red)),
+                        child: Text('Выбрать из библиотеки',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                    ? Colors.lightBlue
+                                    : Colors.red)),
                         onPressed: () async {
                           XFile? image = await _picker.pickImage(
                               source: ImageSource.gallery);
@@ -353,12 +372,11 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   child: Text('Отмена'),
                 ),
               );
-            }
-        );
-      }else if(UniversalPlatform.isAndroid){
+            });
+      } else if (UniversalPlatform.isAndroid) {
         showModalBottomSheet(
             context: context,
-            builder: (context){
+            builder: (context) {
               return Wrap(
                 children: [
                   Column(
@@ -380,8 +398,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                                     });
                                   },
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(8)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(8)),
                                     child: AssetEntityImage(
                                       media[index],
                                       isOriginal: false,
@@ -408,25 +426,22 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                       ),
                       ListTile(
                           title: Text('Отмена'),
-                          onTap: () => Navigator.pop(context)
-                      ),
+                          onTap: () => Navigator.pop(context)),
                     ],
                   )
                 ],
               );
-            }
-        );
+            });
       }
-    }on RangeError catch(_){
-      if(UniversalPlatform.isIOS){
+    } on RangeError catch (_) {
+      if (UniversalPlatform.isIOS) {
         showCupertinoDialog(
             context: context,
             builder: (context) {
               return CupertinoAlertDialog(
                 title: Text('Нет фото'),
                 content: Center(
-                  child: Text(
-                      'У вас нет фотографий'),
+                  child: Text('У вас нет фотографий'),
                 ),
                 actions: [
                   CupertinoDialogAction(
@@ -436,12 +451,11 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                   ),
                 ],
               );
-            }
-        );
-      }else if(UniversalPlatform.isAndroid){
+            });
+      } else if (UniversalPlatform.isAndroid) {
         Widget _closeButton = TextButton(
-            child: const Text(
-                'Закрыть', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+            child: const Text('Закрыть',
+                style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
             onPressed: () {
               Navigator.pop(context);
             });
@@ -461,32 +475,30 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
   }
 
   void _cropImage(String? filePath) async {
-    CroppedFile? croppedFile = await ImageCropper().cropImage(
-        sourcePath: filePath!,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Загрузить фото',
-            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false,
-            hideBottomControls: true,
-          ),
-          IOSUiSettings(
-            title: 'Загрузить фото',
-            showCancelConfirmationDialog: true,
-            cancelButtonTitle: 'Закрыть',
-            doneButtonTitle: 'Сохранить',
-            rotateButtonsHidden: true,
-            aspectRatioPickerButtonHidden: true,
-            rotateClockwiseButtonHidden: true,
-            resetButtonHidden: true,
-            rectX: 100,
-            rectY: 100,
-            aspectRatioLockEnabled: false,
-          )
-        ]
-    );
+    CroppedFile? croppedFile =
+        await ImageCropper().cropImage(sourcePath: filePath!, uiSettings: [
+      AndroidUiSettings(
+        toolbarTitle: 'Загрузить фото',
+        toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+        toolbarWidgetColor: Colors.white,
+        initAspectRatio: CropAspectRatioPreset.original,
+        lockAspectRatio: false,
+        hideBottomControls: true,
+      ),
+      IOSUiSettings(
+        title: 'Загрузить фото',
+        showCancelConfirmationDialog: true,
+        cancelButtonTitle: 'Закрыть',
+        doneButtonTitle: 'Сохранить',
+        rotateButtonsHidden: true,
+        aspectRatioPickerButtonHidden: true,
+        rotateClockwiseButtonHidden: true,
+        resetButtonHidden: true,
+        rectX: 100,
+        rectY: 100,
+        aspectRatioLockEnabled: false,
+      )
+    ]);
 
     Navigator.pop(context);
     setState(() {
@@ -502,8 +514,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
             return CupertinoAlertDialog(
               title: Text('Нет доступа к галерии'),
               content: Center(
-                child: Text(
-                    'Что бы выбрать фото из галерии, предоставьте доступ'),
+                child:
+                    Text('Что бы выбрать фото из галерии, предоставьте доступ'),
               ),
               actions: [
                 CupertinoDialogAction(
@@ -516,8 +528,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                 )
               ],
             );
-          }
-      );
+          });
     } else if (UniversalPlatform.isAndroid) {
       showDialog(
           context: context,
@@ -525,8 +536,8 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
             return AlertDialog(
               title: Text('Нет доступа к галерии'),
               content: Center(
-                child: Text(
-                    'Что бы выбрать фото из галерии, предоставьте доступ'),
+                child:
+                    Text('Что бы выбрать фото из галерии, предоставьте доступ'),
               ),
               actions: [
                 FloatingActionButton.extended(
@@ -541,8 +552,7 @@ class _UploadPhotoPageState extends State<UploadPhotoPage>{
                 )
               ],
             );
-          }
-      );
+          });
     }
   }
 }

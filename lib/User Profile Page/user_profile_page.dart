@@ -44,18 +44,16 @@ import 'package:uny_app/User%20Profile%20Page/all_videos_page.dart';
 import 'package:uny_app/User%20Profile%20Page/edit_interests_page.dart';
 import 'package:uny_app/User%20Profile%20Page/video_page.dart';
 import 'package:uny_app/Video%20Search%20Page/video_search_page.dart';
-import 'package:uny_app/Zodiac%20Signes/zodiac_signs.dart';
+import 'package:uny_app/Zodiac%20Signs/zodiac_signs.dart';
 import 'package:video_player/video_player.dart';
 import '../Settings Page/settings_page.dart';
 
-class UserProfilePage extends StatefulWidget{
-
+class UserProfilePage extends StatefulWidget {
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage>{
-
+class _UserProfilePageState extends State<UserProfilePage> {
   late String token;
 
   late double height;
@@ -63,7 +61,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   final ImagePicker _picker = ImagePicker();
   final AudioPlayer _player = AudioPlayer();
-  
+
   final String _mainButtonAsset = 'assets/bnm_main_icon.svg';
   final String _chatButtonAsset = 'assets/chat_icon.svg';
   final String _profileButtonAsset = 'assets/user_profile_icon.svg';
@@ -107,64 +105,60 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
   @override
   void initState() {
-
     _isAppForeground = true;
-
 
     token = 'Bearer ' + TokenData.getUserToken();
 
-    _allUserDataModelFuture = UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token);
+    _allUserDataModelFuture =
+        UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT)
+            .getCurrentUser(token);
 
     bioTextFocusNode = FocusNode();
     bioTextController = TextEditingController();
 
-    _pageController = PageController(
-      initialPage: _bottomNavBarIndex
-    );
-
+    _pageController = PageController(initialPage: _bottomNavBarIndex);
 
     FirebaseMessaging.onMessage.listen((message) async {
-
       String profilePictureUrl = message.data['profilePicture'].toString();
       String sender = message.notification!.title.toString();
       String txt = message.notification!.body.toString();
 
-      if(!_isAppForeground) {
-        if(message.data['chatId'].toString() != ChatPageVisibility.openedChatId) {
-
-          if(message.data['userId'].toString() != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id.toString()) {
-
-            AwesomeNotifications().isNotificationAllowed().then((isAllowed){
-
-              if(!isAllowed){
-
+      if (!_isAppForeground) {
+        if (message.data['chatId'].toString() !=
+            ChatPageVisibility.openedChatId) {
+          if (message.data['userId'].toString() !=
+              Provider.of<UserDataProvider>(context, listen: false)
+                  .userDataModel!
+                  .id
+                  .toString()) {
+            AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+              if (!isAllowed) {
                 AwesomeNotifications().requestPermissionToSendNotifications();
-
-              }else{
-
+              } else {
                 AwesomeNotifications().createNotification(
                     content: NotificationContent(
-                      id: 2,
-                      displayOnBackground: true,
-                      displayOnForeground: true,
-                      channelKey: 'high_importance_channel',
-                      notificationLayout: NotificationLayout.Messaging,
-                      title: '${message.notification!.title}',
-                      body: '${message.notification!.body}',
-                    )
-                );
+                  id: 2,
+                  displayOnBackground: true,
+                  displayOnForeground: true,
+                  channelKey: 'high_importance_channel',
+                  notificationLayout: NotificationLayout.Messaging,
+                  title: '${message.notification!.title}',
+                  body: '${message.notification!.body}',
+                ));
               }
             });
           }
         }
-      }else{
-
-        if(message.data['chatId'].toString() != ChatPageVisibility.openedChatId) {
-
-          if(message.data['userId'].toString() != Provider.of<UserDataProvider>(context, listen: false).userDataModel!.id.toString()) {
-
+      } else {
+        if (message.data['chatId'].toString() !=
+            ChatPageVisibility.openedChatId) {
+          if (message.data['userId'].toString() !=
+              Provider.of<UserDataProvider>(context, listen: false)
+                  .userDataModel!
+                  .id
+                  .toString()) {
             await FlutterMute.getRingerMode().then((mode) async {
-              if(mode == RingerMode.Normal){
+              if (mode == RingerMode.Normal) {
                 _player.setAsset('assets/sounds/in_app_notif_sound.mp3');
                 _player.play();
                 _player.setVolume(1);
@@ -187,19 +181,16 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             imageUrl: profilePictureUrl,
                             height: 50,
                             width: 50,
-                            imageBuilder: (context, imageProvider){
+                            imageBuilder: (context, imageProvider) {
                               return ClipOval(
-                                child: Container(
-                                  height: 50,
-                                  width: 50,
-                                  decoration: BoxDecoration(
+                                  child: Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
                                     image: DecorationImage(
-                                      image: imageProvider,
-                                      fit: BoxFit.cover
-                                    )
-                                  ),
-                                )
-                              );
+                                        image: imageProvider,
+                                        fit: BoxFit.cover)),
+                              ));
                             },
                           ),
                         ),
@@ -210,57 +201,77 @@ class _UserProfilePageState extends State<UserProfilePage>{
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(sender, style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontWeight: FontWeight.w500, fontSize: 15)),
+                            Text(sender,
+                                style: TextStyle(
+                                    color: AdaptiveTheme.of(context).mode ==
+                                            AdaptiveThemeMode.light
+                                        ? Colors.black
+                                        : Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 15)),
                             SizedBox(height: 5),
-                            Text(txt, style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontSize: 13))
+                            Text(txt,
+                                style: TextStyle(
+                                    color: AdaptiveTheme.of(context).mode ==
+                                            AdaptiveThemeMode.light
+                                        ? Colors.black
+                                        : Colors.white,
+                                    fontSize: 13))
                           ],
                         ),
                       )
                     ],
                   ),
                   decoration: BoxDecoration(
-                      color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.black54 : Colors.white,
-                      borderRadius: BorderRadius.circular(20)
-                  ),
+                      color: AdaptiveTheme.of(context).mode ==
+                              AdaptiveThemeMode.dark
+                          ? Colors.black54
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(20)),
                 ),
                 context: context,
                 curve: Curves.easeIn,
                 position: StyledToastPosition.top,
-                animationBuilder: (context, controller, duration, child){
-                  return SlideTransition(
-                    position: Tween<Offset>(begin: Offset(0, -2), end: Offset(0, 0)).animate(
-                      CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn),
-                    ),
-                    child: child,
-                  );
-                }
-            );
+                animationBuilder: (context, controller, duration, child) {
+              return SlideTransition(
+                position: Tween<Offset>(begin: Offset(0, -2), end: Offset(0, 0))
+                    .animate(
+                  CurvedAnimation(
+                      parent: controller, curve: Curves.fastOutSlowIn),
+                ),
+                child: child,
+              );
+            });
           }
         }
       }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-
-      var data = {
-        'limit' : 100
-      };
+      var data = {'limit': 100};
 
       _allUserDataModelFuture!.whenComplete(() async {
-        await UnyAPI.create(Constants.ALL_MESSAGES_MODEL_CONVERTER).getAllChats(token, data).then((response){
+        await UnyAPI.create(Constants.ALL_MESSAGES_MODEL_CONVERTER)
+            .getAllChats(token, data)
+            .then((response) {
           _chatsList = response.body!.chats;
-          for(var chats in _chatsList!){
-            if(!(chats.participants!.where((element) => element.id.toString() != _user!.id.toString()).toList()[0].mute)){
+          for (var chats in _chatsList!) {
+            if (!(chats.participants!
+                .where(
+                    (element) => element.id.toString() != _user!.id.toString())
+                .toList()[0]
+                .mute)) {
               var bytes = utf8.encode(chats.chatRoomId.toString());
-              FirebaseMessaging.instance.subscribeToTopic(sha256.convert(bytes).toString());
-            }else{
+              FirebaseMessaging.instance
+                  .subscribeToTopic(sha256.convert(bytes).toString());
+            } else {
               var bytes = utf8.encode(chats.chatRoomId.toString());
-              FirebaseMessaging.instance.unsubscribeFromTopic(sha256.convert(bytes).toString());
+              FirebaseMessaging.instance
+                  .unsubscribeFromTopic(sha256.convert(bytes).toString());
             }
           }
         });
       });
-
     });
 
     super.initState();
@@ -278,143 +289,193 @@ class _UserProfilePageState extends State<UserProfilePage>{
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         height = constraints.maxHeight;
         width = constraints.maxWidth;
-       return ResponsiveWrapper.builder(
-           Scaffold(
-             resizeToAvoidBottomInset: false,
-             extendBodyBehindAppBar: true,
-             extendBody: false,
-             appBar: AppBar(
-               elevation: 0,
-               automaticallyImplyLeading: false,
-               systemOverlayStyle:
-               (_bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light) ||
-               (_bottomNavBarIndex == 2 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light) ||
-                   (_bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light) ? SystemUiOverlayStyle.dark : null,
-               backgroundColor: Colors.transparent,
-               toolbarHeight: 0,
-             ),
-             body: PageView(
-               physics: NeverScrollableScrollPhysics(),
-               controller: _pageController,
-               children: [
-                 ChatsPage(),
-                 Stack(
-                   children: [
-                     Container(
-                       child: _allUserDataModel != null ? mainBody(context) : getUserData(),
-                     ),
-                   ],
-                 ),
-                 PhotoSearchPage(),
-                 VideoSearchPage(),
-                 SettingsPage(),
-               ],
-             ),
-             bottomNavigationBar: SizedBox(
-               height: height / 10,
-                 child: BottomNavigationBar(
-                 type: BottomNavigationBarType.fixed,
-                 selectedItemColor: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
+        return ResponsiveWrapper.builder(
+          Scaffold(
+              resizeToAvoidBottomInset: false,
+              extendBodyBehindAppBar: true,
+              extendBody: false,
+              appBar: AppBar(
+                elevation: 0,
+                automaticallyImplyLeading: false,
+                systemOverlayStyle: (_bottomNavBarIndex == 0 &&
+                            AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light) ||
+                        (_bottomNavBarIndex == 2 &&
+                            AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light) ||
+                        (_bottomNavBarIndex == 4 &&
+                            AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light)
+                    ? SystemUiOverlayStyle.dark
+                    : null,
+                backgroundColor: Colors.transparent,
+                toolbarHeight: 0,
+              ),
+              body: PageView(
+                physics: NeverScrollableScrollPhysics(),
+                controller: _pageController,
+                children: [
+                  ChatsPage(),
+                  Stack(
+                    children: [
+                      Container(
+                        child: _allUserDataModel != null
+                            ? mainBody(context)
+                            : getUserData(),
+                      ),
+                    ],
+                  ),
+                  PhotoSearchPage(),
+                  VideoSearchPage(),
+                  SettingsPage(),
+                ],
+              ),
+              bottomNavigationBar: SizedBox(
+                  height: height / 10,
+                  child: BottomNavigationBar(
+                    type: BottomNavigationBarType.fixed,
+                    selectedItemColor: _bottomNavBarIndex == 0 &&
+                            AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.dark
+                        ? Colors.white
+                        : _bottomNavBarIndex == 1 &&
+                                AdaptiveTheme.of(context).mode ==
+                                    AdaptiveThemeMode.dark
+                            ? Colors.white
+                            : _bottomNavBarIndex == 2 &&
+                                    AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.dark
+                                ? Colors.white
+                                : _bottomNavBarIndex == 3
                                     ? Colors.white
-                                    : _bottomNavBarIndex == 1 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
-                                    ? Colors.white
-                                    : _bottomNavBarIndex == 2 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
-                                    ? Colors.white
-                                    : _bottomNavBarIndex == 3
-                                    ? Colors.white
-                                    : _bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
-                                    ? Colors.white : Color.fromRGBO(145, 10, 251, 5),
-                 unselectedItemColor: Colors.grey,
-                 backgroundColor: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                                    : _bottomNavBarIndex == 4 &&
+                                            AdaptiveTheme.of(context).mode ==
+                                                AdaptiveThemeMode.dark
+                                        ? Colors.white
+                                        : Color.fromRGBO(145, 10, 251, 5),
+                    unselectedItemColor: Colors.grey,
+                    backgroundColor: _bottomNavBarIndex == 0 &&
+                            AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light
+                        ? Colors.white
+                        : _bottomNavBarIndex == 1 &&
+                                AdaptiveTheme.of(context).mode ==
+                                    AdaptiveThemeMode.light
+                            ? Colors.white
+                            : _bottomNavBarIndex == 2 &&
+                                    AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                ? Colors.white
+                                : _bottomNavBarIndex == 3
+                                    ? Colors.black87
+                                    : _bottomNavBarIndex == 4 &&
+                                            AdaptiveTheme.of(context).mode ==
+                                                AdaptiveThemeMode.light
+                                        ? Colors.white
+                                        : null,
+                    selectedFontSize: 10,
+                    unselectedFontSize: 9,
+                    currentIndex: _bottomNavBarIndex,
+                    items: [
+                      BottomNavigationBarItem(
+                          label: 'Чаты',
+                          icon: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Stack(
+                                children: [
+                                  SvgPicture.asset(_chatButtonAsset,
+                                      color: _bottomNavBarIndex == 0 &&
+                                              AdaptiveTheme.of(context).mode ==
+                                                  AdaptiveThemeMode.light
+                                          ? Color.fromRGBO(145, 10, 251, 5)
+                                          : _bottomNavBarIndex != 0
+                                              ? Colors.grey
+                                              : Colors.white,
+                                      height: 20,
+                                      width: 20),
+                                  // Positioned(
+                                  //   left: constraints.maxWidth / 2.2,
+                                  //   bottom: 5,
+                                  //   child:  Container(
+                                  //     padding: EdgeInsets.all(1),
+                                  //     decoration:  BoxDecoration(
+                                  //       color: Colors.red,
+                                  //       borderRadius: BorderRadius.circular(6),
+                                  //     ),
+                                  //     constraints: BoxConstraints(
+                                  //       minWidth: 15,
+                                  //       minHeight: 15,
+                                  //     ),
+                                  //     child: Text(
+                                  //       '3',
+                                  //       style: TextStyle(
+                                  //         color: Colors.white,
+                                  //         fontSize: 10,
+                                  //       ),
+                                  //       textAlign: TextAlign.center,
+                                  //     ),
+                                  //   ),
+                                  // )
+                                ],
+                              );
+                            },
+                          )),
+                      BottomNavigationBarItem(
+                          label: 'Профиль',
+                          icon: SvgPicture.asset(_profileButtonAsset,
+                              color: _bottomNavBarIndex == 1 &&
+                                      AdaptiveTheme.of(context).mode ==
+                                          AdaptiveThemeMode.light
+                                  ? Color.fromRGBO(145, 10, 251, 5)
+                                  : _bottomNavBarIndex != 1
+                                      ? Colors.grey
+                                      : Colors.white)),
+                      BottomNavigationBarItem(
+                        label: '',
+                        icon: SvgPicture.asset(_mainButtonAsset),
+                      ),
+                      BottomNavigationBarItem(
+                          label: 'Видеопоиск',
+                          icon: SvgPicture.asset(_videoSearchButtonAsset,
+                              color: _bottomNavBarIndex == 3
                                   ? Colors.white
-                                  : _bottomNavBarIndex == 1 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
-                                  ? Colors.white
-                                  : _bottomNavBarIndex == 2 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
-                                  ? Colors.white
-                                  : _bottomNavBarIndex == 3
-                                  ? Colors.black87
-                                  : _bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
-                                  ? Colors.white : null,
-                 selectedFontSize: 10,
-                 unselectedFontSize: 9,
-                 currentIndex: _bottomNavBarIndex,
-                 items: [
-                   BottomNavigationBarItem(
-                       label: 'Чаты',
-                       icon: LayoutBuilder(
-                         builder: (context, constraints) {
-                           return Stack(
-                             children: [
-                               SvgPicture.asset(_chatButtonAsset, color: _bottomNavBarIndex == 0 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 0 ? Colors.grey : Colors.white, height: 20, width: 20),
-                               // Positioned(
-                               //   left: constraints.maxWidth / 2.2,
-                               //   bottom: 5,
-                               //   child:  Container(
-                               //     padding: EdgeInsets.all(1),
-                               //     decoration:  BoxDecoration(
-                               //       color: Colors.red,
-                               //       borderRadius: BorderRadius.circular(6),
-                               //     ),
-                               //     constraints: BoxConstraints(
-                               //       minWidth: 15,
-                               //       minHeight: 15,
-                               //     ),
-                               //     child: Text(
-                               //       '3',
-                               //       style: TextStyle(
-                               //         color: Colors.white,
-                               //         fontSize: 10,
-                               //       ),
-                               //       textAlign: TextAlign.center,
-                               //     ),
-                               //   ),
-                               // )
-                             ],
-                           );
-                         },
-                       )
-                   ),
-                   BottomNavigationBarItem(
-                       label: 'Профиль',
-                       icon: SvgPicture.asset(_profileButtonAsset, color: _bottomNavBarIndex == 1 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 1 ? Colors.grey : Colors.white)
-                   ),
-                   BottomNavigationBarItem(
-                     label: '',
-                     icon: SvgPicture.asset(_mainButtonAsset),
-                   ),
-                   BottomNavigationBarItem(
-                       label: 'Видеопоиск',
-                       icon: SvgPicture.asset(_videoSearchButtonAsset, color: _bottomNavBarIndex == 3 ? Colors.white : Colors.grey)
-                   ),
-                   BottomNavigationBarItem(
-                       label: 'Ещё',
-                       icon:  SvgPicture.asset(_optionsButtonAsset, color: _bottomNavBarIndex == 4 && AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : _bottomNavBarIndex != 4 ? Colors.grey : Colors.white,)
-                   )
-                 ],
-                 onTap: (index) {
-                   setState(() {
-                     _bottomNavBarIndex = index;
-                   });
-                   _pageController!.animateToPage(_bottomNavBarIndex, duration: Duration(milliseconds: 250), curve: Curves.fastOutSlowIn);
-                 },
-               )
-             )
-           ),
-         maxWidth: 800,
-         minWidth: 450,
-         defaultScale: true,
-         breakpoints: [
-           ResponsiveBreakpoint.resize(450, name: MOBILE),
-           ResponsiveBreakpoint.autoScale(800, name: MOBILE),
-         ],
-       );
+                                  : Colors.grey)),
+                      BottomNavigationBarItem(
+                          label: 'Ещё',
+                          icon: SvgPicture.asset(
+                            _optionsButtonAsset,
+                            color: _bottomNavBarIndex == 4 &&
+                                    AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                ? Color.fromRGBO(145, 10, 251, 5)
+                                : _bottomNavBarIndex != 4
+                                    ? Colors.grey
+                                    : Colors.white,
+                          ))
+                    ],
+                    onTap: (index) {
+                      setState(() {
+                        _bottomNavBarIndex = index;
+                      });
+                      _pageController!.animateToPage(_bottomNavBarIndex,
+                          duration: Duration(milliseconds: 250),
+                          curve: Curves.fastOutSlowIn);
+                    },
+                  ))),
+          maxWidth: 800,
+          minWidth: 450,
+          defaultScale: true,
+          breakpoints: [
+            ResponsiveBreakpoint.resize(450, name: MOBILE),
+            ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+          ],
+        );
       },
     );
   }
@@ -428,213 +489,286 @@ class _UserProfilePageState extends State<UserProfilePage>{
             children: [
               Container(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                        bottomRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20)
-                    ),
+                borderRadius: BorderRadius.only(
+                    bottomRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20)),
+                child: Container(
+                    height: 300,
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomRight,
+                            colors: const [
+                          Color.fromRGBO(145, 10, 251, 5),
+                          Color.fromRGBO(29, 105, 218, 5)
+                        ])),
                     child: Container(
-                        height: 300,
-                        decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomRight,
-                                colors: const [
-                                  Color.fromRGBO(145, 10, 251, 5),
-                                  Color.fromRGBO(29, 105, 218, 5)
-                                ]
-                            )
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.only(left: width / 20, top: height / 20),
-                          child: Column(
-                            children: [
-                              Flexible(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Consumer<UserDataProvider>(
-                                      builder: (context, viewModel, child){
-                                        return  Container(
-                                          margin: EdgeInsets.symmetric(vertical: 25),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              SizedBox(
-                                                  width: 150,
-                                                  child: Text('${viewModel.userDataModel!.firstName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1)
-                                              ),
-                                              SizedBox(
+                        padding:
+                            EdgeInsets.only(left: width / 20, top: height / 20),
+                        child: Column(
+                          children: [
+                            Flexible(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Consumer<UserDataProvider>(
+                                    builder: (context, viewModel, child) {
+                                      return Container(
+                                        margin:
+                                            EdgeInsets.symmetric(vertical: 25),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            SizedBox(
                                                 width: 150,
-                                                child: Text('${viewModel.userDataModel!.lastName}', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
+                                                child: Text(
+                                                    '${viewModel.userDataModel!.firstName}',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                    maxLines: 1)),
+                                            SizedBox(
+                                              width: 150,
+                                              child: Text(
+                                                  '${viewModel.userDataModel!.lastName}',
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                  maxLines: 1),
+                                            ),
+                                            Flexible(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  viewModel.userDataModel!.job !=
+                                                          null
+                                                      ? Text(
+                                                          viewModel
+                                                              .userDataModel!
+                                                              .job,
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                      0.7),
+                                                              fontSize: 16))
+                                                      : Container(),
+                                                  SizedBox(height: 5),
+                                                  viewModel.userDataModel!
+                                                              .jobCompany !=
+                                                          null
+                                                      ? Text(
+                                                          viewModel
+                                                              .userDataModel!
+                                                              .jobCompany,
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                      0.7),
+                                                              fontSize: 16))
+                                                      : Container()
+                                                ],
                                               ),
-                                              Flexible(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    viewModel.userDataModel!.job != null
-                                                        ? Text(viewModel.userDataModel!.job, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container(),
-                                                    SizedBox(height: 5),
-                                                    viewModel.userDataModel!.jobCompany != null
-                                                        ? Text(viewModel.userDataModel!.jobCompany, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)) : Container()
-                                                  ],
+                                            )
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Container(
+                                    height: 100,
+                                    width: 100,
+                                    margin: EdgeInsets.only(top: 20, right: 20),
+                                    child: Consumer<UserDataProvider>(
+                                      builder: (context, viewModel, child) {
+                                        MediaModel? mainPhoto =
+                                            viewModel.mediaDataModel!.mainPhoto;
+                                        return mainPhoto != null
+                                            ? CachedNetworkImage(
+                                                imageUrl: mainPhoto.url,
+                                                fadeOutDuration:
+                                                    Duration(seconds: 0),
+                                                fadeInDuration:
+                                                    Duration(seconds: 0),
+                                                imageBuilder:
+                                                    (context, imageProvider) =>
+                                                        Container(
+                                                  width: 100,
+                                                  height: 100,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    image: DecorationImage(
+                                                        image: imageProvider,
+                                                        fit: BoxFit.cover),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.white
+                                                            .withOpacity(0.4),
+                                                        spreadRadius: 10,
+                                                        blurRadius: 7,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                placeholder: (context, url) =>
+                                                    Shimmer.fromColors(
+                                                  baseColor: Colors.grey[300]!,
+                                                  highlightColor: Colors.white,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.grey,
+                                                        shape: BoxShape.circle),
+                                                  ),
                                                 ),
                                               )
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    Container(
-                                      height: 100,
-                                      width: 100,
-                                      margin: EdgeInsets.only(top: 20, right: 20),
-                                      child: Consumer<UserDataProvider>(
-                                        builder: (context, viewModel, child) {
-                                          MediaModel? mainPhoto = viewModel.mediaDataModel!.mainPhoto;
-                                          return mainPhoto != null ? CachedNetworkImage(
-                                            imageUrl: mainPhoto.url,
-                                            fadeOutDuration: Duration(seconds: 0),
-                                            fadeInDuration: Duration(seconds: 0),
-                                            imageBuilder: (context, imageProvider) => Container(
-                                              width: 100,
-                                              height: 100,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.white.withOpacity(0.4),
-                                                    spreadRadius: 10,
-                                                    blurRadius: 7,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            placeholder: (context, url) => Shimmer.fromColors(
-                                              baseColor: Colors.grey[300]!,
-                                              highlightColor: Colors.white,
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.grey,
-                                                    shape: BoxShape.circle
+                                            : Container(
+                                                width: 100,
+                                                height: 100,
+                                                child: Center(
+                                                  child: Icon(Icons.person,
+                                                      size: 85,
+                                                      color: Colors.white),
                                                 ),
-                                              ),
-                                            ),
-                                          ) : Container(
-                                            width: 100,
-                                            height: 100,
-                                            child: Center(
-                                              child: Icon(Icons.person, size: 85, color: Colors.white),
-                                            ),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.white),
-                                                shape: BoxShape.circle
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Consumer<UserDataProvider>(
-                                      builder: (context, viewModel, child){
-                                        return Container(
-                                          padding: EdgeInsets.only(right: 10),
-                                          margin: EdgeInsets.only(top: 10),
-                                          height: 100,
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.end,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Text(viewModel.userDataModel!.location, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                                  SizedBox(width: 5),
-                                                  SizedBox(
-                                                      height: 20,
-                                                      width: 20,
-                                                      child: ClipOval(
-                                                        child: SvgPicture.asset('assets/russian_flag.svg'),
-                                                      )
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(height: 10),
-                                              _zodiacSignWidget!
-                                            ],
-                                          ),
-                                        );
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        color: Colors.white),
+                                                    shape: BoxShape.circle),
+                                              );
                                       },
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Consumer<UserDataProvider>(
+                                    builder: (context, viewModel, child) {
+                                      return Container(
+                                        padding: EdgeInsets.only(right: 10),
+                                        margin: EdgeInsets.only(top: 10),
+                                        height: 100,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                    viewModel.userDataModel!
+                                                        .location,
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                                SizedBox(width: 5),
+                                                SizedBox(
+                                                    height: 20,
+                                                    width: 20,
+                                                    child: ClipOval(
+                                                      child: SvgPicture.asset(
+                                                          'assets/russian_flag.svg'),
+                                                    )),
+                                              ],
+                                            ),
+                                            SizedBox(height: 10),
+                                            _zodiacSignWidget!
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  )
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Flexible(
+                                child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) => BalancePage()));
+                              },
+                              child: Container(
+                                height: 100,
+                                width: width,
+                                margin: EdgeInsets.only(right: 20, bottom: 20),
+                                padding: EdgeInsets.only(left: 20, right: 20),
+                                decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.3),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20))),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text('Баланс',
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w500)),
+                                        SizedBox(height: 3),
+                                        Text('1000 UNY',
+                                            style: TextStyle(
+                                                fontSize: 22,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold)),
+                                        SizedBox(height: 3),
+                                        Text('10 000 ₽',
+                                            style: TextStyle(
+                                                color: Colors.black
+                                                    .withOpacity(0.5)))
+                                      ],
+                                    ),
+                                    SizedBox(width: 30),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    WithdrawalPage()));
+                                      },
+                                      child: Container(
+                                        height: 45,
+                                        width: 200,
+                                        child: Center(
+                                          child: Text('Вывод средств',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color.fromRGBO(
+                                                      29, 105, 217, 10))),
+                                        ),
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(15)),
+                                      ),
                                     )
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 20),
-                              Flexible(
-                                child: GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                      context,
-                                      CupertinoPageRoute(
-                                        builder: (context) => BalancePage()
-                                      )
-                                    );
-                                  },
-                                  child: Container(
-                                    height: 100,
-                                    width: width,
-                                    margin: EdgeInsets.only(right: 20, bottom: 20),
-                                    padding: EdgeInsets.only(left: 20, right: 20),
-                                    decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.3),
-                                        borderRadius: BorderRadius.all(Radius.circular(20))
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text('Баланс', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w500)),
-                                            SizedBox(height: 3),
-                                            Text('1000 UNY', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
-                                            SizedBox(height: 3),
-                                            Text('10 000 ₽', style: TextStyle(color: Colors.black.withOpacity(0.5)))
-                                          ],
-                                        ),
-                                        SizedBox(width: 30),
-                                        GestureDetector(
-                                          onTap: (){
-                                            Navigator.push(
-                                              context,
-                                              CupertinoPageRoute(builder: (context) => WithdrawalPage())
-                                            );
-                                          },
-                                          child: Container(
-                                            height: 45,
-                                            width: 200,
-                                            child: Center(
-                                              child: Text('Вывод средств', style: TextStyle(fontSize: 14, color: Color.fromRGBO(29, 105, 217, 10))),
-                                            ),
-                                            decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(15)
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              )
-                            ],
-                          )
-                        )
-                    ),
-                  )
-              ),
+                            ))
+                          ],
+                        ))),
+              )),
             ],
           ),
           SizedBox(height: height / 25),
@@ -646,7 +780,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     InkWell(
-                      onTap: (){
+                      onTap: () {
                         showToastWidget(
                             Container(
                               height: 70,
@@ -657,55 +791,82 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                 children: [
                                   ClipOval(
                                     child: Container(
-                                      height: 50,
-                                      width: 50,
-                                      color: Colors.green
-                                    ),
+                                        height: 50,
+                                        width: 50,
+                                        color: Colors.green),
                                   ),
                                   SizedBox(width: 10),
                                   Container(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text('sender', style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontWeight: FontWeight.w500, fontSize: 15)),
+                                        Text('sender',
+                                            style: TextStyle(
+                                                color: AdaptiveTheme.of(context)
+                                                            .mode ==
+                                                        AdaptiveThemeMode.light
+                                                    ? Colors.black
+                                                    : Colors.white,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 15)),
                                         SizedBox(height: 5),
-                                        Text('txt', style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontSize: 13))
+                                        Text('txt',
+                                            style: TextStyle(
+                                                color: AdaptiveTheme.of(context)
+                                                            .mode ==
+                                                        AdaptiveThemeMode.light
+                                                    ? Colors.black
+                                                    : Colors.white,
+                                                fontSize: 13))
                                       ],
                                     ),
                                   )
                                 ],
                               ),
                               decoration: BoxDecoration(
-                                  color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.black54 : Colors.white,
-                                  borderRadius: BorderRadius.circular(20)
-                              ),
+                                  color: AdaptiveTheme.of(context).mode ==
+                                          AdaptiveThemeMode.dark
+                                      ? Colors.black54
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
                             ),
                             context: context,
                             curve: Curves.easeIn,
-                            position: StyledToastPosition.top,
-                            animationBuilder: (context, controller, duration, child){
-                              return SlideTransition(
-                                position: Tween<Offset>(begin: Offset(0, -2), end: Offset(0, 0)).animate(
-                                  CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn),
-                                ),
-                                child: child,
-                              );
-                            }
-                        );
+                            position: StyledToastPosition.top, animationBuilder:
+                                (context, controller, duration, child) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                                    begin: Offset(0, -2), end: Offset(0, 0))
+                                .animate(
+                              CurvedAnimation(
+                                  parent: controller,
+                                  curve: Curves.fastOutSlowIn),
+                            ),
+                            child: child,
+                          );
+                        });
                       },
-                      child: Text('Мои интересы', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                      child: Text('Мои интересы',
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.bold)),
                     ),
                     InkWell(
                       onTap: () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => EditInterestsPage()
-                            )
-                        );
+                                builder: (context) => EditInterestsPage()));
                       },
-                      child: Text('Редактировать', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent)),
+                      child: Text('Редактировать',
+                          style: TextStyle(
+                              fontSize: 17,
+                              color: AdaptiveTheme.of(context).mode ==
+                                      AdaptiveThemeMode.light
+                                  ? Color.fromRGBO(145, 10, 251, 5)
+                                  : Colors.purpleAccent)),
                     )
                   ],
                 ),
@@ -715,7 +876,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                 height: 100,
                 padding: EdgeInsets.only(left: 10),
                 child: Consumer<UserDataProvider>(
-                  builder: (context, viewModel, child){
+                  builder: (context, viewModel, child) {
                     return MasonryGridView.count(
                         padding: EdgeInsets.only(bottom: 10),
                         crossAxisCount: 2,
@@ -723,45 +884,58 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         mainAxisSpacing: 9,
                         scrollDirection: Axis.horizontal,
                         itemCount: viewModel.interestsDataModel!.length,
-                        itemBuilder: (context, index){
+                        itemBuilder: (context, index) {
                           int itemCount = viewModel.interestsDataModel!.length;
                           int reversedIndex = itemCount - 1 - index;
                           return Material(
                             child: InkWell(
-                                borderRadius: const BorderRadius.all(Radius.circular(30)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(30)),
                                 child: Container(
                                   height: 40,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
                                   child: Center(
                                     widthFactor: 1,
                                     child: Text(
-                                      viewModel.interestsDataModel![reversedIndex].interest!,
-                                      style: const TextStyle(color: Colors.white),
+                                      viewModel
+                                          .interestsDataModel![reversedIndex]
+                                          .interest!,
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
                                   decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(Radius.circular(30)),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Color(int.parse('0x' + viewModel.interestsDataModel![reversedIndex].startColor)),
-                                          Color(int.parse('0x' + viewModel.interestsDataModel![reversedIndex].endColor)),
-                                        ]
-                                      ),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(30)),
+                                      gradient: LinearGradient(colors: [
+                                        Color(int.parse('0x' +
+                                            viewModel
+                                                .interestsDataModel![
+                                                    reversedIndex]
+                                                .startColor)),
+                                        Color(int.parse('0x' +
+                                            viewModel
+                                                .interestsDataModel![
+                                                    reversedIndex]
+                                                .endColor)),
+                                      ]),
                                       boxShadow: [
                                         BoxShadow(
-                                            color: Color(int.parse('0x' + viewModel.interestsDataModel![reversedIndex].startColor!)).withOpacity(0.7),
+                                            color: Color(int.parse('0x' +
+                                                    viewModel
+                                                        .interestsDataModel![
+                                                            reversedIndex]
+                                                        .startColor!))
+                                                .withOpacity(0.7),
                                             offset: const Offset(3, 3),
                                             blurRadius: 0,
-                                            spreadRadius: 0
-                                        )
-                                      ]
-                                  ),
-                                )
-                            ),
+                                            spreadRadius: 0)
+                                      ]),
+                                )),
                           );
-                        }
-                    );
+                        });
                   },
                 ),
               )
@@ -780,7 +954,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('О себе', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                Text('О себе',
+                    style:
+                        TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 Container(
                   height: 30,
                   width: 110,
@@ -789,25 +965,26 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Icon(Icons.edit, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent, size: 20),
+                        Icon(Icons.edit,
+                            color: AdaptiveTheme.of(context).mode ==
+                                    AdaptiveThemeMode.light
+                                ? Color.fromRGBO(145, 10, 251, 5)
+                                : Colors.purpleAccent,
+                            size: 20),
                         Text('Изменить', style: TextStyle(fontSize: 15))
                       ],
                     ),
                   ),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: Colors.grey,
-                          width: 0.5
-                      )
-                  ),
+                      border: Border.all(color: Colors.grey, width: 0.5)),
                 )
               ],
             ),
           ),
           SizedBox(height: 15),
           StatefulBuilder(
-            builder: (context, setState){
+            builder: (context, setState) {
               _bioState = setState;
               return SizedBox(
                 height: 70,
@@ -819,12 +996,13 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             padding: EdgeInsets.symmetric(horizontal: 20),
                             width: 500,
                             child: Text(
-                              _aboutMe != null ? '$_aboutMe' : 'Напишите о себе',
+                              _aboutMe != null
+                                  ? '$_aboutMe'
+                                  : 'Напишите о себе',
                               style: TextStyle(fontSize: 15),
                               overflow: TextOverflow.fade,
                               maxLines: 3,
-                            )
-                        ),
+                            )),
                         Positioned(
                             top: 52,
                             right: 5,
@@ -832,12 +1010,22 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               onTap: () => showFullBio(),
                               child: Row(
                                 children: [
-                                  Text('Ещё', style: TextStyle(fontSize: 15, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent)),
-                                  Icon(Icons.arrow_drop_down, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent)
+                                  Text('Ещё',
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: AdaptiveTheme.of(context)
+                                                      .mode ==
+                                                  AdaptiveThemeMode.light
+                                              ? Color.fromRGBO(145, 10, 251, 5)
+                                              : Colors.purpleAccent)),
+                                  Icon(Icons.arrow_drop_down,
+                                      color: AdaptiveTheme.of(context).mode ==
+                                              AdaptiveThemeMode.light
+                                          ? Color.fromRGBO(145, 10, 251, 5)
+                                          : Colors.purpleAccent)
                                 ],
                               ),
-                            )
-                        )
+                            ))
                       ],
                     );
                   },
@@ -856,15 +1044,23 @@ class _UserProfilePageState extends State<UserProfilePage>{
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Мои видео', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                Text('Мои видео',
+                    style:
+                        TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => AllVideosPage())
-                    );
+                        MaterialPageRoute(
+                            builder: (context) => AllVideosPage()));
                   },
-                  child: Text('Все', style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent, fontSize: 17)),
+                  child: Text('Все',
+                      style: TextStyle(
+                          color: AdaptiveTheme.of(context).mode ==
+                                  AdaptiveThemeMode.light
+                              ? Color.fromRGBO(145, 10, 251, 5)
+                              : Colors.purpleAccent,
+                          fontSize: 17)),
                 )
               ],
             ),
@@ -874,14 +1070,21 @@ class _UserProfilePageState extends State<UserProfilePage>{
               height: 200,
               padding: EdgeInsets.only(left: 20),
               child: Consumer<UserDataProvider>(
-                builder: (context, viewModel, child){
-                  if(viewModel.mediaDataModel!.otherPhotosList != null){
-                    if(viewModel.mediaDataModel!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList().isNotEmpty){
-                      _videos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
-                    }else{
+                builder: (context, viewModel, child) {
+                  if (viewModel.mediaDataModel!.otherPhotosList != null) {
+                    if (viewModel.mediaDataModel!.otherPhotosList!
+                        .where((element) =>
+                            element.type.toString().startsWith('video'))
+                        .toList()
+                        .isNotEmpty) {
+                      _videos = viewModel.mediaDataModel!.otherPhotosList!
+                          .where((element) =>
+                              element.type.toString().startsWith('video'))
+                          .toList();
+                    } else {
                       _videos = [];
                     }
-                  }else{
+                  } else {
                     _videos = [];
                   }
                   return GridView.count(
@@ -891,43 +1094,55 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     physics: const ClampingScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     children: List.generate(_videos!.length + 1, (index) {
-                      if(index == 0){
+                      if (index == 0) {
                         return InkWell(
                           onTap: () async {
-                            _video = await _picker.pickVideo(source: ImageSource.gallery);
+                            _video = await _picker.pickVideo(
+                                source: ImageSource.gallery);
 
-                            VideoPlayerController videoController = VideoPlayerController.file(File(_video!.path));
+                            VideoPlayerController videoController =
+                                VideoPlayerController.file(File(_video!.path));
                             await videoController.initialize();
 
-                            if(videoController.value.duration.inSeconds <= 15){
-                              
+                            if (videoController.value.duration.inSeconds <=
+                                15) {
                               String? mime = lookupMimeType(_video!.path);
 
-                              Uint8List videoBytes = File(_video!.path).readAsBytesSync();
+                              Uint8List videoBytes =
+                                  File(_video!.path).readAsBytesSync();
 
                               String base64Video = base64Encode(videoBytes);
-                              
+
                               var data = {
-                                'media' : base64Video,
-                                'mime' : mime,
-                                'filter' : '-'
+                                'media': base64Video,
+                                'mime': mime,
+                                'filter': '-'
                               };
 
-                             await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete(() async {
-                                await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
+                              await UnyAPI.create(
+                                      Constants.SIMPLE_RESPONSE_CONVERTER)
+                                  .uploadMedia(token, data)
+                                  .whenComplete(() async {
+                                await UnyAPI.create(Constants
+                                        .ALL_USER_DATA_MODEL_CONVERTER_CONSTANT)
+                                    .getCurrentUser(token)
+                                    .then((value) {
+                                  Provider.of<UserDataProvider>(context,
+                                          listen: false)
+                                      .setMediaDataModel(value.body!.media);
 
-                                  Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
-
-                                  Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(value.body!.media!.otherPhotosList);
+                                  Provider.of<VideoControllerProvider>(context,
+                                          listen: false)
+                                      .setMediaModel(
+                                          value.body!.media!.otherPhotosList);
                                 });
                               });
-                              
-                            }else{
+                            } else {
                               _video = null;
-                              if(UniversalPlatform.isIOS){
+                              if (UniversalPlatform.isIOS) {
                                 showCupertinoDialog(
                                     context: context,
-                                    builder: (context){
+                                    builder: (context) {
                                       return CupertinoAlertDialog(
                                         title: Text('Ошибка загрузки'),
                                         content: Center(
@@ -937,29 +1152,31 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                         actions: [
                                           CupertinoDialogAction(
                                             child: Text('Закрыть'),
-                                            onPressed: () => Navigator.pop(context),
+                                            onPressed: () =>
+                                                Navigator.pop(context),
                                           ),
                                         ],
                                       );
-                                    }
-                                );
-                              }else if(UniversalPlatform.isAndroid){
+                                    });
+                              } else if (UniversalPlatform.isAndroid) {
                                 showDialog(
                                     context: context,
                                     builder: (context) {
                                       return AlertDialog(
                                         title: Text('Ошибка загрузки'),
-                                        content: Text('Длительность видео должен быть не более 15 сек'),
+                                        content: Text(
+                                            'Длительность видео должен быть не более 15 сек'),
                                         actions: [
                                           FloatingActionButton.extended(
                                             label: Text('Закрыть'),
-                                            backgroundColor: Color.fromRGBO(145, 10, 251, 5),
-                                            onPressed: () => Navigator.pop(context),
+                                            backgroundColor:
+                                                Color.fromRGBO(145, 10, 251, 5),
+                                            onPressed: () =>
+                                                Navigator.pop(context),
                                           ),
                                         ],
                                       );
-                                    }
-                                );
+                                    });
                               }
                             }
                           },
@@ -972,10 +1189,13 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                  Icon(CupertinoIcons.add_circled_solid,
+                                      color: Colors.grey),
                                   SizedBox(height: 3),
-                                  Text('Загрузить видео',
-                                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                                  Text(
+                                    'Загрузить видео',
+                                    style: TextStyle(
+                                        fontSize: 15, color: Colors.grey),
                                     textAlign: TextAlign.center,
                                   )
                                 ],
@@ -983,60 +1203,68 @@ class _UserProfilePageState extends State<UserProfilePage>{
                             ),
                           ),
                         );
-                      }else{
+                      } else {
                         return InkWell(
                           onTap: () {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => VideoPage(videoId: _videos![index - 1].id)
-                                )
-                            );
+                                    builder: (context) => VideoPage(
+                                        videoId: _videos![index - 1].id)));
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.all(Radius.circular(15)),
                             child: Container(
                                 child: CachedNetworkImage(
-                                  placeholder: (context, url) => Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.white,
-                                    child: Container(
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  imageUrl: _videos![index - 1].thumbnail,
-                                  fit: BoxFit.cover,
-                                )
-                            ),
+                              placeholder: (context, url) => Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.white,
+                                child: Container(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              imageUrl: _videos![index - 1].thumbnail,
+                              fit: BoxFit.cover,
+                            )),
                           ),
                         );
                       }
                     }),
                   );
                 },
-              )
-          ),
+              )),
           SizedBox(height: 20),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 25),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Фото', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                Text('Фото',
+                    style:
+                        TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 Container()
               ],
             ),
           ),
           SizedBox(height: 10),
           Consumer<UserDataProvider>(
-            builder: (context, viewModel, child){
-              if(viewModel.mediaDataModel!.otherPhotosList != null){
-                if(viewModel.mediaDataModel!.otherPhotosList!.where((element) => (element.filter.toString().startsWith("-") && element.type.toString().startsWith("image"))).toList().isNotEmpty){
-                  _photos = viewModel.mediaDataModel!.otherPhotosList!.where((element) => (element.filter.toString().startsWith("-") && element.type.toString().startsWith("image"))).toList();
-                }else{
+            builder: (context, viewModel, child) {
+              if (viewModel.mediaDataModel!.otherPhotosList != null) {
+                if (viewModel.mediaDataModel!.otherPhotosList!
+                    .where((element) =>
+                        (element.filter.toString().startsWith("-") &&
+                            element.type.toString().startsWith("image")))
+                    .toList()
+                    .isNotEmpty) {
+                  _photos = viewModel.mediaDataModel!.otherPhotosList!
+                      .where((element) =>
+                          (element.filter.toString().startsWith("-") &&
+                              element.type.toString().startsWith("image")))
+                      .toList();
+                } else {
                   _photos = [];
                 }
-              }else{
+              } else {
                 _photos = [];
               }
               return Padding(
@@ -1052,21 +1280,25 @@ class _UserProfilePageState extends State<UserProfilePage>{
                       shrinkWrap: true,
                       physics: const ClampingScrollPhysics(),
                       scrollDirection: Axis.horizontal,
-                      children: List.generate(_photos!.length + 1, (index){
-                        if(index == 0){
+                      children: List.generate(_photos!.length + 1, (index) {
+                        if (index == 0) {
                           return InkWell(
                             onTap: () => showBottomSheet(),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15)),
                               child: Container(
                                 color: Colors.grey.withOpacity(0.3),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: const [
-                                    Icon(CupertinoIcons.add_circled_solid, color: Colors.grey),
+                                    Icon(CupertinoIcons.add_circled_solid,
+                                        color: Colors.grey),
                                     SizedBox(height: 3),
-                                    Text('Загрузить фото',
-                                      style: TextStyle(fontSize: 15, color: Colors.grey),
+                                    Text(
+                                      'Загрузить фото',
+                                      style: TextStyle(
+                                          fontSize: 15, color: Colors.grey),
                                       textAlign: TextAlign.center,
                                     )
                                   ],
@@ -1074,23 +1306,22 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               ),
                             ),
                           );
-                        }else{
+                        } else {
                           return InkWell(
-                            onTap: (){
+                            onTap: () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => AllPhotosPage()
-                                  )
-                              );
+                                      builder: (context) => AllPhotosPage()));
                             },
                             child: ClipRRect(
-                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15)),
                               child: Container(
                                 child: Consumer<UserDataProvider>(
-                                  builder: (context, viewModel, child){
+                                  builder: (context, viewModel, child) {
                                     return CachedNetworkImage(
-                                      imageUrl: _photos![index-1].url,
+                                      imageUrl: _photos![index - 1].url,
                                       fit: BoxFit.cover,
                                     );
                                   },
@@ -1100,8 +1331,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
                           );
                         }
                       }),
-                    )
-                ),
+                    )),
               );
             },
           )
@@ -1111,17 +1341,21 @@ class _UserProfilePageState extends State<UserProfilePage>{
   }
 
   Widget editBioWidget(BuildContext sheetContext) {
-    bioTextController!.value = bioTextController!.value.copyWith(text: _aboutMe);
+    bioTextController!.value =
+        bioTextController!.value.copyWith(text: _aboutMe);
     return StatefulBuilder(
       builder: (context, bioState) {
         return Material(
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(35), topRight: Radius.circular(35)),
           child: AnimatedContainer(
             duration: Duration(milliseconds: 250),
             padding: EdgeInsets.only(top: 10),
             height: bioTextFocusNode!.hasFocus ? height / 1.3 : height / 1.8,
             decoration: BoxDecoration(
-              color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.black12 : Colors.white,
+              color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark
+                  ? Colors.black12
+                  : Colors.white,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(35), topRight: Radius.circular(35)),
             ),
@@ -1133,7 +1367,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(width: width / 8),
-                      Text('О себе', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text('О себе',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold)),
                       IconButton(
                         icon: Icon(CupertinoIcons.clear_thick_circled),
                         color: Colors.grey.withOpacity(0.5),
@@ -1148,7 +1384,12 @@ class _UserProfilePageState extends State<UserProfilePage>{
                     'Напишите пару слов о себе и ваших постоянных увлечениях',
                     maxLines: 2,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.white : Colors.grey),
+                    style: TextStyle(
+                        fontSize: 17,
+                        color: AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.dark
+                            ? Colors.white
+                            : Colors.grey),
                   ),
                 ),
                 SizedBox(height: 15),
@@ -1158,7 +1399,11 @@ class _UserProfilePageState extends State<UserProfilePage>{
                       controller: bioTextController,
                       focusNode: bioTextFocusNode,
                       cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                      style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.dark ? Colors.white : Colors.black),
+                      style: TextStyle(
+                          color: AdaptiveTheme.of(context).mode ==
+                                  AdaptiveThemeMode.dark
+                              ? Colors.white
+                              : Colors.black),
                       textInputAction: TextInputAction.done,
                       textCapitalization: TextCapitalization.sentences,
                       maxLength: 650,
@@ -1169,25 +1414,25 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         fillColor: Colors.grey.withOpacity(0.2),
                         filled: true,
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.1)),
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        focusedBorder:  OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.1)),
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-
                       onTap: () {
                         Focus.of(sheetContext).requestFocus(bioTextFocusNode);
                       },
-
                       onChanged: (value) {
-                        if(value.length > bioValue!.length){
+                        if (value.length > bioValue!.length) {
                           bioState(() {
                             --_symbolsLeft;
                           });
-                        }else{
+                        } else {
                           bioState(() {
                             ++_symbolsLeft;
                           });
@@ -1195,11 +1440,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
                         bioValue = value;
                       },
-
                       onEditingComplete: () {
                         bioTextFocusNode!.unfocus();
-                      }
-                  ),
+                      }),
                 ),
                 SizedBox(height: 10),
                 Container(
@@ -1237,13 +1480,15 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                 child: Center(
                                     child: Text('Отмена',
                                         style: TextStyle(
-                                            color: Colors.black, fontSize: 17))),
+                                            color: Colors.black,
+                                            fontSize: 17))),
                               ),
                             ),
                           ),
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(11),
-                              border: Border.all(color: Colors.grey, width: 0.5)),
+                              border:
+                                  Border.all(color: Colors.grey, width: 0.5)),
                         ),
                       ),
                       SizedBox(width: 12),
@@ -1257,20 +1502,23 @@ class _UserProfilePageState extends State<UserProfilePage>{
                               color: Color.fromRGBO(145, 10, 251, 5),
                               child: InkWell(
                                 onTap: () async {
-                                  bioState((){
+                                  bioState(() {
                                     _showEditBioLoading = true;
                                   });
 
                                   var data = {
-                                    'about_me' : bioTextController!.text
+                                    'about_me': bioTextController!.text
                                   };
 
-                                  await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).editAboutMe(token, data).whenComplete((){
+                                  await UnyAPI.create(
+                                          Constants.SIMPLE_RESPONSE_CONVERTER)
+                                      .editAboutMe(token, data)
+                                      .whenComplete(() {
                                     _showEditBioLoading = false;
 
                                     Navigator.pop(context);
 
-                                    _bioState!((){
+                                    _bioState!(() {
                                       _aboutMe = bioTextController!.text;
                                     });
                                   });
@@ -1280,21 +1528,20 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                   child: Center(
                                       child: _showEditBioLoading
                                           ? SizedBox(
-                                        height: 30,
-                                        width: 30,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
+                                              height: 30,
+                                              width: 30,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
                                           : Text('Сохранить',
-                                          style: TextStyle(
-                                              color: Colors.white, fontSize: 17))
-                                  ),
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 17))),
                                 ),
                               ),
-                            )
-                        ),
+                            )),
                       )
                     ],
                   ),
@@ -1311,21 +1558,29 @@ class _UserProfilePageState extends State<UserProfilePage>{
     return FutureBuilder<Response<AllUserDataModel>>(
       future: _allUserDataModelFuture,
       builder: (futureBuilderContext, snapshot) {
-        while(snapshot.connectionState == ConnectionState.waiting){
+        while (snapshot.connectionState == ConnectionState.waiting) {
           return Container();
         }
 
-        if(snapshot.connectionState == ConnectionState.done && snapshot.hasData){
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
           _allUserDataModel = snapshot.data!.body;
           _user = _allUserDataModel!.user;
 
           _media = _allUserDataModel!.media!;
 
-          if(_allUserDataModel!.media!.otherPhotosList != null){
-            if(_allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList().isNotEmpty){
-              _videos = _allUserDataModel!.media!.otherPhotosList!.where((element) => element.type.toString().startsWith('video')).toList();
+          if (_allUserDataModel!.media!.otherPhotosList != null) {
+            if (_allUserDataModel!.media!.otherPhotosList!
+                .where((element) => element.type.toString().startsWith('video'))
+                .toList()
+                .isNotEmpty) {
+              _videos = _allUserDataModel!.media!.otherPhotosList!
+                  .where(
+                      (element) => element.type.toString().startsWith('video'))
+                  .toList();
 
-              Provider.of<VideoControllerProvider>(context, listen: false).setMediaModel(_videos);
+              Provider.of<VideoControllerProvider>(context, listen: false)
+                  .setMediaModel(_videos);
             }
           }
 
@@ -1348,7 +1603,7 @@ class _UserProfilePageState extends State<UserProfilePage>{
             ..setInterestsDataModel(_interests);
 
           return mainBody(context);
-        }else{
+        } else {
           return Center(
             heightFactor: 10,
             child: Text('Error'),
@@ -1358,49 +1613,49 @@ class _UserProfilePageState extends State<UserProfilePage>{
     );
   }
 
-  void openEditBioSheet(){
-    if(UniversalPlatform.isIOS){
+  void openEditBioSheet() {
+    if (UniversalPlatform.isIOS) {
       showCupertinoModalPopup(
           context: context,
           builder: (context) {
             return editBioWidget(context);
-          }
-      );
-    }else if(UniversalPlatform.isAndroid){
+          });
+    } else if (UniversalPlatform.isAndroid) {
       showCupertinoModalPopup(
           context: context,
-          builder: (context){
+          builder: (context) {
             return editBioWidget(context);
-          }
-      );
+          });
     }
   }
 
   void showFullBio() {
     showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Text(
-            '$_aboutMe',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Закрыть', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
-            )
-          ],
-        );
-      }
-    );
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text(
+              '$_aboutMe',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Закрыть',
+                    style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+              )
+            ],
+          );
+        });
   }
 
   void showBottomSheet() async {
-    try{
-      List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(onlyAll: true, type: RequestType.image);
-      List<AssetEntity> media = await albums[0].getAssetListPaged(page: 0, size: 10000);
+    try {
+      List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+          onlyAll: true, type: RequestType.image);
+      List<AssetEntity> media =
+          await albums[0].getAssetListPaged(page: 0, size: 10000);
 
-      if(UniversalPlatform.isIOS){
+      if (UniversalPlatform.isIOS) {
         showCupertinoModalPopup(
             context: context,
             builder: (context) {
@@ -1426,7 +1681,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                     });
                                   },
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(8)),
                                     child: AssetEntityImage(
                                       media[index],
                                       isOriginal: false,
@@ -1444,7 +1700,9 @@ class _UserProfilePageState extends State<UserProfilePage>{
                         ),
                       ),
                       CupertinoActionSheetAction(
-                        child: Text('Выбрать из библиотеки', textAlign: TextAlign.center, style: TextStyle(color: Colors.lightBlueAccent)),
+                        child: Text('Выбрать из библиотеки',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.lightBlueAccent)),
                         onPressed: () async {
                           XFile? image = await _picker.pickImage(
                               source: ImageSource.gallery);
@@ -1460,12 +1718,11 @@ class _UserProfilePageState extends State<UserProfilePage>{
                   child: Text('Отмена', style: TextStyle(color: Colors.red)),
                 ),
               );
-            }
-        );
-      }else if(UniversalPlatform.isAndroid){
+            });
+      } else if (UniversalPlatform.isAndroid) {
         showModalBottomSheet(
             context: context,
-            builder: (context){
+            builder: (context) {
               return Wrap(
                 children: [
                   Column(
@@ -1487,8 +1744,8 @@ class _UserProfilePageState extends State<UserProfilePage>{
                                     });
                                   },
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(8)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(8)),
                                     child: AssetEntityImage(
                                       media[index],
                                       isOriginal: false,
@@ -1515,25 +1772,22 @@ class _UserProfilePageState extends State<UserProfilePage>{
                       ),
                       ListTile(
                           title: Text('Отмена'),
-                          onTap: () => Navigator.pop(context)
-                      ),
+                          onTap: () => Navigator.pop(context)),
                     ],
                   )
                 ],
               );
-            }
-        );
+            });
       }
-    }on RangeError catch(_){
-      if(UniversalPlatform.isIOS){
+    } on RangeError catch (_) {
+      if (UniversalPlatform.isIOS) {
         showCupertinoDialog(
             context: context,
             builder: (context) {
               return CupertinoAlertDialog(
                 title: Text('Нет фото'),
                 content: Center(
-                  child: Text(
-                      'У вас нет фотографий'),
+                  child: Text('У вас нет фотографий'),
                 ),
                 actions: [
                   CupertinoDialogAction(
@@ -1543,12 +1797,11 @@ class _UserProfilePageState extends State<UserProfilePage>{
                   ),
                 ],
               );
-            }
-        );
-      }else if(UniversalPlatform.isAndroid){
+            });
+      } else if (UniversalPlatform.isAndroid) {
         Widget _closeButton = TextButton(
-            child: const Text(
-                'Закрыть', style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
+            child: const Text('Закрыть',
+                style: TextStyle(color: Color.fromRGBO(145, 10, 251, 5))),
             onPressed: () {
               Navigator.pop(context);
             });
@@ -1568,32 +1821,30 @@ class _UserProfilePageState extends State<UserProfilePage>{
   }
 
   void _cropImage(String? filePath) async {
-    CroppedFile? croppedFile = await ImageCropper().cropImage(
-        sourcePath: filePath!,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Загрузить фото',
-            toolbarColor: Color.fromRGBO(145, 10, 251, 5),
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false,
-            hideBottomControls: true,
-          ),
-          IOSUiSettings(
-            title: 'Загрузить фото',
-            showCancelConfirmationDialog: true,
-            cancelButtonTitle: 'Закрыть',
-            doneButtonTitle: 'Сохранить',
-            rotateButtonsHidden: true,
-            aspectRatioPickerButtonHidden: true,
-            rotateClockwiseButtonHidden: true,
-            resetButtonHidden: true,
-            rectX: 100,
-            rectY: 100,
-            aspectRatioLockEnabled: false,
-          )
-        ]
-    );
+    CroppedFile? croppedFile =
+        await ImageCropper().cropImage(sourcePath: filePath!, uiSettings: [
+      AndroidUiSettings(
+        toolbarTitle: 'Загрузить фото',
+        toolbarColor: Color.fromRGBO(145, 10, 251, 5),
+        toolbarWidgetColor: Colors.white,
+        initAspectRatio: CropAspectRatioPreset.original,
+        lockAspectRatio: false,
+        hideBottomControls: true,
+      ),
+      IOSUiSettings(
+        title: 'Загрузить фото',
+        showCancelConfirmationDialog: true,
+        cancelButtonTitle: 'Закрыть',
+        doneButtonTitle: 'Сохранить',
+        rotateButtonsHidden: true,
+        aspectRatioPickerButtonHidden: true,
+        rotateClockwiseButtonHidden: true,
+        resetButtonHidden: true,
+        rectX: 100,
+        rectY: 100,
+        aspectRatioLockEnabled: false,
+      )
+    ]);
 
     Uint8List? bytes;
 
@@ -1601,15 +1852,16 @@ class _UserProfilePageState extends State<UserProfilePage>{
 
     String? mime = lookupMimeType(croppedFile.path);
 
-    var data = {
-      'media' : base64Encode(bytes!),
-      'mime' : mime,
-      'filter' : '-'
-    };
-    
-    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER).uploadMedia(token, data).whenComplete(() async {
-      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
-        Provider.of<UserDataProvider>(context, listen: false).setMediaDataModel(value.body!.media);
+    var data = {'media': base64Encode(bytes!), 'mime': mime, 'filter': '-'};
+
+    await UnyAPI.create(Constants.SIMPLE_RESPONSE_CONVERTER)
+        .uploadMedia(token, data)
+        .whenComplete(() async {
+      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT)
+          .getCurrentUser(token)
+          .then((value) {
+        Provider.of<UserDataProvider>(context, listen: false)
+            .setMediaDataModel(value.body!.media);
 
         Navigator.pop(context);
       });

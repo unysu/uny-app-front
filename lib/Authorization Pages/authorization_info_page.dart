@@ -14,8 +14,7 @@ import 'package:uny_app/Data%20Models/User%20Data%20Model/user_data_model.dart';
 import 'package:uny_app/Photo%20Video%20Upload%20Pages/upload_photo_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
-class AuthorizationInfoPage extends StatefulWidget{
-
+class AuthorizationInfoPage extends StatefulWidget {
   String? gender;
 
   AuthorizationInfoPage(this.gender);
@@ -24,8 +23,7 @@ class AuthorizationInfoPage extends StatefulWidget{
   _AuthorizationInfoPageState createState() => _AuthorizationInfoPageState();
 }
 
-class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
-
+class _AuthorizationInfoPageState extends State<AuthorizationInfoPage> {
   FToast? _fToast;
 
   final String _warningIconAsset = 'assets/warning_icon.svg';
@@ -83,85 +81,90 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        mqHeight = constraints.maxHeight;
-        mqWidth = constraints.maxWidth;
-        return ResponsiveWrapper.builder(
-            Scaffold(
-                resizeToAvoidBottomInset: false,
-                extendBodyBehindAppBar: true,
-                appBar: AppBar(
-                  elevation: 0,
-                  automaticallyImplyLeading: false,
-                  systemOverlayStyle: SystemUiOverlayStyle.light,
-                  backgroundColor: Colors.transparent,
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-                body: GestureDetector(
-                  child: mainBody(),
-                  onTap: () {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    locationFieldFocusNode!.unfocus();
-                  },
-                )
+    return LayoutBuilder(builder: (context, constraints) {
+      mqHeight = constraints.maxHeight;
+      mqWidth = constraints.maxWidth;
+      return ResponsiveWrapper.builder(
+        Scaffold(
+            resizeToAvoidBottomInset: false,
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
-          maxWidth: 800,
-          minWidth: 450,
-          defaultScale: true,
-          breakpoints: [
-            ResponsiveBreakpoint.resize(450, name: MOBILE),
-            ResponsiveBreakpoint.autoScale(800, name: MOBILE),
-          ],
-        );
-      }
-    );
+            body: GestureDetector(
+              child: mainBody(),
+              onTap: () {
+                FocusScope.of(context).requestFocus(FocusNode());
+                locationFieldFocusNode!.unfocus();
+              },
+            )),
+        maxWidth: 800,
+        minWidth: 450,
+        defaultScale: true,
+        breakpoints: [
+          ResponsiveBreakpoint.resize(450, name: MOBILE),
+          ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+        ],
+      );
+    });
   }
 
-  Widget mainBody(){
+  Widget mainBody() {
     return Container(
       decoration: BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: const [
-                Color.fromRGBO(165, 21, 215, 5),
-                Color.fromRGBO(38, 78, 215, 5)
-              ]
-          )
-      ),
+            Color.fromRGBO(165, 21, 215, 5),
+            Color.fromRGBO(38, 78, 215, 5)
+          ])),
       child: Column(
         children: [
           Padding(
-              padding: EdgeInsets.only(top: mqHeight / 8, left: mqWidth * 0.1, right: mqWidth * 0.4),
+              padding: EdgeInsets.only(
+                  top: mqHeight / 8, left: mqWidth * 0.1, right: mqWidth * 0.4),
               child: SizedBox(
-                height: 60,
-                width: 250,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Как тебя зовут? 😇', style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 6),
-                    SizedBox(
-                      child: Text(
-                        'Укажи свои имя, возраст',
-                        maxLines: 3,
-                        style: TextStyle(fontSize: 17, color: Colors.grey),
-                      ),
-                    )
-                  ],
-                )
-              )
+                  height: 60,
+                  width: 250,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text('Как тебя зовут? 😇',
+                          style: TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                      SizedBox(height: 6),
+                      SizedBox(
+                        child: Text(
+                          'Укажи свои имя, возраст',
+                          maxLines: 3,
+                          style: TextStyle(fontSize: 17, color: Colors.grey),
+                        ),
+                      )
+                    ],
+                  ))),
+          Container(
+            padding: EdgeInsets.only(
+                top: mqHeight / 20, left: mqWidth * 0.1, right: mqWidth * 0.5),
+            child: Text('Основные данные',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
+                maxLines: 1),
           ),
           Container(
-            padding: EdgeInsets.only(top: mqHeight / 20, left: mqWidth * 0.1, right: mqWidth * 0.5),
-            child: Text('Основные данные', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold), maxLines: 1),
-          ),
-          Container(
-            padding: EdgeInsets.only(top: mqWidth / 16, left: mqWidth * 0.1, right: mqWidth * 0.1),
+            padding: EdgeInsets.only(
+                top: mqWidth / 16, left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
               controller: nameTextController,
               cursorColor: Colors.white,
@@ -169,27 +172,36 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               style: TextStyle(color: Colors.white),
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                FilteringTextInputFormatter.allow(
+                    RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
                 FilteringTextInputFormatter.deny(RegExp("/"))
               ],
               maxLength: 40,
               decoration: InputDecoration(
                 counterText: "",
                 hintText: 'Имя',
-                hintStyle: TextStyle(fontSize: 17, color: isNameFieldEmpty != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(
+                    fontSize: 17,
+                    color:
+                        isNameFieldEmpty != true ? Colors.white : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(
+                      color: isNameFieldEmpty != true
+                          ? Colors.white.withOpacity(0.5)
+                          : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
-
-                focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      color: isNameFieldEmpty != true
+                          ? Colors.white.withOpacity(0.5)
+                          : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
-              onChanged: (value){
+              onChanged: (value) {
                 setState(() {
                   isNameFieldEmpty = false;
                 });
@@ -206,27 +218,37 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
               textInputAction: TextInputAction.done,
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                FilteringTextInputFormatter.allow(
+                    RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
                 FilteringTextInputFormatter.deny(RegExp("/"))
               ],
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 counterText: "",
                 hintText: 'Фамилия',
-                hintStyle: TextStyle(fontSize: 17, color: isSecondNameFieldEmpty != true ? Colors.white : Colors.red),
+                hintStyle: TextStyle(
+                    fontSize: 17,
+                    color: isSecondNameFieldEmpty != true
+                        ? Colors.white
+                        : Colors.red),
                 fillColor: Colors.white.withOpacity(0.3),
                 filled: true,
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                  borderSide: BorderSide(
+                      color: isSecondNameFieldEmpty != true
+                          ? Colors.white.withOpacity(0.5)
+                          : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
-
-                focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isSecondNameFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      color: isSecondNameFieldEmpty != true
+                          ? Colors.white.withOpacity(0.5)
+                          : Colors.red),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
-              onChanged: (value){
+              onChanged: (value) {
                 setState(() {
                   isSecondNameFieldEmpty = false;
                 });
@@ -237,119 +259,145 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
           Padding(
             padding: EdgeInsets.only(left: mqWidth * 0.1, right: mqWidth * 0.1),
             child: TextFormField(
-              controller: dateOfBirthTextController,
-              cursorColor: Colors.white,
-              textInputAction: TextInputAction.done,
-              style: TextStyle(color: Colors.white),
-              readOnly: true,
-              decoration: InputDecoration(
-                hintText: 'Дата рождения',
-                hintStyle: TextStyle(fontSize: 17, color: isDateOfBirthFieldEmpty != true ? Colors.white : Colors.red),
-                fillColor: Colors.white.withOpacity(0.3),
-                filled: true,
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.calendar_today_outlined),
-                  color: Colors.white.withOpacity(0.5),
-                  onPressed: () => showDatePicker(),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: isDateOfBirthFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-
-                focusedBorder:  OutlineInputBorder(
-                  borderSide: BorderSide(color: isDateOfBirthFieldEmpty != true ? Colors.white.withOpacity(0.5) : Colors.red),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              onTap: () => showDatePicker()
-            ),
-          ),
-
-          isNameFieldEmpty! || isSecondNameFieldEmpty! || isDateOfBirthFieldEmpty! || isLocationFieldEmpty!
-              ? Padding(
-            padding: EdgeInsets.only(left: 30, top: 12),
-            child: Row(
-              children: const [
-                SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: Icon(Icons.error, color: Colors.red),
-                ),
-                SizedBox(width: 3),
-                Text('Поля не должны быть пустыми', style: TextStyle(color: Colors.red, fontSize: 15))
-              ],
-            ),
-          ) : Container(),
-          Container(
-            padding: EdgeInsets.only(top: mqHeight * 0.04, left: mqWidth * 0.1, right: mqWidth * 0.5),
-            child: Text('Местоположение', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-          Container(
-            padding: EdgeInsets.only(top: mqHeight / 50, left: mqWidth * 0.1, right: mqWidth * 0.1),
-            child: TypeAheadField<String>(
-              direction: AxisDirection.up,
-              suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                borderRadius: BorderRadius.circular(20)
-              ),
-              textFieldConfiguration: TextFieldConfiguration(
-                controller: locationTextController,
-                focusNode: locationFieldFocusNode,
+                controller: dateOfBirthTextController,
                 cursorColor: Colors.white,
-                maxLength: 40,
                 textInputAction: TextInputAction.done,
-                textCapitalization: TextCapitalization.sentences,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
-                  FilteringTextInputFormatter.deny(RegExp("/"))
-                ],
                 style: TextStyle(color: Colors.white),
+                readOnly: true,
                 decoration: InputDecoration(
-                  counterText: "",
-                  hintText: 'Название города',
-                  hintStyle: TextStyle(fontSize: 17, color: isLocationFieldEmpty != true ? Colors.white : Colors.red),
+                  hintText: 'Дата рождения',
+                  hintStyle: TextStyle(
+                      fontSize: 17,
+                      color: isDateOfBirthFieldEmpty != true
+                          ? Colors.white
+                          : Colors.red),
                   fillColor: Colors.white.withOpacity(0.3),
-                  prefixIcon: Icon(Icons.search, color: Colors.white),
                   filled: true,
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.calendar_today_outlined),
+                    color: Colors.white.withOpacity(0.5),
+                    onPressed: () => showDatePicker(),
+                  ),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: isLocationFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                    borderSide: BorderSide(
+                        color: isDateOfBirthFieldEmpty != true
+                            ? Colors.white.withOpacity(0.5)
+                            : Colors.red),
                     borderRadius: BorderRadius.circular(15),
                   ),
-
-                  focusedBorder:  OutlineInputBorder(
-                    borderSide: BorderSide(color: isLocationFieldEmpty != true  ? Colors.white.withOpacity(0.5) : Colors.red),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: isDateOfBirthFieldEmpty != true
+                            ? Colors.white.withOpacity(0.5)
+                            : Colors.red),
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onChanged: (value){
-                  setState(() {
-                    isLocationFieldEmpty = false;
-                  });
-                },
-              ),
-              itemBuilder: (context, city){
-                return ListTile(
-                  title: Text(city),
-                );
-              },
-
-              onSuggestionSelected: (city){
-                locationTextController!.value = locationTextController!.value.copyWith(text: city);
-              },
-
-              noItemsFoundBuilder: (context){
-                return Container(
-                  child: Center(
-                    child: Text('Город не найден'),
-                  )
-                );
-              },
-
-              suggestionsCallback: (pattern){
-                return RussianCities.getCities(pattern);
-              }
-            )
+                onTap: () => showDatePicker()),
           ),
+          isNameFieldEmpty! ||
+                  isSecondNameFieldEmpty! ||
+                  isDateOfBirthFieldEmpty! ||
+                  isLocationFieldEmpty!
+              ? Padding(
+                  padding: EdgeInsets.only(left: 30, top: 12),
+                  child: Row(
+                    children: const [
+                      SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: Icon(Icons.error, color: Colors.red),
+                      ),
+                      SizedBox(width: 3),
+                      Text('Поля не должны быть пустыми',
+                          style: TextStyle(color: Colors.red, fontSize: 15))
+                    ],
+                  ),
+                )
+              : Container(),
+          Container(
+            padding: EdgeInsets.only(
+                top: mqHeight * 0.04,
+                left: mqWidth * 0.1,
+                right: mqWidth * 0.5),
+            child: Text('Местоположение',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
+          ),
+          Container(
+              padding: EdgeInsets.only(
+                  top: mqHeight / 50,
+                  left: mqWidth * 0.1,
+                  right: mqWidth * 0.1),
+              child: TypeAheadField<String>(
+                  direction: AxisDirection.up,
+                  suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                      borderRadius: BorderRadius.circular(20)),
+                  textFieldConfiguration: TextFieldConfiguration(
+                    controller: locationTextController,
+                    focusNode: locationFieldFocusNode,
+                    cursorColor: Colors.white,
+                    maxLength: 40,
+                    textInputAction: TextInputAction.done,
+                    textCapitalization: TextCapitalization.sentences,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                      FilteringTextInputFormatter.deny(RegExp("/"))
+                    ],
+                    style: TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      counterText: "",
+                      hintText: 'Название города',
+                      hintStyle: TextStyle(
+                          fontSize: 17,
+                          color: isLocationFieldEmpty != true
+                              ? Colors.white
+                              : Colors.red),
+                      fillColor: Colors.white.withOpacity(0.3),
+                      prefixIcon: Icon(Icons.search, color: Colors.white),
+                      filled: true,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: isLocationFieldEmpty != true
+                                ? Colors.white.withOpacity(0.5)
+                                : Colors.red),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: isLocationFieldEmpty != true
+                                ? Colors.white.withOpacity(0.5)
+                                : Colors.red),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        isLocationFieldEmpty = false;
+                      });
+                    },
+                  ),
+                  itemBuilder: (context, city) {
+                    return ListTile(
+                      title: Text(city),
+                    );
+                  },
+                  onSuggestionSelected: (city) {
+                    locationTextController!.value =
+                        locationTextController!.value.copyWith(text: city);
+                  },
+                  noItemsFoundBuilder: (context) {
+                    return Container(
+                        child: Center(
+                      child: Text('Город не найден'),
+                    ));
+                  },
+                  suggestionsCallback: (pattern) {
+                    return RussianCities.getCities(pattern);
+                  })),
           Container(
               padding: EdgeInsets.only(top: mqHeight * 0.02),
               child: Material(
@@ -359,11 +407,13 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                   onTap: () async {
                     validate();
 
-                    if(!isNameFieldEmpty! && !isSecondNameFieldEmpty! && !isDateOfBirthFieldEmpty! && !isLocationFieldEmpty!){
+                    if (!isNameFieldEmpty! &&
+                        !isSecondNameFieldEmpty! &&
+                        !isDateOfBirthFieldEmpty! &&
+                        !isLocationFieldEmpty!) {
                       setState(() {
                         _showLoading = true;
                       });
-
 
                       String name = nameTextController!.text;
                       String lastName = secondNameTextController!.text;
@@ -374,22 +424,28 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                       String token = 'Bearer ' + TokenData.getUserToken();
 
                       var data = {
-                        'first_name' : name,
-                        'last_name' : lastName,
-                        'location' : location,
-                        'date_of_birth' : birthDay,
-                        'gender' : gender
+                        'first_name': name,
+                        'last_name': lastName,
+                        'location': location,
+                        'date_of_birth': birthDay,
+                        'gender': gender
                       };
 
-                      Response<UserDataModel> updateUserResponse = await UnyAPI.create(Constants.USER_DATA_MODEL_CONVERTER_CONSTANT).updateUser(token, data);
+                      Response<UserDataModel> updateUserResponse =
+                          await UnyAPI.create(
+                                  Constants.USER_DATA_MODEL_CONVERTER_CONSTANT)
+                              .updateUser(token, data);
 
-                      if(updateUserResponse.body!.success == true){
+                      if (updateUserResponse.body!.success == true) {
                         setState(() {
                           _showLoading = false;
                         });
 
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => UploadPhotoPage()));
-                      }else{
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => UploadPhotoPage()));
+                      } else {
                         setState(() {
                           _showLoading = false;
                         });
@@ -401,47 +457,46 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                     height: 50,
                     child: Center(
                         child: !_showLoading
-                         ? Text('Далее', style: TextStyle(color: Colors.black, fontSize: 17))
-                         : SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 2,
-                          ),
-                        )
-                    ),
+                            ? Text('Далее',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 17))
+                            : SizedBox(
+                                height: 30,
+                                width: 30,
+                                child: CircularProgressIndicator(
+                                  color: Colors.black,
+                                  strokeWidth: 2,
+                                ),
+                              )),
                   ),
                 ),
-              )
-          ),
+              )),
         ],
       ),
     );
   }
 
-
   // Validate whether fields are empty or not
-  void validate(){
-    if(nameTextController!.text.isEmpty){
+  void validate() {
+    if (nameTextController!.text.isEmpty) {
       setState(() {
         isNameFieldEmpty = true;
       });
     }
 
-    if(secondNameTextController!.text.isEmpty){
+    if (secondNameTextController!.text.isEmpty) {
       setState(() {
         isSecondNameFieldEmpty = true;
       });
     }
 
-    if(dateOfBirthTextController!.text.isEmpty){
+    if (dateOfBirthTextController!.text.isEmpty) {
       setState(() {
         isDateOfBirthFieldEmpty = true;
       });
     }
 
-    if(locationTextController!.text.isEmpty){
+    if (locationTextController!.text.isEmpty) {
       setState(() {
         isLocationFieldEmpty = true;
       });
@@ -449,17 +504,20 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
   }
 
   // Showing date picker depends on platform
-  void showDatePicker(){
+  void showDatePicker() {
     showCupertinoModalPopup(
         context: context,
-        builder: (context){
+        builder: (context) {
           return Material(
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             child: Container(
                 height: (mqWidth / 2) * 1.9,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20)),
                 ),
                 child: Column(
                   children: [
@@ -469,13 +527,14 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(width: mqWidth / 8),
-                          Text('Дата рождения', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          Text('Дата рождения',
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold)),
                           Container(
                             child: IconButton(
-                              icon: Icon(
-                                  CupertinoIcons.clear_thick_circled,
+                              icon: Icon(CupertinoIcons.clear_thick_circled,
                                   color: Colors.grey.withOpacity(0.5)),
-                              onPressed: (){
+                              onPressed: () {
                                 Navigator.pop(context);
                               },
                             ),
@@ -490,7 +549,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                         dateOrder: DatePickerDateOrder.dmy,
                         initialDateTime: _date,
                         mode: CupertinoDatePickerMode.date,
-                        onDateTimeChanged: (dateTime){
+                        onDateTimeChanged: (dateTime) {
                           setState(() {
                             _date = dateTime;
                           });
@@ -502,39 +561,41 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
                       padding: EdgeInsets.only(left: 24, right: 24, top: 20),
                       child: FloatingActionButton.extended(
                         onPressed: () {
-                          if(DateTime.now().year - (_date.year) < 18){
+                          if (DateTime.now().year - (_date.year) < 18) {
                             _showToast();
-                          }else if(DateTime.now().year - (_date.year) > 100){
+                          } else if (DateTime.now().year - (_date.year) > 100) {
                             _showToast();
-                          }else{
+                          } else {
                             setState(() {
                               isDateOfBirthFieldEmpty = false;
                             });
 
                             var formatter = DateFormat('dd-MM-yyyy');
                             var date = formatter.format(_date);
-                            dateOfBirthTextController!.value = dateOfBirthTextController!.value.copyWith(text: date);
+                            dateOfBirthTextController!.value =
+                                dateOfBirthTextController!.value
+                                    .copyWith(text: date);
 
                             Navigator.pop(context);
                           }
                         },
-                        label: Text('Готово', style: TextStyle(fontSize: 17, color: Colors.white)),
+                        label: Text('Готово',
+                            style:
+                                TextStyle(fontSize: 17, color: Colors.white)),
                         backgroundColor: Color.fromRGBO(145, 10, 251, 5),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(11))
-                        ),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(11))),
                       ),
                     )
                   ],
-                )
-            ),
+                )),
           );
-        }
-    );
+        });
   }
 
   // Checking whether keyboard opened or closed
-  bool isKeyboardClosed(){
+  bool isKeyboardClosed() {
     return MediaQuery.of(context).viewInsets.bottom == 0.0;
   }
 
@@ -548,7 +609,8 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage>{
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Возраст должен быть от 18 до 100", style: TextStyle(color: Colors.white)),
+          Text("Возраст должен быть от 18 до 100",
+              style: TextStyle(color: Colors.white)),
           SizedBox(
             height: 20,
             width: 20,

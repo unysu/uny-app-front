@@ -18,7 +18,7 @@ class _$UnyAPI extends UnyAPI {
 
   @override
   Future<Response<AuthModel>> auth(dynamic data) {
-    final $url = '/auth';
+    final $url = 'api/auth';
     final $body = data;
     final $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<AuthModel, AuthModel>($request);
@@ -26,7 +26,7 @@ class _$UnyAPI extends UnyAPI {
 
   @override
   Future<Response<UserDataModel>> confirmCode(dynamic data) {
-    final $url = '/login';
+    final $url = 'api/login';
     final $body = data;
     final $request = Request('POST', $url, client.baseUrl, body: $body);
     return client.send<UserDataModel, UserDataModel>($request);
