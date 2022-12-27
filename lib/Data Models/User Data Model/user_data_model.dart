@@ -3,16 +3,18 @@ import 'package:json_annotation/json_annotation.dart';
 part 'user_data_model.g.dart';
 
 @JsonSerializable()
-class UserDataModel{
-
-  @JsonKey(name: 'success')
-  var success;
+class UserDataModel {
+  // @JsonKey(name: 'success')
+  // var success;
 
   @JsonKey(name: 'token')
   var token;
 
-  @JsonKey(name: 'phone_number')
-  var phoneNumber;
+  @JsonKey(name: 'phone')
+  var phone;
+
+  @JsonKey(name: 'country_code_phone')
+  var country_code_phone;
 
   @JsonKey(name: 'id')
   var id;
@@ -59,30 +61,34 @@ class UserDataModel{
   @JsonKey(name: 'zodiac_sign')
   var zodiacSign;
 
-  UserDataModel({
-     this.success,
-     this.token,
-     this.phoneNumber,
-     this.id,
-     this.firstName,
-     this.lastName,
-     this.location,
-     this.dateOfBirth,
-     this.aboutMe,
-     this.gender,
-     this.whoCanSee,
-     this.job,
-     this.jobCompany,
-     this.muteNotifications,
-     this.muteMessagesNotifications,
-     this.muteRequestMessagingNotifications,
-     this.showZodiacSign,
-     this.zodiacSign
-  });
+  @JsonKey(name: 'unycoin')
+  var unycoin;
 
+  UserDataModel(
+      {
+      // this.success,
+      this.token,
+      this.phone,
+      this.country_code_phone,
+      this.id,
+      this.firstName,
+      this.lastName,
+      this.location,
+      this.dateOfBirth,
+      this.aboutMe,
+      this.gender,
+      this.whoCanSee,
+      this.job,
+      this.jobCompany,
+      this.muteNotifications,
+      this.muteMessagesNotifications,
+      this.muteRequestMessagingNotifications,
+      this.showZodiacSign,
+      this.zodiacSign,
+      this.unycoin});
 
-  factory UserDataModel.fromJson(Map<String, dynamic> json) => _$UserDataModelFromJson(json);
+  factory UserDataModel.fromJson(Map<String, dynamic> json) =>
+      _$UserDataModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserDataModelToJson(this);
-
 }

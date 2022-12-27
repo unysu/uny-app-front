@@ -436,7 +436,7 @@ class _AuthorizationInfoPageState extends State<AuthorizationInfoPage> {
                                   Constants.USER_DATA_MODEL_CONVERTER_CONSTANT)
                               .updateUser(token, data);
 
-                      if (updateUserResponse.body!.success == true) {
+                      if (updateUserResponse.body! != null) {
                         setState(() {
                           _showLoading = false;
                         });

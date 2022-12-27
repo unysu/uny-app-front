@@ -8,9 +8,9 @@ part of 'user_data_model.dart';
 
 UserDataModel _$UserDataModelFromJson(Map<String, dynamic> json) =>
     UserDataModel(
-      success: json['success'],
       token: json['token'],
-      phoneNumber: json['phone_number'],
+      phone: json['phone'],
+      country_code_phone: json['country_code_phone'],
       id: json['id'],
       firstName: json['first_name'],
       lastName: json['last_name'],
@@ -31,9 +31,9 @@ UserDataModel _$UserDataModelFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$UserDataModelToJson(UserDataModel instance) =>
     <String, dynamic>{
-      'success': instance.success,
       'token': instance.token,
-      'phone_number': instance.phoneNumber,
+      'phone': instance.phone,
+      'country_code_phone': instance.country_code_phone,
       'id': instance.id,
       'first_name': instance.firstName,
       'last_name': instance.lastName,

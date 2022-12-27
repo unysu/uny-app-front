@@ -20,13 +20,12 @@ import 'package:uny_app/Providers/user_data_provider.dart';
 import 'package:uny_app/Settings%20Page/change_phone_number_page.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
-class EditProfilePage extends StatefulWidget{
+class EditProfilePage extends StatefulWidget {
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-
   FToast? _fToast;
 
   final String _deleteAccountAsset = 'assets/delete_account_icon.svg';
@@ -64,7 +63,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
 
-    _userData = Provider.of<UserDataProvider>(context, listen: false).userDataModel;
+    _userData =
+        Provider.of<UserDataProvider>(context, listen: false).userDataModel;
 
     _fToast = FToast();
 
@@ -79,17 +79,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _nameTextFocusNode = FocusNode();
     _secondNameTextFocusNode = FocusNode();
 
-    _nameTextController!.value = _nameTextController!.value.copyWith(text: _userData!.firstName);
-    _secondNameTextController!.value = _secondNameTextController!.value.copyWith(text: _userData!.lastName);
-    _telephoneTextController!.value = _telephoneTextController!.value.copyWith(text: _userData!.phoneNumber);
-    _birthDateTextController!.value = _birthDateTextController!.value.copyWith(text: _userData!.dateOfBirth);
-    _locationTextController!.value = _locationTextController!.value.copyWith(text: _userData!.location);
+    _nameTextController!.value =
+        _nameTextController!.value.copyWith(text: _userData!.firstName);
+    _secondNameTextController!.value =
+        _secondNameTextController!.value.copyWith(text: _userData!.lastName);
+    _telephoneTextController!.value = _telephoneTextController!.value
+        .copyWith(text: _userData!.country_code_phone + _userData!.phone);
+    _birthDateTextController!.value =
+        _birthDateTextController!.value.copyWith(text: _userData!.dateOfBirth);
+    _locationTextController!.value =
+        _locationTextController!.value.copyWith(text: _userData!.location);
     _showZodiacSign = _userData!.showZodiacSign;
 
     _genderString = _userData!.gender;
 
-    _companyNameTextController!.value = _companyNameTextController!.value.copyWith(text: _userData!.jobCompany ?? '');
-    _positionTextController!.value = _positionTextController!.value.copyWith(text: _userData!.job ?? '');
+    _companyNameTextController!.value = _companyNameTextController!.value
+        .copyWith(text: _userData!.jobCompany ?? '');
+    _positionTextController!.value =
+        _positionTextController!.value.copyWith(text: _userData!.job ?? '');
 
     _iAmNotWorking = _positionTextController!.value.text == '';
 
@@ -118,69 +125,86 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-       height = constraints.maxHeight;
-       width = constraints.maxWidth;
-       return ResponsiveWrapper.builder(
-         Scaffold(
-           appBar: AppBar(
-             elevation: 0,
-             systemOverlayStyle: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
-             centerTitle: false,
-             backgroundColor: Colors.grey.withOpacity(0),
-             title: Text('Редактировать профиль', style: TextStyle(fontSize: 20, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
-             leading: IconButton(
-               onPressed: () => Navigator.pop(context),
-               icon: Icon(Icons.arrow_back, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
-             ),
-             actions: [
-               Center(
-                 child: _showLoading
-                     ? Padding(
-                   padding: EdgeInsets.only(right: 10),
-                   child: SizedBox(
-                     height: 25,
-                     width: 25,
-                     child: CircularProgressIndicator(
-                       strokeWidth: 2,
-                       color: Color.fromRGBO(145, 10, 251, 5),
-                     ),
-                   ),
-                 )
-                     : TextButton(
-                   child: Text(
-                       'Сохранить',
-                       style: TextStyle(
-                           color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
-                           fontSize: 15
-                       )),
-                   onPressed: (){
-                     validate();
-                   },
-                 ),
-               )
-             ],
-           ),
-           body: mainBody(),
-         ),
-         maxWidth: 800,
-         minWidth: 450,
-         defaultScale: true,
-         breakpoints: [
-           ResponsiveBreakpoint.resize(450, name: MOBILE),
-           ResponsiveBreakpoint.autoScale(800, name: MOBILE),
-         ],
-       );
+        height = constraints.maxHeight;
+        width = constraints.maxWidth;
+        return ResponsiveWrapper.builder(
+          Scaffold(
+            appBar: AppBar(
+              elevation: 0,
+              systemOverlayStyle:
+                  AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                      ? SystemUiOverlayStyle.dark
+                      : SystemUiOverlayStyle.light,
+              centerTitle: false,
+              backgroundColor: Colors.grey.withOpacity(0),
+              title: Text('Редактировать профиль',
+                  style: TextStyle(
+                      fontSize: 20,
+                      color: AdaptiveTheme.of(context).mode ==
+                              AdaptiveThemeMode.light
+                          ? Colors.black
+                          : Colors.white,
+                      fontWeight: FontWeight.bold)),
+              leading: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(Icons.arrow_back,
+                    color: AdaptiveTheme.of(context).mode ==
+                            AdaptiveThemeMode.light
+                        ? Colors.grey
+                        : Colors.white),
+              ),
+              actions: [
+                Center(
+                  child: _showLoading
+                      ? Padding(
+                          padding: EdgeInsets.only(right: 10),
+                          child: SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color.fromRGBO(145, 10, 251, 5),
+                            ),
+                          ),
+                        )
+                      : TextButton(
+                          child: Text('Сохранить',
+                              style: TextStyle(
+                                  color: AdaptiveTheme.of(context).mode ==
+                                          AdaptiveThemeMode.light
+                                      ? Color.fromRGBO(145, 10, 251, 5)
+                                      : Colors.purpleAccent,
+                                  fontSize: 15)),
+                          onPressed: () {
+                            validate();
+                          },
+                        ),
+                )
+              ],
+            ),
+            body: mainBody(),
+          ),
+          maxWidth: 800,
+          minWidth: 450,
+          defaultScale: true,
+          breakpoints: [
+            ResponsiveBreakpoint.resize(450, name: MOBILE),
+            ResponsiveBreakpoint.autoScale(800, name: MOBILE),
+          ],
+        );
       },
     );
   }
 
-  Widget mainBody(){
+  Widget mainBody() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: width / 20, vertical: height / 30),
+      padding:
+          EdgeInsets.symmetric(horizontal: width / 20, vertical: height / 30),
       child: ListView(
         physics: BouncingScrollPhysics(),
         children: [
-          Text('Основная информация', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+          Text('Основная информация',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
           Container(
               padding: EdgeInsets.only(top: height / 50),
               child: Column(
@@ -189,38 +213,56 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     controller: _nameTextController,
                     focusNode: _nameTextFocusNode,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                    style: TextStyle(
+                        color: AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light
+                            ? Colors.black
+                            : Colors.white),
                     textInputAction: TextInputAction.done,
                     textAlign: TextAlign.right,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                      FilteringTextInputFormatter.allow(
+                          RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
                       FilteringTextInputFormatter.deny(RegExp("/"))
                     ],
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: height / 50, horizontal: 10),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Имя:', style: TextStyle(
-                            fontSize: 17,
-                            color: _nameTextFocusNode!.hasFocus ? Color.fromRGBO(145, 10, 251, 5) : AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
+                        child: Text('Имя:',
+                            style: TextStyle(
+                                fontSize: 17,
+                                color: _nameTextFocusNode!.hasFocus
+                                    ? Color.fromRGBO(145, 10, 251, 5)
+                                    : AdaptiveTheme.of(context).mode ==
+                                            AdaptiveThemeMode.light
+                                        ? Colors.grey
+                                        : Colors.white)),
                       ),
-                      prefixIconConstraints: BoxConstraints(minWidth: 10, minHeight: 10),
+                      prefixIconConstraints:
+                          BoxConstraints(minWidth: 10, minHeight: 10),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
                       fillColor: Colors.grey.withOpacity(0.1),
                       filled: true,
                       isDense: true,
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: _containsSymbolsAndNumbersTextField1 ? Colors.red : Colors.white),
+                        borderSide: BorderSide(
+                            color: _containsSymbolsAndNumbersTextField1
+                                ? Colors.red
+                                : Colors.white),
                         borderRadius: BorderRadius.circular(15),
                       ),
-
-                      focusedBorder:  OutlineInputBorder(
-                        borderSide: BorderSide(color: _containsSymbolsAndNumbersTextField1 ? Colors.red : Colors.grey.withOpacity(0.5)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: _containsSymbolsAndNumbersTextField1
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    onTap: (){
+                    onTap: () {
                       _secondNameTextFocusNode!.unfocus();
 
                       Focus.of(context).requestFocus(_nameTextFocusNode);
@@ -236,30 +278,48 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textCapitalization: TextCapitalization.sentences,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                      FilteringTextInputFormatter.allow(
+                          RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
                       FilteringTextInputFormatter.deny(RegExp("/"))
                     ],
-                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                    style: TextStyle(
+                        color: AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light
+                            ? Colors.black
+                            : Colors.white),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: height / 50, horizontal: 10),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Фамилия:', style: TextStyle(
-                            fontSize: 17,
-                            color: _secondNameTextFocusNode!.hasFocus ? Color.fromRGBO(145, 10, 251, 5) : AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
+                        child: Text('Фамилия:',
+                            style: TextStyle(
+                                fontSize: 17,
+                                color: _secondNameTextFocusNode!.hasFocus
+                                    ? Color.fromRGBO(145, 10, 251, 5)
+                                    : AdaptiveTheme.of(context).mode ==
+                                            AdaptiveThemeMode.light
+                                        ? Colors.grey
+                                        : Colors.white)),
                       ),
-                      prefixIconConstraints: BoxConstraints(minWidth: 10, minHeight: 10),
+                      prefixIconConstraints:
+                          BoxConstraints(minWidth: 10, minHeight: 10),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
                       fillColor: Colors.grey.withOpacity(0.1),
                       filled: true,
                       isDense: true,
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: _containsSymbolsAndNumbersTextField2 ? Colors.red : Colors.white),
+                        borderSide: BorderSide(
+                            color: _containsSymbolsAndNumbersTextField2
+                                ? Colors.red
+                                : Colors.white),
                         borderRadius: BorderRadius.circular(15),
                       ),
-
-                      focusedBorder:  OutlineInputBorder(
-                        borderSide: BorderSide(color: _containsSymbolsAndNumbersTextField2 ? Colors.red : Colors.grey.withOpacity(0.5)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: _containsSymbolsAndNumbersTextField2
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
@@ -275,42 +335,76 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textInputAction: TextInputAction.done,
                     readOnly: true,
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                    style: TextStyle(
+                        color: AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light
+                            ? Colors.black
+                            : Colors.white),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: height / 50),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Пол:', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
+                        child: Text('Пол:',
+                            style: TextStyle(
+                                fontSize: 17,
+                                color: AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                    ? Colors.grey
+                                    : Colors.white)),
                       ),
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 10),
-                        child: DropdownButton<String>(
-                          value: _genderString,
-                          icon: Icon(Icons.keyboard_arrow_down_sharp, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white),
-                          underline: Container(),
-                          items: [
-                            DropdownMenuItem(
-                              value: 'male',
-                              child: Text('Мужской', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
-                            ),
-                            DropdownMenuItem(
-                              value: 'female',
-                              child:  Text('Женский', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
-                            ),
-                            DropdownMenuItem(
-                              value: 'other',
-                              child:  Text('Другое', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white)),
-                            )
-                          ],
-                          onChanged: (value){
-                            setState(() {
-                              _genderString = value!;
-                            });
-                          },
-                        )
-                      ),
-                      prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+                          padding: EdgeInsets.only(right: 10),
+                          child: DropdownButton<String>(
+                            value: _genderString,
+                            icon: Icon(Icons.keyboard_arrow_down_sharp,
+                                color: AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                    ? Colors.grey
+                                    : Colors.white),
+                            underline: Container(),
+                            items: [
+                              DropdownMenuItem(
+                                value: 'male',
+                                child: Text('Мужской',
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        color: AdaptiveTheme.of(context).mode ==
+                                                AdaptiveThemeMode.light
+                                            ? Colors.black
+                                            : Colors.white)),
+                              ),
+                              DropdownMenuItem(
+                                value: 'female',
+                                child: Text('Женский',
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        color: AdaptiveTheme.of(context).mode ==
+                                                AdaptiveThemeMode.light
+                                            ? Colors.black
+                                            : Colors.white)),
+                              ),
+                              DropdownMenuItem(
+                                value: 'other',
+                                child: Text('Другое',
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        color: AdaptiveTheme.of(context).mode ==
+                                                AdaptiveThemeMode.light
+                                            ? Colors.black
+                                            : Colors.white)),
+                              )
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _genderString = value!;
+                              });
+                            },
+                          )),
+                      prefixIconConstraints:
+                          BoxConstraints(minWidth: 0, minHeight: 0),
+                      suffixIconConstraints:
+                          BoxConstraints(minWidth: 0, minHeight: 0),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
                       fillColor: Colors.grey.withOpacity(0.1),
                       filled: true,
@@ -319,9 +413,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         borderSide: BorderSide(color: Colors.white),
                         borderRadius: BorderRadius.circular(15),
                       ),
-
-                      focusedBorder:  OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.grey.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
@@ -334,26 +428,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.right,
                     readOnly: true,
-                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                    style: TextStyle(
+                        color: AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light
+                            ? Colors.black
+                            : Colors.white),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: height / 50),
                       suffixIcon: Container(
                         child: IconButton(
-                          icon: Icon(Icons.keyboard_arrow_right_rounded, color: Colors.grey),
-                          onPressed: (){
+                          icon: Icon(Icons.keyboard_arrow_right_rounded,
+                              color: Colors.grey),
+                          onPressed: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ChangePhoneNumberPage())
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ChangePhoneNumberPage()));
                           },
                         ),
                       ),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Телефон:', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
+                        child: Text('Телефон:',
+                            style: TextStyle(
+                                fontSize: 17,
+                                color: AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                    ? Colors.grey
+                                    : Colors.white)),
                       ),
-                      prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+                      prefixIconConstraints:
+                          BoxConstraints(minWidth: 0, minHeight: 0),
+                      suffixIconConstraints:
+                          BoxConstraints(minWidth: 0, minHeight: 0),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
                       fillColor: Colors.grey.withOpacity(0.1),
                       filled: true,
@@ -362,9 +471,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         borderSide: BorderSide(color: Colors.white),
                         borderRadius: BorderRadius.circular(15),
                       ),
-
-                      focusedBorder:  OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.grey.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
@@ -377,18 +486,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     cursorColor: Color.fromRGBO(145, 10, 251, 5),
                     textAlign: TextAlign.right,
                     readOnly: true,
-                    style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
+                    style: TextStyle(
+                        color: AdaptiveTheme.of(context).mode ==
+                                AdaptiveThemeMode.light
+                            ? Colors.black
+                            : Colors.white),
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(vertical: height / 50),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: height / 50),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.calendar_today_outlined, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent),
+                        icon: Icon(Icons.calendar_today_outlined,
+                            color: AdaptiveTheme.of(context).mode ==
+                                    AdaptiveThemeMode.light
+                                ? Color.fromRGBO(145, 10, 251, 5)
+                                : Colors.purpleAccent),
                         onPressed: () => showDatePicker(),
                       ),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 10),
-                        child: Text('Дата рождения:', style: TextStyle(fontSize: 17, color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.grey : Colors.white)),
+                        child: Text('Дата рождения:',
+                            style: TextStyle(
+                                fontSize: 17,
+                                color: AdaptiveTheme.of(context).mode ==
+                                        AdaptiveThemeMode.light
+                                    ? Colors.grey
+                                    : Colors.white)),
                       ),
-                      prefixIconConstraints: BoxConstraints(minWidth: 10, minHeight: 10),
+                      prefixIconConstraints:
+                          BoxConstraints(minWidth: 10, minHeight: 10),
                       hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
                       fillColor: Colors.grey.withOpacity(0.1),
                       filled: true,
@@ -397,25 +522,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         borderSide: BorderSide(color: Colors.white),
                         borderRadius: BorderRadius.circular(15),
                       ),
-
-                      focusedBorder:  OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.grey.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                   ),
                 ],
-              )
-          ),
+              )),
           SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Отображать знак зодиака', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text('Отображать знак зодиака',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               Switch.adaptive(
-                activeColor: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
+                activeColor:
+                    AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                        ? Color.fromRGBO(145, 10, 251, 5)
+                        : Colors.purpleAccent,
                 value: _showZodiacSign,
-                onChanged: (value){
+                onChanged: (value) {
                   setState(() {
                     _showZodiacSign = value;
                   });
@@ -446,7 +574,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 cursorColor: Color.fromRGBO(145, 10, 251, 5),
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                  FilteringTextInputFormatter.allow(
+                      RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
                   FilteringTextInputFormatter.deny(RegExp("/"))
                 ],
                 style: TextStyle(color: Colors.black),
@@ -460,34 +589,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     borderSide: BorderSide(color: Colors.white),
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  focusedBorder:  OutlineInputBorder(
+                  focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),
-              itemBuilder: (context, city){
+              itemBuilder: (context, city) {
                 return ListTile(
                   title: Text(city),
                 );
               },
-
-              onSuggestionSelected: (city){
-                _locationTextController!.value = _locationTextController!.value.copyWith(text: city);
+              onSuggestionSelected: (city) {
+                _locationTextController!.value =
+                    _locationTextController!.value.copyWith(text: city);
               },
-
-              noItemsFoundBuilder: (context){
+              noItemsFoundBuilder: (context) {
                 return Container(
                     child: Center(
-                      child: Text('Город не найден'),
-                    )
-                );
+                  child: Text('Город не найден'),
+                ));
               },
-
-              suggestionsCallback: (pattern){
+              suggestionsCallback: (pattern) {
                 return RussianCities.getCities(pattern);
-              }
-          ),
+              }),
           SizedBox(height: 10),
           Divider(thickness: 1),
           Text(
@@ -498,11 +623,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Я не работаю', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text('Я не работаю',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               Switch.adaptive(
-                activeColor: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Color.fromRGBO(145, 10, 251, 5) : Colors.purpleAccent,
+                activeColor:
+                    AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light
+                        ? Color.fromRGBO(145, 10, 251, 5)
+                        : Colors.purpleAccent,
                 value: _iAmNotWorking,
-                onChanged: (value){
+                onChanged: (value) {
                   setState(() {
                     _iAmNotWorking = value;
                   });
@@ -513,67 +642,83 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SizedBox(height: 10),
           AnimatedSwitcher(
             duration: Duration(milliseconds: 300),
-            child: !_iAmNotWorking ? Column(
-              children: [
-                TextFormField(
-                  controller: _companyNameTextController,
-                  textInputAction: TextInputAction.done,
-                  textCapitalization: TextCapitalization.sentences,
-                  cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
-                    FilteringTextInputFormatter.deny(RegExp("/"))
-                  ],
-                  style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: width / 15),
-                    hintText: 'Название компании',
-                    hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
-                    fillColor: Colors.grey.withOpacity(0.1),
-                    filled: true,
-                    isDense: true,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-
-                    focusedBorder:  OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _positionTextController,
-                  textInputAction: TextInputAction.done,
-                  cursorColor: Color.fromRGBO(145, 10, 251, 5),
-                  textCapitalization: TextCapitalization.sentences,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
-                    FilteringTextInputFormatter.deny(RegExp("/"))
-                  ],
-                  style: TextStyle(color: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light ? Colors.black : Colors.white),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: height / 50, horizontal: width / 15),
-                    hintText: 'Должность в компании',
-                    hintStyle: TextStyle(fontSize: 17, color: Colors.grey),
-                    fillColor: Colors.grey.withOpacity(0.1),
-                    filled: true,
-                    isDense: true,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-
-                    focusedBorder:  OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-              ],
-            ) : Container(),
+            child: !_iAmNotWorking
+                ? Column(
+                    children: [
+                      TextFormField(
+                        controller: _companyNameTextController,
+                        textInputAction: TextInputAction.done,
+                        textCapitalization: TextCapitalization.sentences,
+                        cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                          FilteringTextInputFormatter.deny(RegExp("/"))
+                        ],
+                        style: TextStyle(
+                            color: AdaptiveTheme.of(context).mode ==
+                                    AdaptiveThemeMode.light
+                                ? Colors.black
+                                : Colors.white),
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: height / 50, horizontal: width / 15),
+                          hintText: 'Название компании',
+                          hintStyle:
+                              TextStyle(fontSize: 17, color: Colors.grey),
+                          fillColor: Colors.grey.withOpacity(0.1),
+                          filled: true,
+                          isDense: true,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.grey.withOpacity(0.5)),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _positionTextController,
+                        textInputAction: TextInputAction.done,
+                        cursorColor: Color.fromRGBO(145, 10, 251, 5),
+                        textCapitalization: TextCapitalization.sentences,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp("[a-zA-Z\u0401\u0451\u0410-\u044f/g]")),
+                          FilteringTextInputFormatter.deny(RegExp("/"))
+                        ],
+                        style: TextStyle(
+                            color: AdaptiveTheme.of(context).mode ==
+                                    AdaptiveThemeMode.light
+                                ? Colors.black
+                                : Colors.white),
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: height / 50, horizontal: width / 15),
+                          hintText: 'Должность в компании',
+                          hintStyle:
+                              TextStyle(fontSize: 17, color: Colors.grey),
+                          fillColor: Colors.grey.withOpacity(0.1),
+                          filled: true,
+                          isDense: true,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.grey.withOpacity(0.5)),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Container(),
           ),
           SizedBox(height: 10),
           Divider(thickness: 8, color: Colors.grey.withOpacity(0.2)),
@@ -596,21 +741,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
               height: height / 18,
               child: Center(
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(_deleteAccountAsset),
-                      SizedBox(width: 10),
-                      Text('Удалить аккаунт Uny', style: TextStyle(fontSize: 17))
-                    ],
-                  )
-              ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(_deleteAccountAsset),
+                  SizedBox(width: 10),
+                  Text('Удалить аккаунт Uny', style: TextStyle(fontSize: 17))
+                ],
+              )),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(11),
-                  border: Border.all(
-                      color: Colors.grey,
-                      width: 0.5
-                  )
-              ),
+                  border: Border.all(color: Colors.grey, width: 0.5)),
             ),
           )
         ],
@@ -618,17 +758,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  void showDatePicker(){
+  void showDatePicker() {
     showCupertinoModalPopup(
         context: context,
-        builder: (context){
+        builder: (context) {
           return Material(
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             child: Container(
                 height: (width / 2) * 1.9,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20)),
                 ),
                 child: Column(
                   children: [
@@ -638,13 +781,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(width: width / 8),
-                          Text('Дата рождения', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          Text('Дата рождения',
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold)),
                           Container(
                             child: IconButton(
-                              icon: Icon(
-                                  CupertinoIcons.clear_thick_circled,
+                              icon: Icon(CupertinoIcons.clear_thick_circled,
                                   color: Colors.grey.withOpacity(0.5)),
-                              onPressed: (){
+                              onPressed: () {
                                 Navigator.pop(context);
                               },
                             ),
@@ -659,7 +803,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         dateOrder: DatePickerDateOrder.dmy,
                         initialDateTime: _date,
                         mode: CupertinoDatePickerMode.date,
-                        onDateTimeChanged: (dateTime){
+                        onDateTimeChanged: (dateTime) {
                           setState(() {
                             _date = dateTime;
                           });
@@ -670,41 +814,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       width: 500,
                       padding: EdgeInsets.only(left: 24, right: 24, top: 20),
                       child: FloatingActionButton.extended(
-                        onPressed: (){
-
-                          if(DateTime.now().year - (_date.year) < 18){
+                        onPressed: () {
+                          if (DateTime.now().year - (_date.year) < 18) {
                             _showDatePickerToast();
-                          }else if(DateTime.now().year - (_date.year) > 100){
+                          } else if (DateTime.now().year - (_date.year) > 100) {
                             _showDatePickerToast();
-                          }else{
-
+                          } else {
                             var formatter = DateFormat('dd-MM-yyyy');
                             var date = formatter.format(_date);
-                            _birthDateTextController!.value = _birthDateTextController!.value.copyWith(text: date);
+                            _birthDateTextController!.value =
+                                _birthDateTextController!.value
+                                    .copyWith(text: date);
 
                             Navigator.pop(context);
                           }
                         },
-                        label: Text('Готово', style: TextStyle(fontSize: 17, color: Colors.white)),
+                        label: Text('Готово',
+                            style:
+                                TextStyle(fontSize: 17, color: Colors.white)),
                         backgroundColor: Color.fromRGBO(145, 10, 251, 5),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(11))
-                        ),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(11))),
                       ),
                     )
                   ],
-                )
-            ),
+                )),
           );
-        }
-    );
+        });
   }
 
   void _showDeleteUnyAccountDialog() {
-    if(UniversalPlatform.isIOS){
+    if (UniversalPlatform.isIOS) {
       showCupertinoModalPopup(
           context: context,
-          builder: (context){
+          builder: (context) {
             print(TokenData.getUserToken());
             return CupertinoActionSheet(
               title: Text.rich(
@@ -714,10 +858,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     children: const [
                       TextSpan(
                           text: 'Это действие невозможно отменить.',
-                          style: TextStyle(color: Colors.red, fontSize: 15)
-                      ),
-                    ]
-                ),
+                          style: TextStyle(color: Colors.red, fontSize: 15)),
+                    ]),
                 textAlign: TextAlign.center,
                 maxLines: 2,
               ),
@@ -728,13 +870,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                     String token = 'Bearer ' + tokenValue;
 
-                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount(token);
+                    Response<AuthModel> response = await UnyAPI.create(
+                            Constants.AUTH_MODEL_CONVERTER_CONSTANT)
+                        .removeAccount(token);
 
-                    if(response.body!.success == true){
+                    if (response.body!.success == true) {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => AuthorizationPage()),
-                            (Route<dynamic> route) => false,
+                        MaterialPageRoute(
+                            builder: (context) => AuthorizationPage()),
+                        (Route<dynamic> route) => false,
                       );
                     }
                   },
@@ -747,12 +892,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: Text('Отмена'),
               ),
             );
-          }
-      );
-    }else if(UniversalPlatform.isAndroid){
+          });
+    } else if (UniversalPlatform.isAndroid) {
       showDialog(
           context: context,
-          builder: (context){
+          builder: (context) {
             return AlertDialog(
               title: Text.rich(
                 TextSpan(
@@ -760,11 +904,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     style: TextStyle(color: Colors.black, fontSize: 15),
                     children: const [
                       TextSpan(
-                          text: 'Это действие невозможно отменить.',
-                          style: TextStyle(color: Colors.red, fontSize: 15),
+                        text: 'Это действие невозможно отменить.',
+                        style: TextStyle(color: Colors.red, fontSize: 15),
                       ),
-                    ]
-                ),
+                    ]),
                 textAlign: TextAlign.center,
                 maxLines: 2,
               ),
@@ -774,37 +917,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     String? tokenValue = TokenData.getUserToken();
 
                     String token = 'Bearer ' + tokenValue;
-                    Response<AuthModel> response = await UnyAPI.create(Constants.AUTH_MODEL_CONVERTER_CONSTANT).removeAccount(token);
+                    Response<AuthModel> response = await UnyAPI.create(
+                            Constants.AUTH_MODEL_CONVERTER_CONSTANT)
+                        .removeAccount(token);
 
-                    if(response.body!.success == true){
+                    if (response.body!.success == true) {
                       TokenData.clearToken();
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => AuthorizationPage()),
-                            (Route<dynamic> route) => false,
+                        MaterialPageRoute(
+                            builder: (context) => AuthorizationPage()),
+                        (Route<dynamic> route) => false,
                       );
                     }
                   },
-                  child: Text('Удалить аккаунт', style: TextStyle(color: Colors.red)),
+                  child: Text('Удалить аккаунт',
+                      style: TextStyle(color: Colors.red)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Отмена', style: TextStyle(color: Colors.lightBlueAccent)),
+                  child: Text('Отмена',
+                      style: TextStyle(color: Colors.lightBlueAccent)),
                 ),
               ],
             );
-          }
-      );
+          });
     }
   }
 
-  void validate(){
+  void validate() {
     String _name = _nameTextController!.text;
     String _secondName = _secondNameTextController!.text;
 
-    if(_name == '' || _secondName == ''){
+    if (_name == '' || _secondName == '') {
       _showToast(2);
-    }else{
+    } else {
       setState(() {
         _containsSymbolsAndNumbersTextField1 = false;
         _containsSymbolsAndNumbersTextField2 = false;
@@ -824,12 +971,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          index == 0 ?
-          Text("Имя не может содержать цифры и символы", style: TextStyle(color: Colors.white))
-          : index == 1
-          ?  Text("Фамилия не может содержать цифры и символы", style: TextStyle(color: Colors.white))
-          : index == 2
-          ? Text("Поля не должны быть пустыми", style: TextStyle(color: Colors.white)) : Container(),
+          index == 0
+              ? Text("Имя не может содержать цифры и символы",
+                  style: TextStyle(color: Colors.white))
+              : index == 1
+                  ? Text("Фамилия не может содержать цифры и символы",
+                      style: TextStyle(color: Colors.white))
+                  : index == 2
+                      ? Text("Поля не должны быть пустыми",
+                          style: TextStyle(color: Colors.white))
+                      : Container(),
           SizedBox(
             height: 20,
             width: 20,
@@ -846,7 +997,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  void _showDatePickerToast(){
+  void _showDatePickerToast() {
     Widget toast = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
       decoration: BoxDecoration(
@@ -856,7 +1007,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Возраст должен быть от 18 до 100", style: TextStyle(color: Colors.white)),
+          Text("Возраст должен быть от 18 до 100",
+              style: TextStyle(color: Colors.white)),
           SizedBox(
             height: 20,
             width: 20,
@@ -874,34 +1026,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _updateProfile() async {
-
     String token = 'Bearer ' + TokenData.getUserToken();
 
-    setState((){
+    setState(() {
       _showLoading = true;
     });
 
     var data = {
-      'first_name' : _nameTextController!.text,
-      'last_name' : _secondNameTextController!.text,
-      'gender' : _genderString,
-      'phone_number' : _telephoneTextController!.text,
-      'date_of_birth' : _birthDateTextController!.text,
-      'location' : _locationTextController!.text,
-      'job_company' : _iAmNotWorking ? '' : _companyNameTextController!.text,
-      'job' : _iAmNotWorking ? '' : _positionTextController!.text,
-      'show_zodiac_sign' : _showZodiacSign.toString()
+      'first_name': _nameTextController!.text,
+      'last_name': _secondNameTextController!.text,
+      'gender': _genderString,
+      'phone_number': _telephoneTextController!.text,
+      'date_of_birth': _birthDateTextController!.text,
+      'location': _locationTextController!.text,
+      'job_company': _iAmNotWorking ? '' : _companyNameTextController!.text,
+      'job': _iAmNotWorking ? '' : _positionTextController!.text,
+      'show_zodiac_sign': _showZodiacSign.toString()
     };
 
-    await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).updateUser(token, data).whenComplete(() async {
+    await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT)
+        .updateUser(token, data)
+        .whenComplete(() async {
       _showLoading = false;
 
-      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT).getCurrentUser(token).then((value){
-        Provider.of<UserDataProvider>(context, listen: false).setUserDataModel(value.body!.user);
+      await UnyAPI.create(Constants.ALL_USER_DATA_MODEL_CONVERTER_CONSTANT)
+          .getCurrentUser(token)
+          .then((value) {
+        Provider.of<UserDataProvider>(context, listen: false)
+            .setUserDataModel(value.body!.user);
 
         Navigator.pop(context);
       });
     });
-
   }
 }

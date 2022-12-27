@@ -221,15 +221,21 @@ class _PhoneNumberConfirmationPageState
                             'sms_key': '1111'
                           };
 
+                          print('before response');
+
                           Response<UserDataModel> response =
                               await UnyAPI.create(Constants
                                       .USER_DATA_MODEL_CONVERTER_CONSTANT)
                                   .confirmCode(data);
 
+                          print('after response');
+
                           if (response.body != null) {
                             UserDataModel userData = response.body!;
+                            print('after userData is initialised');
 
-                            if (userData.token == null) {
+                            // if (userData.token == null) {
+                            if (false) {
                               setState(() {
                                 isWrong = false;
                                 showLoading = false;
@@ -241,14 +247,19 @@ class _PhoneNumberConfirmationPageState
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => GenderPage()));
-                              // } else if (test == false) {
-                            } else if (userData.token != null) {
+                              // } else if (userData.token != null) {
+                            } else if (true) {
                               setState(() {
                                 isWrong = false;
                                 showLoading = false;
                               });
 
-                              TokenData.setUserToken(userData.token);
+                              print('before setUserToken');
+                              // print(response.token);
+
+                              // TokenData.setUserToken(userData.token);
+
+                              print('after setUserToken');
 
                               Navigator.push(
                                   context,
