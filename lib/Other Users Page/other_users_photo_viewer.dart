@@ -3,23 +3,21 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:uny_app/App%20Bar%20/sliding_app_bar.dart';
+import 'package:uny_app/App%20Bar/sliding_app_bar.dart';
 import 'package:uny_app/Data%20Models/Media%20Data%20Model/media_data_model.dart';
 import 'package:uny_app/Token%20Data/token_data.dart';
 
-class OtherUsersPhotoViewer extends StatefulWidget{
-
+class OtherUsersPhotoViewer extends StatefulWidget {
   List<MediaModel>? photos;
 
   OtherUsersPhotoViewer({required this.photos});
-  
+
   @override
   _OtherUsersPhotoViewerState createState() => _OtherUsersPhotoViewerState();
 }
 
-class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with SingleTickerProviderStateMixin{
-
-
+class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer>
+    with SingleTickerProviderStateMixin {
   FToast? _fToast;
 
   final bool _showLoading = false;
@@ -68,14 +66,14 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
         width = constraints.maxWidth;
         return ResponsiveWrapper.builder(
           Scaffold(
-            backgroundColor: Colors.black,
+              backgroundColor: Colors.black,
               extendBodyBehindAppBar: true,
               body: GestureDetector(
                 child: Padding(
                   padding: EdgeInsets.only(top: height / 40),
                   child: mainBody(),
                 ),
-                onTap: (){
+                onTap: () {
                   setState(() {
                     _showAppBar = !_showAppBar;
                   });
@@ -87,11 +85,12 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
                 child: AppBar(
                   automaticallyImplyLeading: false,
                   backgroundColor: Color.fromRGBO(44, 44, 49, 10),
-                  title: Text('Фотография', style: TextStyle(color: Colors.white)),
+                  title:
+                      Text('Фотография', style: TextStyle(color: Colors.white)),
                   centerTitle: true,
                   leading: Padding(
                     padding: EdgeInsets.only(left: 10),
-                    child:  FittedBox(
+                    child: FittedBox(
                       child: InkWell(
                         onTap: () => Navigator.pop(context),
                         child: Text('Закрыть', style: TextStyle(fontSize: 20)),
@@ -100,8 +99,7 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
                   ),
                   leadingWidth: width / 5,
                 ),
-              )
-          ),
+              )),
           maxWidth: 800,
           minWidth: 450,
           defaultScale: true,
@@ -114,7 +112,7 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
     );
   }
 
-  Widget mainBody(){
+  Widget mainBody() {
     return Container(
       color: Colors.black,
       child: ListView(
@@ -135,12 +133,11 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
                       pageSnapping: true,
                       enlargeStrategy: CenterPageEnlargeStrategy.scale,
                       scrollDirection: Axis.horizontal,
-                      onPageChanged: (index, reason){
+                      onPageChanged: (index, reason) {
                         picsState!(() {
                           _currentPic = index + 1;
                         });
-                      }
-                  ),
+                      }),
                   items: List.generate(photos!.length, (index) {
                     return AspectRatio(
                       aspectRatio: 1,
@@ -154,50 +151,58 @@ class _OtherUsersPhotoViewerState extends State<OtherUsersPhotoViewer> with Sing
               ),
               Center(
                   heightFactor: 8,
-                  child: _showLoading ? ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                      height: 80,
-                      width: 80,
-                      color: Colors.black.withOpacity(0.7),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ) : Container()
-              )
+                  child: _showLoading
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 20, horizontal: 20),
+                            height: 80,
+                            width: 80,
+                            color: Colors.black.withOpacity(0.7),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      : Container())
             ],
           ),
           AnimatedSwitcher(
             duration: Duration(milliseconds: 400),
-            transitionBuilder: (child, transition){
+            transitionBuilder: (child, transition) {
               return SlideTransition(
-                position: Tween<Offset>(begin: Offset.zero, end: Offset(0, 2)).animate(
-                  CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn),
+                position: Tween<Offset>(begin: Offset.zero, end: Offset(0, 2))
+                    .animate(
+                  CurvedAnimation(
+                      parent: _controller, curve: Curves.fastOutSlowIn),
                 ),
                 child: child,
               );
             },
-            child: _showAppBar ? StatefulBuilder(
-              builder: (context, setState){
-                picsState = setState;
-                return Container(
-                    padding: EdgeInsets.only(top: 40),
-                    child: Column(
-                      children: [
-                        Text('$_currentPic из ${photos!.length}', style: TextStyle(fontSize: 17, color: Colors.white)),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: indicators(photos!.length, _currentPic),
-                        ),
-                      ],
-                    )
-                );
-              },
-            ) : null,
+            child: _showAppBar
+                ? StatefulBuilder(
+                    builder: (context, setState) {
+                      picsState = setState;
+                      return Container(
+                          padding: EdgeInsets.only(top: 40),
+                          child: Column(
+                            children: [
+                              Text('$_currentPic из ${photos!.length}',
+                                  style: TextStyle(
+                                      fontSize: 17, color: Colors.white)),
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children:
+                                    indicators(photos!.length, _currentPic),
+                              ),
+                            ],
+                          ));
+                    },
+                  )
+                : null,
           )
         ],
       ),
